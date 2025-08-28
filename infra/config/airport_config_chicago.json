@@ -1,0 +1,113 @@
+{
+  "airports": {
+    "ORD": {
+      "name": "O'Hare International Airport",
+      "iata": "ORD",
+      "icao": "KORD",
+      "timezone": "America/Chicago",
+      "terminals": {
+        "1": {
+          "name": "Terminal 1",
+          "pickup_zones": {
+            "domestic": {
+              "coordinates": [[-87.9048, 41.9786], [-87.9050, 41.9788], [-87.9052, 41.9786], [-87.9050, 41.9784]],
+              "instructions": "Pickup at Terminal 1 domestic arrivals, Door 1A-1E"
+            },
+            "international": {
+              "coordinates": [[-87.9048, 41.9786], [-87.9050, 41.9788], [-87.9052, 41.9786], [-87.9050, 41.9784]],
+              "instructions": "Pickup at Terminal 1 international arrivals, Door 1F"
+            }
+          },
+          "grace_minutes": 15,
+          "airport_fee_cents": 0
+        },
+        "2": {
+          "name": "Terminal 2",
+          "pickup_zones": {
+            "domestic": {
+              "coordinates": [[-87.9058, 41.9790], [-87.9060, 41.9792], [-87.9062, 41.9790], [-87.9060, 41.9788]],
+              "instructions": "Pickup at Terminal 2 domestic arrivals, Door 2A-2E"
+            }
+          },
+          "grace_minutes": 15,
+          "airport_fee_cents": 0
+        },
+        "3": {
+          "name": "Terminal 3",
+          "pickup_zones": {
+            "domestic": {
+              "coordinates": [[-87.9068, 41.9794], [-87.9070, 41.9796], [-87.9072, 41.9794], [-87.9070, 41.9792]],
+              "instructions": "Pickup at Terminal 3 domestic arrivals, Door 3A-3E"
+            }
+          },
+          "grace_minutes": 15,
+          "airport_fee_cents": 0
+        },
+        "5": {
+          "name": "Terminal 5 (International)",
+          "pickup_zones": {
+            "international": {
+              "coordinates": [[-87.9078, 41.9798], [-87.9080, 41.9800], [-87.9082, 41.9798], [-87.9080, 41.9796]],
+              "instructions": "Pickup at Terminal 5 international arrivals, Door 5A-5E"
+            }
+          },
+          "grace_minutes": 20,
+          "airport_fee_cents": 0
+        }
+      },
+      "staging_lot": {
+        "coordinates": [[-87.9100, 41.9750], [-87.9120, 41.9760], [-87.9130, 41.9740], [-87.9110, 41.9730]],
+        "capacity": 200,
+        "instructions": "Enter staging lot via Bessie Coleman Drive, follow signs to rideshare staging"
+      },
+      "meet_and_greet_fee_cents": 1500
+    },
+    "MDW": {
+      "name": "Chicago Midway International Airport",
+      "iata": "MDW",
+      "icao": "KMDW",
+      "timezone": "America/Chicago",
+      "terminals": {
+        "A": {
+          "name": "Terminal A",
+          "pickup_zones": {
+            "domestic": {
+              "coordinates": [[-87.7524, 41.7868], [-87.7526, 41.7870], [-87.7528, 41.7868], [-87.7526, 41.7866]],
+              "instructions": "Pickup at Terminal A arrivals, Door A1-A5"
+            }
+          },
+          "grace_minutes": 10,
+          "airport_fee_cents": 0
+        },
+        "B": {
+          "name": "Terminal B",
+          "pickup_zones": {
+            "domestic": {
+              "coordinates": [[-87.7534, 41.7872], [-87.7536, 41.7874], [-87.7538, 41.7872], [-87.7536, 41.7870]],
+              "instructions": "Pickup at Terminal B arrivals, Door B1-B5"
+            }
+          },
+          "grace_minutes": 10,
+          "airport_fee_cents": 0
+        },
+        "C": {
+          "name": "Terminal C",
+          "pickup_zones": {
+            "domestic": {
+              "coordinates": [[-87.7544, 41.7876], [-87.7546, 41.7878], [-87.7548, 41.7876], [-87.7546, 41.7874]],
+              "instructions": "Pickup at Terminal C arrivals, Door C1-C5"
+            }
+          },
+          "grace_minutes": 10,
+          "airport_fee_cents": 0
+        }
+      },
+      "staging_lot": {
+        "coordinates": [[-87.7580, 41.7850], [-87.7590, 41.7860], [-87.7600, 41.7850], [-87.7590, 41.7840]],
+        "capacity": 100,
+        "instructions": "Enter staging lot via Cicero Avenue, follow signs to rideshare staging"
+      },
+      "meet_and_greet_fee_cents": 1500
+    }
+  }
+}
