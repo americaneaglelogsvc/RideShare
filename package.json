@@ -69,7 +69,8 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.5.3",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@typescript-eslint/parser": "^5.62.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.2",
+    "@typescript-eslint/parser": "^6.13.2",
     "vite": "^5.4.2"
   }
 }
