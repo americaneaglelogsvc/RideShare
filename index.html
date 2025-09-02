@@ -69,10 +69,10 @@
                     <span class="text-2xl font-bold text-gray-900">LuxRide</span>
                 </div>
                 <div class="hidden md:flex items-center space-x-8">
-                    <button onclick="showTab('rider')" class="tab-btn text-gray-700 hover:text-blue-600 font-medium transition-colors">Rider App</button>
-                    <button onclick="showTab('driver')" class="tab-btn text-gray-700 hover:text-blue-600 font-medium transition-colors">Driver App</button>
-                    <button onclick="showTab('admin')" class="tab-btn text-gray-700 hover:text-blue-600 font-medium transition-colors">Admin Portal</button>
-                    <button onclick="showTab('api')" class="tab-btn text-gray-700 hover:text-blue-600 font-medium transition-colors">API Services</button>
+                    <button onclick="showTab('rider', this)" class="tab-btn text-blue-600 hover:text-blue-600 font-medium transition-colors">Rider App</button>
+                    <button onclick="showTab('driver', this)" class="tab-btn text-gray-700 hover:text-blue-600 font-medium transition-colors">Driver App</button>
+                    <button onclick="showTab('admin', this)" class="tab-btn text-gray-700 hover:text-blue-600 font-medium transition-colors">Admin Portal</button>
+                    <button onclick="showTab('api', this)" class="tab-btn text-gray-700 hover:text-blue-600 font-medium transition-colors">API Services</button>
                 </div>
                 <div class="flex items-center space-x-4">
                     <div class="flex items-center space-x-2">
@@ -729,7 +729,7 @@
         lucide.createIcons();
 
         // Tab switching functionality
-        function showTab(tabName) {
+        function showTab(tabName, buttonElement) {
             // Hide all tab contents
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
@@ -745,8 +745,10 @@
             });
             
             // Highlight active tab button
-            event.target.classList.remove('text-gray-700');
-            event.target.classList.add('text-blue-600');
+            if (buttonElement) {
+                buttonElement.classList.remove('text-gray-700');
+                buttonElement.classList.add('text-blue-600');
+            }
         }
 
         // Quote functionality
