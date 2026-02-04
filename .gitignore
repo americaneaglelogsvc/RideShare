@@ -1,0 +1,22 @@
+﻿# deps / build output
+node_modules/
+.next/
+dist/
+build/
+coverage/
+.vite/
+*.log
+
+# env/secrets (Environment Variables (ENV) files — never commit real secrets)
+.env
+.env.*
+!.env.example
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# generated report history
+reports/history/
