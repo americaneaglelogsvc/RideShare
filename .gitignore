@@ -20,3 +20,10 @@ Thumbs.db
 
 # generated report history
 reports/history/
+# --- local / generated (agentic Artificial Intelligence (AI)) ---
+_backup/
+AgentInput/
+Requirements/requirements.json
+Requirements/requirements.jsonl
+scripts/__pycache__/
+**/__pycache__/

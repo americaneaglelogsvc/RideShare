@@ -1,0 +1,13 @@
+﻿#!/usr/bin/env bash
+set -euo pipefail
+
+# Block committing real env files
+bad=$(git diff --cached --name-only | grep -E '(^|/)\.env($|\.|/)|(^|/)\.env\.local($|/)' || true)
+if [ -n "$bad" ]; then
+  echo "ERROR: Refusing commit: env file staged:"
+  echo "$bad"
+  echo "Use .env.example only."
+  exit 1
+fi
+
+exit 0
