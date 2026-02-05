@@ -1,3 +1,445 @@
+name: Agentic Requirements Scan
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_mode:
+        description: "test = first 5 requirements; full = all requirements"
+        required: true
+        default: "test"
+        type: choice
+        options:
+          - test
+          - full
+      model:
+        description: "OpenAI model ID (must exist in your account)"
+        required: true
+        default: "gpt-5.2"
+      batch_size:
+        description: "Batch size for full runs"
+        required: true
+        default: "10"
+      max_requirements:
+        description: "Safety cap for full runs"
+        required: true
+        default: "200"
+
 permissions:
   contents: write
   pull-requests: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python (Python)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "openai>=2.16.0" "pydantic>=2.12.5"
+
+      - name: Run agentic scan (OpenAI Application Programming Interface (API))
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ github.event.inputs.model }}
+          RUN_MODE: ${{ github.event.inputs.run_mode }}
+          BATCH_SIZE: ${{ github.event.inputs.batch_size }}
+          MAX_REQUIREMENTS: ${{ github.event.inputs.max_requirements }}
+        run: |
+          python - <<'PY'
+          import os, json, re, hashlib
+          from pathlib import Path
+          from datetime import datetime
+          from openai import OpenAI
+
+          ROOT = Path.cwd()
+          REQ_DIR = ROOT / "Requirements"
+          AGENT_INPUT = ROOT / "AgentInput"
+          AGENT_OUTPUT = ROOT / "AgentOutput"
+
+          AGENT_INPUT.mkdir(parents=True, exist_ok=True)
+          AGENT_OUTPUT.mkdir(parents=True, exist_ok=True)
+
+          # ---------- helpers ----------
+          def read_text(p: Path) -> str:
+            return p.read_text(encoding="utf-8", errors="replace") if p.exists() else ""
+
+          def write_text(p: Path, s: str) -> None:
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(s, encoding="utf-8")
+
+          def sha1(s: str) -> str:
+            return hashlib.sha1(s.encode("utf-8", errors="ignore")).hexdigest()
+
+          # ---------- locate canonical requirements ----------
+          canonical = REQ_DIR / "BlackRavenia_RideShare_Canonical_Requirements_v6_1.md"
+          if not canonical.exists():
+            cands = sorted(REQ_DIR.glob("*Canonical_Requirements*.md"), key=lambda p: p.stat().st_mtime, reverse=True)
+            if not cands:
+              raise SystemExit("Could not find a canonical requirements markdown under Requirements/ (expected *Canonical_Requirements*.md).")
+            canonical = cands[0]
+
+          md = read_text(canonical)
+
+          # ---------- parse requirements from ### headings ----------
+          # Each "### x.y Title" becomes a requirement record.
+          heading_re = re.compile(r"^###\s+(.+?)\s*$", re.M)
+          hits = list(heading_re.finditer(md))
+          if not hits:
+            raise SystemExit("Parsed 0 requirements: expected '### ' headings in the canonical requirements markdown.")
+
+          def extract_numbered_prefix(title: str):
+            m = re.match(r"^(\d+(?:\.\d+)+)\s+(.*)$", title.strip())
+            return (m.group(1), m.group(2).strip()) if m else (None, title.strip())
+
+          def extract_acceptance(body: str):
+            lines = [ln.rstrip() for ln in body.splitlines()]
+            acc = []
+            acc_idx = None
+            for i, ln in enumerate(lines):
+              if re.search(r"\bAcceptance\b\s*:", ln, flags=re.I):
+                acc_idx = i
+                break
+            if acc_idx is not None:
+              for j in range(acc_idx+1, len(lines)):
+                t = lines[j].strip()
+                if not t:
+                  if acc: break
+                  continue
+                if re.match(r"^\*\*.+\*\*\s*:?\s*$", t): break
+                if t.startswith("- ") or t.startswith("* "):
+                  acc.append(t[2:].strip())
+                elif re.match(r"^(Given|When|Then)\b", t, flags=re.I):
+                  acc.append(t)
+              if acc: return acc
+            for ln in lines:
+              t = ln.strip()
+              if re.match(r"^(Given|When|Then)\b", t, flags=re.I):
+                acc.append(t)
+            return acc
+
+          reqs = []
+          for idx, m in enumerate(hits):
+            title_raw = m.group(1).strip()
+            start = m.end()
+            end = hits[idx+1].start() if idx+1 < len(hits) else len(md)
+            body = md[start:end].strip()
+
+            sec_num, clean_title = extract_numbered_prefix(title_raw)
+            rid = f"BRRS-{sec_num}" if sec_num else f"BRRS-{idx+1:04d}"
+
+            # trim description to keep prompts bounded
+            desc = re.sub(r"\n{3,}", "\n\n", body).strip()
+            if len(desc) > 4000:
+              desc = desc[:4000] + "\n\n[TRUNCATED FOR SCAN PROMPT]"
+
+            acc = extract_acceptance(body)
+            reqs.append({
+              "requirement_id": rid,
+              "section_number": sec_num,
+              "title": clean_title,
+              "description": desc,
+              "acceptance_criteria": acc,
+              "source_file": str(canonical).replace("\\", "/"),
+            })
+
+          # Write AgentInput requirements
+          reqs_jsonl = "\n".join(json.dumps(r, ensure_ascii=False) for r in reqs) + "\n"
+          write_text(AGENT_INPUT / "requirements.jsonl", reqs_jsonl)
+          write_text(AGENT_INPUT / "requirements.json", json.dumps(reqs, indent=2, ensure_ascii=False) + "\n")
+
+          # ---------- as-is scan (lightweight, evidence-oriented) ----------
+          SKIP_DIRS = {".git","node_modules",".next","dist","build","out",".venv","venv","__pycache__","coverage",".pytest_cache","AgentInput","AgentOutput"}
+          exts_count = {}
+          interesting = []
+          route_patterns = [
+            re.compile(r"\brouter\.(get|post|put|patch|delete)\b", re.I),
+            re.compile(r"\bapp\.(get|post|put|patch|delete)\b", re.I),
+            re.compile(r"export\s+async\s+function\s+(GET|POST|PUT|PATCH|DELETE)\b", re.I),  # Next.js route handlers
+            re.compile(r"fastify\.(get|post|put|patch|delete)\b", re.I),
+          ]
+          test_patterns = [re.compile(r"\.test\.", re.I), re.compile(r"\.spec\.", re.I)]
+          mig_patterns = [re.compile(r"migrations?", re.I), re.compile(r"schema\.sql", re.I)]
+
+          files_scanned = 0
+          for p in ROOT.rglob("*"):
+            if any(part in SKIP_DIRS for part in p.parts):
+              continue
+            if p.is_file():
+              files_scanned += 1
+              ext = p.suffix.lower() or "(no_ext)"
+              exts_count[ext] = exts_count.get(ext, 0) + 1
+
+              rel = str(p.relative_to(ROOT)).replace("\\","/")
+              # Only sample text-like files for patterns
+              if p.suffix.lower() in {".ts",".tsx",".js",".jsx",".py",".sql",".md",".yml",".yaml",".json"}:
+                try:
+                  txt = p.read_text(encoding="utf-8", errors="replace")
+                except Exception:
+                  txt = ""
+                if any(r.search(txt) for r in route_patterns) or any(t.search(rel) for t in test_patterns) or any(m.search(rel) for m in mig_patterns):
+                  interesting.append(rel)
+
+          interesting = sorted(set(interesting))[:250]
+
+          as_is = {
+            "repo_root": str(ROOT),
+            "canonical_requirements": str(canonical).replace("\\","/"),
+            "files_scanned": files_scanned,
+            "file_extensions": dict(sorted(exts_count.items(), key=lambda kv: (-kv[1], kv[0]))),
+            "interesting_evidence_paths": interesting,
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+          }
+
+          write_text(AGENT_INPUT / "as_is_scan.json", json.dumps(as_is, indent=2))
+          as_is_md = [
+            "# As-Is Scan (deterministic)",
+            f"- Canonical requirements: `{as_is['canonical_requirements']}`",
+            f"- Files scanned: `{files_scanned}`",
+            "",
+            "## Top file extensions",
+          ]
+          for k,v in list(as_is["file_extensions"].items())[:15]:
+            as_is_md.append(f"- `{k}`: {v}")
+          as_is_md += ["", "## Evidence candidates (paths)", *(f"- `{p}`" for p in interesting)]
+          write_text(AGENT_INPUT / "as_is_scan.md", "\n".join(as_is_md).strip() + "\n")
+
+          # Seed status (all Not Started until evaluated)
+          seed = []
+          for r in reqs:
+            seed.append({
+              "requirement_id": r["requirement_id"],
+              "title": r["title"],
+              "status": "Not Started",
+              "evidence": [],
+              "gaps": ["Not yet evaluated by agentic Artificial Intelligence (AI)."],
+              "notes": "",
+            })
+          write_text(AGENT_INPUT / "requirements_status_seed.jsonl", "\n".join(json.dumps(x, ensure_ascii=False) for x in seed) + "\n")
+
+          # Candidates for "implemented not documented"
+          cand_md = ["# Implemented-Not-Documented Candidates (auto-collected)", ""] + [f"- `{p}`" for p in interesting]
+          write_text(AGENT_INPUT / "implemented_not_documented_candidates.md", "\n".join(cand_md).strip() + "\n")
+
+          # ---------- OpenAI call (batch) ----------
+          run_mode = os.getenv("RUN_MODE","test").strip().lower()
+          batch_size = int(os.getenv("BATCH_SIZE","10"))
+          max_requirements = int(os.getenv("MAX_REQUIREMENTS","200"))
+          model = os.getenv("OPENAI_MODEL","gpt-5.2")
+
+          target = reqs[:max_requirements]
+          if run_mode == "test":
+            target = target[:5]
+
+          status_by_id = {s["requirement_id"]: s for s in seed}
+
+          schema = {
+            "name": "agent_result",
+            "strict": True,
+            "schema": {
+              "type": "object",
+              "additionalProperties": False,
+              "required": ["updated_statuses", "implemented_not_documented"],
+              "properties": {
+                "updated_statuses": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["requirement_id", "status", "evidence", "gaps", "notes"],
+                    "properties": {
+                      "requirement_id": {"type": "string"},
+                      "status": {"type": "string", "enum": ["Not Started","In Progress","Implemented","Tested","Blocked"]},
+                      "evidence": {"type": "array", "items": {"type": "string"}},
+                      "gaps": {"type": "array", "items": {"type": "string"}},
+                      "notes": {"type": "string"},
+                    }
+                  }
+                },
+                "implemented_not_documented": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["title", "evidence", "why_not_in_requirements"],
+                    "properties": {
+                      "title": {"type": "string"},
+                      "evidence": {"type": "array", "items": {"type": "string"}},
+                      "why_not_in_requirements": {"type": "string"},
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          client = OpenAI()
+
+          implemented_not_documented_all = []
+
+          # Keep prompts bounded
+          as_is_short = read_text(AGENT_INPUT / "as_is_scan.md")
+          if len(as_is_short) > 12000:
+            as_is_short = as_is_short[:12000] + "\n[TRUNCATED]\n"
+          cand_short = read_text(AGENT_INPUT / "implemented_not_documented_candidates.md")
+          if len(cand_short) > 8000:
+            cand_short = cand_short[:8000] + "\n[TRUNCATED]\n"
+
+          def call_batch(batch, include_undoc: bool):
+            batch_slim = []
+            for r in batch:
+              batch_slim.append({
+                "requirement_id": r["requirement_id"],
+                "title": r["title"],
+                "acceptance_criteria": r.get("acceptance_criteria", []),
+                "description": r.get("description","")[:2000],
+              })
+
+            rules = (
+              "STRICT EVIDENCE RULES:\n"
+              "- Be conservative. If you cannot cite explicit evidence (file paths, routes, migrations, test files) from AS-IS or candidates, do NOT mark Implemented/Tested.\n"
+              "- If evidence is weak or ambiguous, set status to Not Started or Blocked and explain gaps.\n"
+              "- Only update requirement_id values in this batch.\n"
+              "- Evidence must be concrete paths like `services/api/src/routes/trips.ts`.\n"
+            )
+
+            undoc_rule = (
+              "Also, identify implemented features that are NOT covered by the requirements document, using ONLY the candidates list / evidence paths.\n"
+              if include_undoc else
+              "implemented_not_documented MUST be an empty array for this call.\n"
+            )
+
+            user_prompt = (
+              f"{rules}\n\n"
+              "AS-IS (summary):\n"
+              f"{as_is_short}\n\n"
+              "IMPLEMENTED-NOT-DOCUMENTED CANDIDATES:\n"
+              f"{cand_short}\n\n"
+              "REQUIREMENTS BATCH:\n"
+              f"{json.dumps(batch_slim, ensure_ascii=False, indent=2)}\n\n"
+              f"{undoc_rule}"
+            )
+
+            resp = client.chat.completions.create(
+              model=model,
+              messages=[
+                {"role":"system","content":"You are an agentic Artificial Intelligence (AI) doing evidence-based codebase-to-requirements mapping."},
+                {"role":"user","content": user_prompt},
+              ],
+              response_format={"type":"json_schema","json_schema": schema},
+            )
+            content = resp.choices[0].message.content
+            return json.loads(content)
+
+          # Process batches
+          for i in range(0, len(target), batch_size):
+            batch = target[i:i+batch_size]
+            include_undoc = (i == 0)
+            out = call_batch(batch, include_undoc=include_undoc)
+
+            for u in out["updated_statuses"]:
+              rid = u["requirement_id"]
+              if rid in status_by_id:
+                # enforce conservative rule: no evidence => can't be Implemented/Tested
+                if u["status"] in {"Implemented","Tested"} and not u.get("evidence"):
+                  u["status"] = "Blocked"
+                  u["gaps"] = (u.get("gaps") or []) + ["No concrete evidence provided; cannot mark Implemented/Tested."]
+                status_by_id[rid]["status"] = u["status"]
+                status_by_id[rid]["evidence"] = u.get("evidence", [])
+                status_by_id[rid]["gaps"] = u.get("gaps", [])
+                status_by_id[rid]["notes"] = u.get("notes", "")
+
+            if include_undoc:
+              implemented_not_documented_all = out.get("implemented_not_documented", [])
+
+          # ---------- write AgentOutput ----------
+          status_rows = []
+          for r in reqs:
+            s = status_by_id.get(r["requirement_id"], {})
+            status_rows.append({
+              "requirement_id": r["requirement_id"],
+              "title": r["title"],
+              "status": s.get("status","Not Started"),
+              "evidence": s.get("evidence",[]),
+              "gaps": s.get("gaps",[]),
+              "notes": s.get("notes",""),
+            })
+
+          out_jsonl = "\n".join(json.dumps(x, ensure_ascii=False) for x in status_rows) + "\n"
+          write_text(AGENT_OUTPUT / "requirements_status.jsonl", out_jsonl)
+
+          # Markdown summary
+          md_lines = []
+          md_lines.append("# Requirements Status (evidence-based)")
+          md_lines.append(f"- Generated: {datetime.utcnow().isoformat()}Z")
+          md_lines.append(f"- Run mode: `{run_mode}` | Model: `{model}` | Batch size: `{batch_size}`")
+          md_lines.append("")
+          md_lines.append("| Requirement ID | Status | Title | Evidence (count) |")
+          md_lines.append("|---|---|---|---:|")
+          for x in status_rows:
+            md_lines.append(f"| `{x['requirement_id']}` | **{x['status']}** | {x['title'].replace('|','\\|')} | {len(x['evidence'])} |")
+          md_lines.append("")
+          md_lines.append("## Notes (only items with gaps/evidence)")
+          for x in status_rows:
+            if x["evidence"] or x["gaps"] or x["notes"]:
+              md_lines.append(f"### {x['requirement_id']} — {x['title']}")
+              if x["evidence"]:
+                md_lines.append("**Evidence:**")
+                md_lines += [f"- {e}" for e in x["evidence"]]
+              if x["gaps"]:
+                md_lines.append("**Gaps:**")
+                md_lines += [f"- {g}" for g in x["gaps"]]
+              if x["notes"]:
+                md_lines.append("**Notes:**")
+                md_lines.append(x["notes"])
+              md_lines.append("")
+          write_text(AGENT_OUTPUT / "requirements_status.md", "\n".join(md_lines).strip() + "\n")
+
+          undoc_md = ["# Implemented but Not Documented", ""]
+          if implemented_not_documented_all:
+            for item in implemented_not_documented_all:
+              undoc_md.append(f"## {item.get('title','(untitled)')}")
+              undoc_md.append("")
+              undoc_md.append("**Evidence:**")
+              for e in item.get("evidence", []):
+                undoc_md.append(f"- {e}")
+              undoc_md.append("")
+              undoc_md.append("**Why not in requirements:**")
+              undoc_md.append(item.get("why_not_in_requirements",""))
+              undoc_md.append("")
+          else:
+            undoc_md.append("_None identified from the current evidence candidates._")
+          write_text(AGENT_OUTPUT / "implemented_not_documented.md", "\n".join(undoc_md).strip() + "\n")
+
+          print("Wrote: AgentOutput/requirements_status.jsonl")
+          print("Wrote: AgentOutput/requirements_status.md")
+          print("Wrote: AgentOutput/implemented_not_documented.md")
+          PY
+
+      - name: Commit AgentOutput to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add AgentOutput || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: update agentic scan outputs"
+          git push
+
+      - name: Upload AgentOutput as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-output
+          path: AgentOutput
