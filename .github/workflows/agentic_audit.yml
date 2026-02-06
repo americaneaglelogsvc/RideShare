@@ -74,7 +74,17 @@ jobs:
             Get-Content -Encoding UTF8 .\Artifacts\audit_log.txt -Tail 80 | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           }
 
-      - name: Upload artifacts (AgentOutput + audit log)
+      - name: Print audit log tail
+  if: always()
+  shell: pwsh
+  run: |
+    if (Test-Path .\Artifacts\audit_log.txt) {
+      "=== audit_log.txt (tail 200) ===" | Out-Host
+      Get-Content .\Artifacts\audit_log.txt -Tail 200 | Out-Host
+    } else {
+      "No .\Artifacts\audit_log.txt found" | Out-Host
+    }
+- name: Upload artifacts (AgentOutput + audit log)
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -83,3 +93,4 @@ jobs:
             AgentOutput/**
             Artifacts/audit_log.txt
             Agentic AI Work/AgentOutput/**
+
