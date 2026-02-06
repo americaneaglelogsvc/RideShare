@@ -6,7 +6,7 @@ on:
       run_mode:
         description: "test = first 5 requirements; full = all requirements"
         required: true
-        default: "test"
+      default: "full"
         type: choice
         options: [test, full]
       model:
@@ -20,8 +20,7 @@ on:
       max_requirements:
         description: "Safety cap for full runs"
         required: true
-        default: "200"
-
+      default: "9999"
 permissions:
   contents: write
   pull-requests: write
@@ -44,11 +43,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install "openai>=2.16.0"
-
+      - name: Sync requirements (Markdown (MD) -> JavaScript Object Notation (JSON))
+        shell: pwsh
+        run: |
+          python scripts/sync_requirements_from_md.py
       - name: Run agentic scan (OpenAI Application Programming Interface (API))
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ github.event.inputs.model }}
+          CANONICAL_REQUIREMENTS_JSON: Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.json
           RUN_MODE: ${{ github.event.inputs.run_mode }}
           BATCH_SIZE: ${{ github.event.inputs.batch_size }}
           MAX_REQUIREMENTS: ${{ github.event.inputs.max_requirements }}
@@ -72,3 +75,4 @@ jobs:
         with:
           name: agent-output
           path: AgentOutput
+
