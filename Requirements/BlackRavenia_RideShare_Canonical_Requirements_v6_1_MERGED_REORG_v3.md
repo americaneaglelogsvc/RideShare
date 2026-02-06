@@ -1,6 +1,6 @@
-# Rideoo-RideShare Platform — Canonical Requirements (v6.1)
+﻿# Rideoo-RideShare Platform — Canonical Requirements (v6.1)
 
-**Timestamp (America/Chicago): 2026-02-05 19:16:31**  
+**Timestamp (America/Chicago): 2026-02-05 21:16:45**  
 
 **Tenant1 (to be seeded as a test tenant right during the build) Brand:** goldravenia.com  
 **Scope:**
@@ -213,7 +213,14 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
 ### 3.3 Personally Identifiable Information (PII) minimization
 - Data retention policies for sensitive fields.
 - Export/delete tooling for tenant data, subject to legal retention.
-
+- Data privacy compliance baseline:
+  - Support **California Consumer Privacy Act (CCPA)**-style rights: access, deletion, portability (export).
+  - Support **General Data Protection Regulation (GDPR)** data-subject rights where applicable (non-blocking if the business is US-only, but the platform must be capable).
+  - Consent capture for analytics/marketing is explicit, logged, and revocable.
+- Data Subject Access Request (DSAR) workflow (tenant + platform):
+  - Rider and driver can request: export, delete, correct.
+  - Requests are logged, status-tracked, and require an authorized admin approval step (Role-Based Access Control (RBAC)).
+  - Deletion is implemented as: irreversible erasure where permitted, and legal-hold redaction where required; all actions are auditable.
 ### 3.4 Masked communications and messaging retention
 - Riders and drivers must not see each other’s phone or email.
 - In-app messaging is required; optional voice is feature-gated.
@@ -226,7 +233,7 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
   - vehicle registration.
 - Optional strict mode: block login (default: allow login but restrict to compliance remediation + earnings views).
 - Notifications at D-14 and D-1 before expiry to driver and tenant operations contacts; delivery is logged.
-
+- Tenant-configurable compliance item types (in addition to the defaults): vehicle safety inspection / emissions certificate / city permit; each can be marked required with expiry gating and notification windows.
 ### 3.6 Document capture with Optical Character Recognition (OCR) auto-population
 - Driver/vehicle document screens allow in-app camera capture.
 - Optical Character Recognition (OCR) parses documents to prefill fields (document number, expiry, name, plate, VIN (Vehicle Identification Number)).
@@ -295,7 +302,10 @@ The platform must support service-standard enforcement as compliance policy and 
 ### 4.4 Cancellations, no-shows, support
 - Cancellation/no-show policies configurable by tenant within platform constraints, and disclosed before confirmation.
 - Support case tracking: issue types, attachments, status, resolution, potential SLA credits.
-
+- Support case tracking must include incident and insurance claim initiation:
+  - Case types include: rider safety incident, vehicle accident, property damage, fare dispute, payment dispute/chargeback, and lost item.
+  - Attachments: photos, video, police report reference, witness statement (optional), and trip ID binding.
+  - Case lifecycle: open → triage → in-review → resolved/denied → archived; SLA timers and audit trail.
 ### 4.5 Ratings and feedback
 - Rider can rate: driver, vehicle, cleanliness, friendliness (1–5) + optional textual feedback (max length configurable).
 - Rider can report safety/quality incidents tied to a trip.
@@ -467,7 +477,8 @@ Additional constraints:
 - For tenant Gold Ravenia.co, if a driver is already enroute to a pickup, even if it is few seconds, charge the rider a cancellation fee which should be configurable by the super admin and or desgnated sub super admins/ desipatchers, and Tenants (for their own organization). Add language for the same in the terms and conditions that the rider must accept when onboarding. i.e. Tenants define what charges they want to charge/ display on their own portal (microsite), i.e configurable by the tenant admin. tenant admin also decides when each drier gets paid, how much, how frequently (integration with paysurity digital wallets (employer/ employee digital wallet).
 
 - Configurable policies for: cancellation/no-show, wait-time, luggage fees, multi-stop fees, gratuity presets.
-
+- Pass-through fees:
+  - Support tolls, airport fees, and other regulated surcharges as separate line items on receipts and driver earnings breakdowns (policy-controlled).
 ### 7.5 Policy Center (versioned, auditable policy engine) (mandatory)
 The platform must implement a **Policy Center** as the authoritative system for runtime behavior that must be configurable, versioned, and audited.
 
@@ -504,13 +515,17 @@ The platform must implement a **Policy Center** as the authoritative system for 
 
 
 ---
-
+- Optional policy (feature-gated): driver duty-hours caps and rest-period enforcement (configurable per tenant and jurisdiction).
 ## 8. Payments, ledger, payouts, and PaySurity integration
 
 ### 8.1 Orchestration model
 - RideShare calls PaySurity for tokenization, authorization, capture, refund, void.
 - PaySurity routes to Fluidpay or Argyle Payments (black box).
-
+- Payment security and compliance:
+  - PaySurity must enforce **Payment Card Industry Data Security Standard (PCI DSS)** scope minimization: RideShare never stores Primary Account Number (PAN) or full card data.
+  - Store only token + last4 + brand + expiry month/year + billing ZIP (if needed), and only when required.
+  - Chargebacks/disputes: capture dispute reason codes, evidence artifacts, and resolution status; auditable.
+  - Fraud detection (policy-controlled, feature-gated): velocity limits, unusual booking patterns, device/IP risk signals; emit alerts and optional auto-holds.
 ### 8.2 Ledger integrity
 - Ledger ensures no drift; daily reconciliation with alerts.
 
@@ -698,6 +713,11 @@ Additional release gate acceptance tests (minimum):
 - Privacy: masked contact info; flight details never shown to drivers.
 - Security: audit trails for policy and administrative actions.
 
+- Backups and disaster recovery:
+  - Automated PostgreSQL backups with point-in-time recovery (PITR) (Point-In-Time Recovery).
+  - Recovery Point Objective (RPO): ≤ 15 minutes. Recovery Time Objective (RTO): ≤ 4 hours (configurable; stricter targets allowed for premium tiers).
+  - Quarterly restore drills and documented runbooks; failures trigger alerts.
+
 ---
 
 ## 19. Flight awareness (privacy)
@@ -740,4 +760,5 @@ This section is **non-authoritative** and exists only to show source traceabilit
 - Source C (merged context): `rideshare context.txt`
 
 All requirements in Sources B and C have been incorporated into the authoritative sections above. If an omission is discovered, the omission must be added above (not here) per §20 Hard anti-drift rule.
+
 

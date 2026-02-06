@@ -1,960 +1,968 @@
-{
-  "metadata": {
-    "name": "BlackRavenia RideShare Platform Canonical Requirements",
-    "version": "6.1-merged-reorg-v3",
-    "timestamp_america_chicago": "2026-02-05 19:16:31",
-    "canonical_authority": true,
-    "canonical_datastore": "PostgreSQL",
-    "no_supabase": true,
-    "source_markdown": "BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md"
-  },
-  "consumption_contract": {
-    "as_is_first": true,
-    "no_implementation_before_scan": true,
-    "semantic_matching": true,
-    "reverse_engineer_implemented_not_documented": true,
-    "required_artifacts": [
-      "as_is_scan.md",
-      "requirements_status.md",
-      "progress_report.md",
-      "implemented_not_documented.md",
-      "AS-IS-REPORT.md",
-      "COVERAGE-TABLE.md",
-      "coverage.json",
-      "GAPS-TODO.md",
-      "PLAN-TO-100.md",
-      "screen_index.md",
-      "timers.json",
-      "out/k6.json",
-      "out/chaos.json",
-      "out/dlq.json",
-      "out/go-no-go.md"
-    ],
-    "anti_drift_rule": "If an implemented behavior exists without a requirement, reverse engineer it into this document and mark its status with evidence before proceeding."
-  },
-  "status_schema": {
-    "states": [
-      "Not Started",
-      "In Progress",
-      "Implemented",
-      "Tested",
-      "Shippable",
-      "Launch-ready",
-      "Blocked"
-    ],
-    "evidence_required_for": {
-      "Implemented": [
-        "file_paths",
-        "api_endpoints",
-        "db_migrations_or_queries"
-      ],
-      "Tested": [
-        "test_file_paths",
-        "ci_workflow_run_reference"
-      ],
-      "Shippable": [
-        "staging_deployment_reference",
-        "smoke_test_evidence",
-        "observability_links"
-      ]
-    }
-  },
-  "milestones": [
-    {
-      "id": "M01",
-      "name": "Platform Foundations completed",
-      "scope_section_prefixes": [
-        "1",
-        "2"
-      ],
-      "target_status": "Shippable",
-      "scope_semantic_keys": [
-        "de4d407cb239",
-        "78e20b65bf1f",
-        "2d9df1c4c7ca",
-        "1094c8c2f5b2",
-        "0cfd2885d67f",
-        "4e448a0c70e7",
-        "77e775e5cc82",
-        "7ca30076c69a",
-        "f35f728ec2fb",
-        "e55298c9b3c9",
-        "5b72333b8621",
-        "5ccd322a11c1",
-        "3a6578e8bcfb",
-        "a88fd62946b3"
-      ]
-    },
-    {
-      "id": "M02",
-      "name": "Identity, security, and auditability completed",
-      "scope_section_prefixes": [
-        "3",
-        "2.4"
-      ],
-      "target_status": "Shippable",
-      "scope_semantic_keys": [
-        "422649296f04",
-        "546c8e4e70b5",
-        "5422dd3f4345",
-        "01065f23b1c8",
-        "34b3cdefda52",
-        "e7b238b31527",
-        "8ef594faa56e",
-        "e122447ea19a",
-        "2958a15ee9e0",
-        "538f52246578",
-        "a8ba16b1f481"
-      ]
-    },
-    {
-      "id": "M03",
-      "name": "Policy Center completed",
-      "scope_section_prefixes": [
-        "7.5"
-      ],
-      "target_status": "Shippable",
-      "scope_semantic_keys": []
-    },
-    {
-      "id": "M04",
-      "name": "Dispatch & real-time system completed",
-      "scope_section_prefixes": [
-        "6",
-        "11"
-      ],
-      "target_status": "Shippable",
-      "scope_semantic_keys": [
-        "ec2ae48c3cfd",
-        "ad40f8493977",
-        "27c99af63a22",
-        "e71188cfe647",
-        "d6528e08d404",
-        "c4ebc6cfdbf1",
-        "ebcc45cfef22",
-        "a78108b74260",
-        "0adf3977a30c",
-        "e7060dcd125d",
-        "649532bafcb7",
-        "dee80909a1f6",
-        "a98c5616c5f8",
-        "0b7958cf82f2"
-      ]
-    },
-    {
-      "id": "M05",
-      "name": "Pricing & quoting completed",
-      "scope_section_prefixes": [
-        "7"
-      ],
-      "target_status": "Shippable",
-      "scope_semantic_keys": [
-        "98a5d420d961",
-        "5991cf907387",
-        "a550be23b5b3",
-        "68cd371f1510",
-        "8ace7c8fc9b4",
-        "d09e807d4007"
-      ]
-    },
-    {
-      "id": "M06",
-      "name": "Payments, ledger, and reconciliation completed",
-      "scope_section_prefixes": [
-        "8"
-      ],
-      "target_status": "Shippable",
-      "scope_semantic_keys": [
-        "9520c7743d23",
-        "37defd158132",
-        "a25be8688c4c",
-        "a2e650b3a167",
-        "2622fcb1fe7d"
-      ]
-    },
-    {
-      "id": "M07",
-      "name": "Driver App completed",
-      "scope_section_prefixes": [
-        "5"
-      ],
-      "target_status": "Shippable",
-      "scope_semantic_keys": [
-        "3b2723f315f4",
-        "41d0d991df35",
-        "a91f3553b196",
-        "49851069104f",
-        "e70c5a7cfe3b",
-        "f05a19bff47a",
-        "1bf21f6f2200",
-        "eb76df9c48a0",
-        "6673dcd2e642"
-      ]
-    },
-    {
-      "id": "M08",
-      "name": "Rider App completed",
-      "scope_section_prefixes": [
-        "4"
-      ],
-      "target_status": "Shippable",
-      "scope_semantic_keys": [
-        "e7317c041988",
-        "0f5950ad34af",
-        "eca50edd43e1",
-        "33893f027e1a",
-        "f92d138b2ca0",
-        "1ec898a5c811",
-        "86afd62910d1",
-        "2606e47b60b2"
-      ]
-    },
-    {
-      "id": "M09",
-      "name": "Tenant Ops Console completed",
-      "scope_section_prefixes": [
-        "9.1"
-      ],
-      "target_status": "Shippable",
-      "scope_semantic_keys": []
-    },
-    {
-      "id": "M10",
-      "name": "Tenant Owner / Admin Console completed",
-      "scope_section_prefixes": [
-        "9.2"
-      ],
-      "target_status": "Shippable",
-      "scope_semantic_keys": []
-    },
-    {
-      "id": "M11",
-      "name": "Platform Admin Console completed",
-      "scope_section_prefixes": [
-        "9.3"
-      ],
-      "target_status": "Shippable",
-      "scope_semantic_keys": []
-    },
-    {
-      "id": "M12",
-      "name": "Observability, reliability, and safe deployment completed",
-      "scope_section_prefixes": [
-        "1.4",
-        "11",
-        "16",
-        "17"
-      ],
-      "target_status": "Shippable",
-      "scope_semantic_keys": [
-        "e7060dcd125d",
-        "649532bafcb7",
-        "dee80909a1f6",
-        "a98c5616c5f8",
-        "0b7958cf82f2",
-        "17bd02b7fa32",
-        "a1cec20007ca"
-      ]
-    },
-    {
-      "id": "M13",
-      "name": "Public website + tenant microsites completed",
-      "scope_section_prefixes": [
-        "10",
-        "2.3"
-      ],
-      "target_status": "Shippable",
-      "scope_semantic_keys": [
-        "4756cc4fedbe"
-      ]
-    },
-    {
-      "id": "M14",
-      "name": "Feature-gated expansions completed (optional)",
-      "scope_section_prefixes": [
-        "21",
-        "22"
-      ],
-      "target_status": "Shippable",
-      "optional": true,
-      "scope_semantic_keys": [
-        "31e5cc1f1ff7",
-        "830170dd8789"
-      ]
-    }
-  ],
-  "document_outline": [
-    {
-      "semantic_key": "de4d407cb239",
-      "level": 2,
-      "number": "1",
-      "title": "Product governance, anti-drift guardrails, and evidence-based progress",
-      "heading_raw": "1. Product governance, anti-drift guardrails, and evidence-based progress",
-      "content_md": ""
-    },
-    {
-      "semantic_key": "78e20b65bf1f",
-      "level": 3,
-      "number": "1",
-      "title": "1 Canonical build rules (strict)",
-      "heading_raw": "1.1 Canonical build rules (strict)",
-      "content_md": "- The build must be implemented against the semantics in this document.\n- No capability can be marked \u201cImplemented\u201d or \u201cTested\u201d without evidence links.\n- **As-is first (mandatory):** Before implementing any change, the agentic Artificial Intelligence (AI) must run `as_is_scan.md`, populate `requirements_status.md` with evidence links, and update this document with any implemented-but-not-documented requirements (see \u00a71.3 and \u00a71.7)."
-    },
-    {
-      "semantic_key": "2d9df1c4c7ca",
-      "level": 3,
-      "number": "1",
-      "title": "2 Definition of Done (DoD) (strict by default)",
-      "heading_raw": "1.2 Definition of Done (DoD) (strict by default)",
-      "content_md": "For each capability in this document:\n\n- **Designed**: screen(s) and flow(s) exist in `screen_index.md`, and relevant state machine/timers are specified.\n- **Implemented**: end-to-end path exists: User Interface (UI) \u2192 Application Programming Interface (API) \u2192 Database (DB) \u2192 side effects (notifications, policy propagation, ledger entries).\n- **Tested**: automated tests exist and pass in Continuous Integration (CI) for happy-path and key negative-paths.\n- **Shippable**: deployed to staging with smoke tests passing; observability signals visible (metrics/logs/alerts).\n- **Launch-ready**: shippable + operational playbooks + tenant onboarding + compliance workflows + incident response runbooks."
-    },
-    {
-      "semantic_key": "1094c8c2f5b2",
-      "level": 3,
-      "number": "1",
-      "title": "3 Required build artifacts (must be produced by agentic AI)",
-      "heading_raw": "1.3 Required build artifacts (must be produced by agentic AI)",
-      "content_md": "The agentic AI must generate and maintain:\n\n1) `as_is_scan.md` \u2014 deterministic scan: stack, services, endpoints, migrations, tests, workflows.  \n2) `requirements_status.md` \u2014 semantic checklist mapping each capability to Not Started / In Progress / Implemented / Tested / Blocked, with evidence links.  \n3) `progress_report.md` \u2014 time-stamped deltas since last scan + risks + next actions, all evidence-linked.  \n4) `implemented_not_documented.md` \u2014 implemented code not covered in this document, with evidence.\n\n**Evidence gates (non-negotiable):**\n- \u201cImplemented\u201d requires: file paths + API routes/endpoints + DB migrations/queries.  \n- \u201cTested\u201d requires: test file paths + CI proof (workflow + run output reference).  \n- \u201cShippable\u201d requires: staging deployment reference + smoke test evidence."
-    },
-    {
-      "semantic_key": "0cfd2885d67f",
-      "level": 3,
-      "number": "1",
-      "title": "4 Production readiness gates (GO / NO-GO) (hard gates)",
-      "heading_raw": "1.4 Production readiness gates (GO / NO-GO) (hard gates)",
-      "content_md": "- A release is permitted only if the **GO / NO-GO** evaluation exits successfully in Continuous Integration (CI) (Continuous Integration) and produces deterministic outputs.\n- The platform must include a deterministic gate evaluator (e.g., `scripts/go-no-go-gates.js`) that:\n  - Reads `out/k6.json`, `out/chaos.json`, and `out/dlq.json` (or equivalent artifacts),\n  - Evaluates each gate, emits a human-readable report `out/go-no-go.md`,\n  - Exits `0` for GO and `1` for NO-GO so it can block deployments.\n\n**Hard gates (minimum set):**\n1) k6 (load test) failure rate < **0.5%**  \n2) k6 p95 (95th percentile) latency < **300 milliseconds (ms)**  \n3) **Zero** double assignments (no rider assigned to two drivers; no driver assigned two active trips)  \n4) **Zero** invalid queue states (airport queue and offer queue state machines must not violate allowed transitions)  \n5) Recovery \u2264 **5 seconds** after chaos (intentional component failure)  \n6) Dead Letter Queue (DLQ) replay projected success \u2265 **70%** (dry-run validation)  "
-    },
-    {
-      "semantic_key": "4e448a0c70e7",
-      "level": 3,
-      "number": "1",
-      "title": "5 Safe deployment automation (canary + rollback) (mandatory)",
-      "heading_raw": "1.5 Safe deployment automation (canary + rollback) (mandatory)",
-      "content_md": "- Deployments must support canary rollout stages: **25% \u2192 50% \u2192 100%**.\n- Automatic rollback must be triggered on any GO / NO-GO gate failure.\n- Each deployment must:\n  - Tag the release (Git tag),\n  - Snapshot runtime configuration (feature flags, policy versions) as deployment proof,\n  - Store the GO / NO-GO report artifact in CI."
-    },
-    {
-      "semantic_key": "77e775e5cc82",
-      "level": 3,
-      "number": "1",
-      "title": "6 Reliability validation pipeline (as-is \u2192 to-be) (mandatory)",
-      "heading_raw": "1.6 Reliability validation pipeline (as-is \u2192 to-be) (mandatory)",
-      "content_md": "The platform must support and document an end-to-end validation pipeline that can be executed in CI:\n\n- Load test: dispatch storm and quote storm via k6.\n- Chaos test: intentionally kill/disable dispatch + notifications for a short interval; validate recovery.\n- DLQ analysis: classify transient failures and estimate replay success; provide replay tooling."
-    },
-    {
-      "semantic_key": "7ca30076c69a",
-      "level": 3,
-      "number": "1",
-      "title": "7 Agentic AI audit outputs (required)",
-      "heading_raw": "1.7 Agentic AI audit outputs (required)",
-      "content_md": "In addition to the artifacts in \u00a71.3, the agentic Artificial Intelligence (AI) must be able to produce (and refresh on demand):\n\n- `AS-IS-REPORT.md` \u2014 what exists now (features, endpoints, migrations, screens) vs this document.\n- `COVERAGE-TABLE.md` \u2014 requirement-by-requirement semantic coverage table.\n- `coverage.json` \u2014 machine-readable coverage output.\n- `GAPS-TODO.md` \u2014 ordered gap list (P0/P1/P2) with owners and dependencies.\n- `PLAN-TO-100.md` \u2014 sequenced plan to reach 100% Launch-ready per Definition of Done (DoD).\n\n**Mental model (non-negotiable):** Requirements \u2192 Evidence \u2192 Gates \u2192 Canary \u2192 Cutover\n\n---"
-    },
-    {
-      "semantic_key": "f35f728ec2fb",
-      "level": 3,
-      "number": "1",
-      "title": "8 Milestones and progress reporting (mandatory)",
-      "heading_raw": "1.8 Milestones and progress reporting (mandatory)",
-      "content_md": "A **milestone** is considered **Completed** only when **all** in-scope requirements are marked **Shippable** (or **Launch-ready**) in `requirements_status.md` **with evidence** per \u00a71.3, and the applicable GO / NO-GO gates in \u00a71.4 pass for the release candidate. Milestones must be reported when they transition to **Completed** and must include links to the evidence artifacts.\n\n**Milestone reporting (required):**\n- Update: `progress_report.md` (what changed, what evidence was produced, what is blocked).\n- Update: `requirements_status.md` (status + evidence links per requirement).\n- If a milestone uncovers implemented-but-not-documented capabilities, update `implemented_not_documented.md` and insert the new requirement text into the relevant section (see \u00a71.7).\n\n**Milestones (minimum set, ordered):**\n1) **Platform Foundations completed**\n   - Repository structure, environment configuration, feature flags, migrations, seed data, base CI.\n   - Core DB schemas for tenants, users, roles, audit logs.\n\n2) **Identity, security, and auditability completed**\n   - Authentication (AuthN) (Authentication), authorization (AuthZ) (Authorization), RBAC, rate limiting, kill switches.\n   - Audit log viewer + immutable financial audit trail.\n\n3) **Policy Center completed**\n   - Draft \u2192 validate \u2192 publish \u2192 rollback; precedence; caching; schema validation; audit diff/history.\n\n4) **Dispatch & real-time system completed**\n   - Ring/hop, atomic assignment guarantees (no double assignment), WebSocket/SSE real-time updates, notification fanout.\n   - GrabBoard + Airport Queue state machines validated (zero invalid transitions).\n\n5) **Pricing & quoting completed**\n   - Vehicle/product pricing rules; surge; upfront quote generation; taxes/fees; precedence rules.\n   - Quote storm and dispatch storm load tests wired (k6).\n\n6) **Payments, ledger, and reconciliation completed**\n   - PaySurity orchestration; gateway abstraction; capture/refund; double-entry ledger.\n   - Daily reconciliation + exception alerts; DLQ handling for payment side effects.\n\n7) **Driver App completed**\n   - Onboarding (OCR), compliance expiry tracking, online/offline, offer/accept flows, in-trip flows, proof capture, earnings.\n   - Fleet/leased vehicle workflows (if feature-enabled).\n\n8) **Rider App completed**\n   - Booking (now/scheduled/hourly), tracking, messaging, ratings, receipts, support intake, consent gates.\n\n9) **Tenant Ops Console completed**\n   - Live map, dispatch oversight, reassign, compliance approvals, refunds/adjustments, support queue.\n\n10) **Tenant Owner / Admin Console completed**\n   - Branding, user management, policies, pricing toggles within constraints, analytics, payout scheduling controls.\n\n11) **Platform Admin Console completed**\n   - Tenant provisioning, feature gating, global policies, test runner, system health, observability dashboards.\n\n12) **Observability, reliability, and safe deployment completed**\n   - SLOs, DLQ + replay tooling, chaos tests, k6, GO / NO-GO evaluator, canary + rollback automation.\n\n13) **Public website + tenant microsites completed**\n   - SEO, sitemap/robots, lead capture, conversion tracking, compliance pages; white-label microsites.\n\n14) **Feature-gated expansions completed (optional)**\n   - Marketplace/ads placements, Chicagoland events ingestion/forecasting (only if enabled)."
-    },
-    {
-      "semantic_key": "e55298c9b3c9",
-      "level": 2,
-      "number": "2",
-      "title": "Personas, roles, and tenancy model",
-      "heading_raw": "2. Personas, roles, and tenancy model",
-      "content_md": ""
-    },
-    {
-      "semantic_key": "5b72333b8621",
-      "level": 3,
-      "number": "2",
-      "title": "1 Personas",
-      "heading_raw": "2.1 Personas",
-      "content_md": "- **Rider (End Customer)**: books rides, pays, tracks driver, rates driver/vehicle, manages trip history and receipts.\n- **Driver**: completes onboarding/compliance, goes online, accepts offers, navigates, chats, completes trips, views earnings/unpaid balance/payout history.\n- **Tenant Dispatcher / Operations Staff (Tenant Ops)**: monitors live operations, intervenes on assignments, manages drivers/vehicles, handles disputes.\n- **Tenant Owner / Fleet Operator (Tenant Owner)**: manages business settings, policies, fleet, analytics, staff.\n- **Fleet Owner (Fleet Owner)**: owns \u22652 vehicles under a tenant; assigns drivers to vehicles; manages leased vehicle inventory and access.\n- **Customer Support Representative (CSR) (Tenant CSR)**: handles rider and driver support cases, refunds, disputes, and incident intake.\n- **Platform Super Admin (Platform Owner)**: seeds/CRUD tenants, global policies, feature gates, pricing constraints, monitoring, kill switches, test execution.\n- **Platform Sub-Super Admin (Platform Staff)**: delegated platform ops, support, compliance review, incident response."
-    },
-    {
-      "semantic_key": "5ccd322a11c1",
-      "level": 3,
-      "number": "2",
-      "title": "2 Tenancy and data isolation",
-      "heading_raw": "2.2 Tenancy and data isolation",
-      "content_md": "- Every relevant row includes `tenant_id`.\n- Tenants see only their own riders, drivers, vehicles, trips, payouts, messages, ratings, policies, analytics.\n- Platform Super Admin (and authorized platform staff) can view all tenant data for operations, compliance, auditing, and support.\n\n**Acceptance:**\n- Given Tenant A and Tenant B exist, when a Tenant A user queries trips, then only Tenant A trips are returned."
-    },
-    {
-      "semantic_key": "3a6578e8bcfb",
-      "level": 3,
-      "number": "2",
-      "title": "3 White-label branding",
-      "heading_raw": "2.3 White-label branding",
-      "content_md": "- Rider and Driver experiences are branded per tenant (colors, logo, copy, domains).\n- Driver reimbursements/payouts are shown under tenant branding, because payout scheduling is controlled by the tenant.\n- Platform records the financial truth via ledger, but external gateway names remain hidden from tenants/drivers (PaySurity is the gateway \u201cface\u201d)."
-    },
-    {
-      "semantic_key": "a88fd62946b3",
-      "level": 3,
-      "number": "2",
-      "title": "4 Role taxonomy (Role-Based Access Control (RBAC)) (authoritative)",
-      "heading_raw": "2.4 Role taxonomy (Role-Based Access Control (RBAC)) (authoritative)",
-      "content_md": "**Canonical roles (minimum):**\n- PLATFORM_SUPER_ADMIN\n- PLATFORM_SUB_SUPER_ADMIN\n- TENANT_OWNER\n- TENANT_OPS_ADMIN\n- TENANT_CSR\n- FLEET_OWNER\n- DRIVER\n- RIDER\n\n**Role mapping rule:**\n- Platform roles can operate across tenants (audited).\n- Tenant roles are tenant-scoped via `tenant_id`.\n- A user may hold multiple roles across tenants only if explicitly granted (audited).\n\n**Acceptance:**\n- Given a TENANT_CSR, when they view a support case, then they can only access cases within their tenant.\n- Given a PLATFORM_SUB_SUPER_ADMIN, when they perform a kill switch action, then it is audited and visible platform-wide.\n\n\n---"
-    },
-    {
-      "semantic_key": "422649296f04",
-      "level": 2,
-      "number": "3",
-      "title": "Identity, security, privacy, and compliance",
-      "heading_raw": "3. Identity, security, privacy, and compliance",
-      "content_md": ""
-    },
-    {
-      "semantic_key": "546c8e4e70b5",
-      "level": 3,
-      "number": "3",
-      "title": "1 Authentication and authorization",
-      "heading_raw": "3.1 Authentication and authorization",
-      "content_md": "- Authentication: JSON Web Token (JWT) sessions.\n- Authorization: Role-Based Access Control (RBAC) with least privilege.\n- Audit logs for admin/policy/financial actions: who/what/when/where (tenant, user, IP)."
-    },
-    {
-      "semantic_key": "5422dd3f4345",
-      "level": 3,
-      "number": "3",
-      "title": "2 Rate limiting and abuse prevention",
-      "heading_raw": "3.2 Rate limiting and abuse prevention",
-      "content_md": "- Web Application Firewall (WAF) + throttling for login, trip creation, payment attempts, messaging.\n- 429 responses include Retry-After."
-    },
-    {
-      "semantic_key": "01065f23b1c8",
-      "level": 3,
-      "number": "3",
-      "title": "3 Personally Identifiable Information (PII) minimization",
-      "heading_raw": "3.3 Personally Identifiable Information (PII) minimization",
-      "content_md": "- Data retention policies for sensitive fields.\n- Export/delete tooling for tenant data, subject to legal retention."
-    },
-    {
-      "semantic_key": "34b3cdefda52",
-      "level": 3,
-      "number": "3",
-      "title": "4 Masked communications and messaging retention",
-      "heading_raw": "3.4 Masked communications and messaging retention",
-      "content_md": "- Riders and drivers must not see each other\u2019s phone or email.\n- In-app messaging is required; optional voice is feature-gated.\n- Messages retained for industry-standard period (default 180 days), configurable per tenant and platform policy."
-    },
-    {
-      "semantic_key": "e7b238b31527",
-      "level": 3,
-      "number": "3",
-      "title": "5 Driver compliance gating (expiry + notifications)",
-      "heading_raw": "3.5 Driver compliance gating (expiry + notifications)",
-      "content_md": "- Driver cannot go online or accept trips if any required compliance item is expired:\n  - driver\u2019s license,\n  - vehicle insurance,\n  - vehicle registration.\n- Optional strict mode: block login (default: allow login but restrict to compliance remediation + earnings views).\n- Notifications at D-14 and D-1 before expiry to driver and tenant operations contacts; delivery is logged."
-    },
-    {
-      "semantic_key": "8ef594faa56e",
-      "level": 3,
-      "number": "3",
-      "title": "6 Document capture with Optical Character Recognition (OCR) auto-population",
-      "heading_raw": "3.6 Document capture with Optical Character Recognition (OCR) auto-population",
-      "content_md": "- Driver/vehicle document screens allow in-app camera capture.\n- Optical Character Recognition (OCR) parses documents to prefill fields (document number, expiry, name, plate, VIN (Vehicle Identification Number)).\n- Driver must review and confirm extracted data; edits are audited."
-    },
-    {
-      "semantic_key": "e122447ea19a",
-      "level": 3,
-      "number": "3",
-      "title": "7 License status validation and background checks (pluggable)",
-      "heading_raw": "3.7 License status validation and background checks (pluggable)",
-      "content_md": "- Pluggable provider model for:\n  - license status (active/suspended/revoked) and Motor Vehicle Record (MVR),\n  - background screening,\n  - re-screening intervals (configurable) and incident-triggered re-checks.\n- Minimum viable: driver attestation + tenant review + scheduled reminders; provider integration is strongly recommended."
-    },
-    {
-      "semantic_key": "2958a15ee9e0",
-      "level": 3,
-      "number": "3",
-      "title": "8 Optional specialized credentials for preferred dispatch status (feature-gated)",
-      "heading_raw": "3.8 Optional specialized credentials for preferred dispatch status (feature-gated)",
-      "content_md": "- Driver profile includes optional section: \u201cAlso open to Package/Courier Opportunities.\u201d\n- Drivers can upload proofs for credentials such as:\n  - Professional Chauffeur license,\n  - Transportation Security Administration (TSA) certification,\n  - Hazardous Materials (Hazmat) certification,\n  - Medical/Pharma transport certification,\n  - Non-Emergency Medical Transport (NEMT) certification,\n  - Nuclear medicine transport certification.\n- Each credential requires proof capture via in-app camera, OCR parsing, expiry tracking, tenant approval."
-    },
-    {
-      "semantic_key": "538f52246578",
-      "level": 3,
-      "number": "3",
-      "title": "9 Kill switches (platform + tenant)",
-      "heading_raw": "3.9 Kill switches (platform + tenant)",
-      "content_md": "- Platform Super Admin and designated platform staff can deactivate tenant, driver, or vehicle (reason required; audited). Effective within 60 seconds.\n- Tenants can deactivate their own drivers and vehicles."
-    },
-    {
-      "semantic_key": "a8ba16b1f481",
-      "level": 3,
-      "number": "3",
-      "title": "10 Luxury service standards (mandatory for BlackRavenia tenants unless feature-gated)",
-      "heading_raw": "3.10 Luxury service standards (mandatory for BlackRavenia tenants unless feature-gated)",
-      "content_md": "The platform must support service-standard enforcement as compliance policy and operational scoring:\n\n- Driver dress code policy (e.g., suit & tie) with attestation + spot-check workflow.\n- Vehicle cleanliness policy (interior/exterior) with rider rating signals + ops review.\n- Amenities policy (e.g., water bottles stocked) with rider feedback capture.\n- Violations:\n  - Logged as incidents,\n  - Affect driver tiering and dispatch priority (policy-controlled),\n  - Can trigger temporary suspension pending review.\n\n**Acceptance:**\n- Given a driver has an active \u201cService Standards Violation\u201d hold, when they attempt to go online, then policy determines whether they are blocked or permitted with reduced priority.\n\n\n---"
-    },
-    {
-      "semantic_key": "e7317c041988",
-      "level": 2,
-      "number": "4",
-      "title": "Rider application (Web first; mobile optional) \u2014 end-to-end experience",
-      "heading_raw": "4. Rider application (Web first; mobile optional) \u2014 end-to-end experience",
-      "content_md": ""
-    },
-    {
-      "semantic_key": "0f5950ad34af",
-      "level": 3,
-      "number": "4",
-      "title": "1 Core flows",
-      "heading_raw": "4.1 Core flows",
-      "content_md": "- Account: sign-up/sign-in, profile, receipts, ride history.\n- Booking types: Book now (on-demand), Reserve (scheduled), Hourly.\n- Upfront pricing quote shown before confirmation.\n- Live tracking after assignment: driver location and ETA (Estimated Time of Arrival) refresh at least every 60 seconds.\n- Assigned driver + vehicle details shown (industry standard)."
-    },
-    {
-      "semantic_key": "eca50edd43e1",
-      "level": 3,
-      "number": "4",
-      "title": "2 Passenger/luggage fit and fees",
-      "heading_raw": "4.2 Passenger/luggage fit and fees",
-      "content_md": "- Booking collects passenger count and large luggage count.\n- System warns if selected vehicle likely cannot fit passengers/luggage; suggests upgrade.\n- Luggage fee may apply based on configurable thresholds."
-    },
-    {
-      "semantic_key": "33893f027e1a",
-      "level": 3,
-      "number": "4",
-      "title": "3 Stops, split-pay, gratuity",
-      "heading_raw": "4.3 Stops, split-pay, gratuity",
-      "content_md": "- Multiple stops supported; pricing rules configurable by tenant within platform limits.\n- Split-pay across multiple payers and/or payment methods.\n- Gratuity presets configurable (or rider-defined free entry)."
-    },
-    {
-      "semantic_key": "f92d138b2ca0",
-      "level": 3,
-      "number": "4",
-      "title": "4 Cancellations, no-shows, support",
-      "heading_raw": "4.4 Cancellations, no-shows, support",
-      "content_md": "- Cancellation/no-show policies configurable by tenant within platform constraints, and disclosed before confirmation.\n- Support case tracking: issue types, attachments, status, resolution, potential SLA credits."
-    },
-    {
-      "semantic_key": "1ec898a5c811",
-      "level": 3,
-      "number": "4",
-      "title": "5 Ratings and feedback",
-      "heading_raw": "4.5 Ratings and feedback",
-      "content_md": "- Rider can rate: driver, vehicle, cleanliness, friendliness (1\u20135) + optional textual feedback (max length configurable).\n- Rider can report safety/quality incidents tied to a trip."
-    },
-    {
-      "semantic_key": "86afd62910d1",
-      "level": 3,
-      "number": "4",
-      "title": "6 In-app messaging",
-      "heading_raw": "4.6 In-app messaging",
-      "content_md": "- Rider and assigned driver can text-chat live; masked identities; retention policy applies."
-    },
-    {
-      "semantic_key": "2606e47b60b2",
-      "level": 3,
-      "number": "4",
-      "title": "7 Consent gates and post-ride requirements (mandatory)",
-      "heading_raw": "4.7 Consent gates and post-ride requirements (mandatory)",
-      "content_md": "- Cookie consent is a hard gate on web experiences where legally required (policy-controlled by jurisdiction).\n- Strong tracking consent is required; no bypass (policy-controlled by jurisdiction).\n- Mutual ratings:\n  - Rider and driver must both provide a rating after each trip.\n  - A comment may be required with reasonable minimum/maximum length (tenant policy within platform constraints).\n\n\n---"
-    },
-    {
-      "semantic_key": "3b2723f315f4",
-      "level": 2,
-      "number": "5",
-      "title": "Driver application (Progressive Web App (PWA) or native) \u2014 end-to-end experience",
-      "heading_raw": "5. Driver application (Progressive Web App (PWA) or native) \u2014 end-to-end experience",
-      "content_md": ""
-    },
-    {
-      "semantic_key": "41d0d991df35",
-      "level": 3,
-      "number": "5",
-      "title": "1 Onboarding and compliance",
-      "heading_raw": "5.1 Onboarding and compliance",
-      "content_md": "- Driver profile form + vehicle form(s).\n- In-app photo capture for documents; OCR auto-population; driver confirmation.\n- Tenant review/approval and status tracking.\n- Compliance expiry gating blocks go-online and acceptance."
-    },
-    {
-      "semantic_key": "a91f3553b196",
-      "level": 3,
-      "number": "5",
-      "title": "2 Going online and offers",
-      "heading_raw": "5.2 Going online and offers",
-      "content_md": "- Driver status: offline/online/busy.\n- Offer flow: 5-second ring, auto-hop, GrabBoard claiming.\n- Real-time earnings + accumulated unpaid balance visible only to the driver."
-    },
-    {
-      "semantic_key": "49851069104f",
-      "level": 3,
-      "number": "5",
-      "title": "3 Navigation and pickup workflow",
-      "heading_raw": "5.3 Navigation and pickup workflow",
-      "content_md": "- Driver sees rider details , not the passenger contact info and vice versa. (industry standard): rider first name + initial, pickup pin, pickup notes, passenger count, luggage count.\n- Google Maps deep-link navigation to pickup and destination (no platform routing cost requirement).\n- Arrival detection: within 50 feet + stationary 60 seconds triggers \u201cArrived\u201d and starts wait timer.\n- Wait-time fees accrue per tenant-configured rates (bounded by platform)."
-    },
-    {
-      "semantic_key": "e70c5a7cfe3b",
-      "level": 3,
-      "number": "5",
-      "title": "4 Trip completion, payouts, and early payout",
-      "heading_raw": "5.4 Trip completion, payouts, and early payout",
-      "content_md": "- Trip completion triggers payment capture and ledger entry.\n- Payout schedule is tenant-managed (weekly/biweekly/monthly) and visible to driver.\n- Early payout requests supported; fee tiers configurable by platform (lower fee for longer hold, higher for instant)."
-    },
-    {
-      "semantic_key": "f05a19bff47a",
-      "level": 3,
-      "number": "5",
-      "title": "5 Destination mode, airport queueing, chat/voice",
-      "heading_raw": "5.5 Destination mode, airport queueing, chat/voice",
-      "content_md": "- Voice interface is feature-gated and must support:\n  - Driver voice intents (accept/decline, navigate, \u201carrived\u201d, \u201cstart trip\u201d, \u201cend trip\u201d),\n  - Rider voice intents (book, status, support intake),\n  - Ops voice intents (search trip, reassign, incident note).\n- Push-to-talk fallback is required.\n- Voice transcripts must be logged and retention must be controlled via Policy Center.\n\n- Destination Mode: no daily cap; policy controls at driver/region/tenant with precedence.\n- Airport prequeue and activation with fairness caps.\n- In-app chat required; voice optional and feature-gated."
-    },
-    {
-      "semantic_key": "1bf21f6f2200",
-      "level": 3,
-      "number": "5",
-      "title": "6 Scheduled ride confirmation workflow",
-      "heading_raw": "5.6 Scheduled ride confirmation workflow",
-      "content_md": "- Scheduled rides require explicit driver confirmation within a configurable window.\n- Confirmation must consider driver location and travel time to arrive on time.\n- If not confirmed: system re-offers and alerts tenant dispatcher board."
-    },
-    {
-      "semantic_key": "eb76df9c48a0",
-      "level": 3,
-      "number": "5",
-      "title": "7 Driver\u2194rider messaging and ratings",
-      "heading_raw": "5.7 Driver\u2194rider messaging and ratings",
-      "content_md": "- In-app messaging with rider; masked identities; retention policy applies.\n- Driver can rate rider (1\u20135) with optional feedback."
-    },
-    {
-      "semantic_key": "6673dcd2e642",
-      "level": 3,
-      "number": "5",
-      "title": "8 Driver types, fleet ownership, and leased vehicle workflows (mandatory)",
-      "heading_raw": "5.8 Driver types, fleet ownership, and leased vehicle workflows (mandatory)",
-      "content_md": "**Driver types (minimum):**\n1) Owner-Operator (driver owns vehicle)\n2) Leased Vehicle Driver (lease documents required)\n\n**Fleet Owner rule:**\n- A Fleet Owner is defined as an entity with **\u22652 vehicles** under a tenant.\n- Fleet Owners can:\n  - Add/remove drivers per vehicle,\n  - Disable a driver\u2019s access to a vehicle instantly (immediate ride ineligibility, unless a ride is already in progress),\n  - Mark a vehicle as \u201cAvailable for lease\u201d (policy-gated).\n\n**Leased vehicle workflows (minimum):**\n- Driver can request to lease a listed vehicle (lease request).\n- Fleet Owner and/or Tenant Ops can approve/deny with terms (dates, deposit, fees) (all audited).\n- Co-driving proposal: driver can propose adding a second driver to the same vehicle.\n- Shift exchange: drivers can propose shift exchanges with a driver-defined exchange location/time window.\n\n**Acceptance:**\n- When a Fleet Owner removes a driver from a vehicle, then that driver cannot be dispatched rides for that vehicle immediately.\n\n\n---"
-    },
-    {
-      "semantic_key": "ec2ae48c3cfd",
-      "level": 2,
-      "number": "6",
-      "title": "Dispatch, matching, airport queue, and fairness",
-      "heading_raw": "6. Dispatch, matching, airport queue, and fairness",
-      "content_md": ""
-    },
-    {
-      "semantic_key": "ad40f8493977",
-      "level": 3,
-      "number": "6",
-      "title": "1 Ring, hop, and fairness",
-      "heading_raw": "6.1 Ring, hop, and fairness",
-      "content_md": "- 5-second ring, auto-hop if not accepted.\n- ETA-aware selection; bounded skip logic with cooldown and compensation."
-    },
-    {
-      "semantic_key": "27c99af63a22",
-      "level": 3,
-      "number": "6.1",
-      "title": "1 Dispatch guarantees (no double assignment) (mandatory)",
-      "heading_raw": "6.1.1 Dispatch guarantees (no double assignment) (mandatory)",
-      "content_md": "- The dispatch engine must guarantee **no double assignment** under concurrency.\n- Offer acceptance and trip assignment must be **atomic**.\n- Implementation must use one of:\n  - PostgreSQL (PostgreSQL) transactional locking (e.g., `SELECT ... FOR UPDATE`),\n  - PostgreSQL advisory locks,\n  - Optional Redis (Redis) with Lua (Lua) scripts (only as a locking primitive; canonical data remains in PostgreSQL).\n- On stale or conflicting acceptance attempts, the system must return HTTP (Hypertext Transfer Protocol) **409 Conflict**.\n\n**Acceptance:**\n- Under a dispatch storm test, the system produces zero double assignments and zero invalid queue states.\n\n- Conflict-safe claiming of offers; atomic claim; real-time updates."
-    },
-    {
-      "semantic_key": "e71188cfe647",
-      "level": 3,
-      "number": "6",
-      "title": "2 GrabBoard",
-      "heading_raw": "6.2 GrabBoard",
-      "content_md": ""
-    },
-    {
-      "semantic_key": "d6528e08d404",
-      "level": 3,
-      "number": "6",
-      "title": "3 Airport Queue 2.0",
-      "heading_raw": "6.3 Airport Queue 2.0",
-      "content_md": "- Prequeue tokens and active tokens.\n- Inner/outer zones; anti-abuse heuristics; fairness metrics."
-    },
-    {
-      "semantic_key": "c4ebc6cfdbf1",
-      "level": 3,
-      "number": "6",
-      "title": "4 Destination-aware matching",
-      "heading_raw": "6.4 Destination-aware matching",
-      "content_md": "- Prefer rides aligned with driver destination only when fairness and ETA constraints satisfied.\n- Policy precedence: driver override \u2192 region policy \u2192 tenant default \u2192 global default."
-    },
-    {
-      "semantic_key": "ebcc45cfef22",
-      "level": 3,
-      "number": "6",
-      "title": "5 Preferred driver/vehicle prioritization (configurable by geography and tenant)",
-      "heading_raw": "6.5 Preferred driver/vehicle prioritization (configurable by geography and tenant)",
-      "content_md": "The system must support configurable dispatch prioritization based on verified driver credentials and vehicle class, with region-specific rule packs.\n\nMinimum required rule set (Chicagoland example):\n- **Tier 1 (highest priority):** Verified Professional Chauffeur license + vehicle qualifies as Large Luxury Sport Utility Vehicle (SUV) (\u201cblack car\u201d class).\n- **Tier 2:** Vehicle qualifies as Large Luxury SUV (black car class), even if not chauffeur-licensed.\n- **Tier 3:** All other eligible drivers/vehicles.\n\nAdditional constraints:\n- \u201cPreferred status\u201d must be configurable per region and per tenant (weights, enable/disable, and quotas/caps to avoid starvation).\n- \u201cPreferred status\u201d must never violate safety, compliance gating, or fairness constraints.\n- If a preferred driver is too far (ETA beyond threshold), the system must consider the next tier.\n\n**Acceptance:**\n- Given a Tier 1 and Tier 2 driver are both eligible and within ETA bounds, when matching a new ride in that region, then Tier 1 is offered first. If more than 1 tier 1 drivers are availble, the driver who has been emptty/ unassigned for the longest duration, gets offered the ride first. samr with lower tier drivers, i.e. if more than 1 tier 2 drivers are available, the driver who has been emptty/ unassigned for the longest duration, gets offered the ride first.\n- Given Tier 1 driver is outside ETA threshold, when matching, then Tier 2 or Tier 3 may be selected."
-    },
-    {
-      "semantic_key": "a78108b74260",
-      "level": 3,
-      "number": "6",
-      "title": "6 Blacklists and mutual-block pairing prevention",
-      "heading_raw": "6.6 Blacklists and mutual-block pairing prevention",
-      "content_md": "- Tenant ops and platform ops can block a driver from matching with a specific rider (mutual-block rule).\n- Rider can optionally block a driver after a trip (tenant policy controls).\n- Block rules are enforced during matching.\n- System should allow for promotion (upgrade) and demotion of driver tiers by the dispatcher."
-    },
-    {
-      "semantic_key": "0adf3977a30c",
-      "level": 3,
-      "number": "6",
-      "title": "7 Scheduled ride dispatch and confirmation exceptions",
-      "heading_raw": "6.7 Scheduled ride dispatch and confirmation exceptions",
-      "content_md": "- Scheduled rides are matched early; driver confirmation required.\n- If not confirmed or driver becomes non-compliant, ride is re-offered; tenant dispatch board is alerted.\n\n---"
-    },
-    {
-      "semantic_key": "98a5d420d961",
-      "level": 2,
-      "number": "7",
-      "title": "Pricing, surge, fees, and policy precedence",
-      "heading_raw": "7. Pricing, surge, fees, and policy precedence",
-      "content_md": ""
-    },
-    {
-      "semantic_key": "5991cf907387",
-      "level": 3,
-      "number": "7",
-      "title": "1 Base pricing",
-      "heading_raw": "7.1 Base pricing",
-      "content_md": "- Zone/time/vehicle rules, minimum fares, airport fees, taxes."
-    },
-    {
-      "semantic_key": "a550be23b5b3",
-      "level": 3,
-      "number": "7",
-      "title": "2 Surge pricing",
-      "heading_raw": "7.2 Surge pricing",
-      "content_md": "- Demand/supply surge multipliers per zone/product.\n- Feature gate: if surge disabled for tenant, multipliers resolve to 1.0."
-    },
-    {
-      "semantic_key": "68cd371f1510",
-      "level": 3,
-      "number": "7",
-      "title": "3 Surge policy controls and precedence",
-      "heading_raw": "7.3 Surge policy controls and precedence",
-      "content_md": "- Region overrides: caps, disable, kill switch.\n- Precedence: region override \u2192 tenant surge toggle \u2192 global default.\n- Propagation within 60 seconds."
-    },
-    {
-      "semantic_key": "8ace7c8fc9b4",
-      "level": 3,
-      "number": "7",
-      "title": "4 Cancellation, no-show, wait-time, luggage, stops, gratuity",
-      "heading_raw": "7.4 Cancellation, no-show, wait-time, luggage, stops, gratuity",
-      "content_md": "- Cancellation, no-show, wait-time, luggage, stops, gratuity rules per region.\n- Precedence: region \u2192 tenant \u2192 global default.\n- For tenant Gold Ravenia.co, if a driver is already enroute to a pickup, even if it is few seconds, charge the rider a cancellation fee which should be configurable by the super admin and or desgnated sub super admins/ desipatchers, and Tenants (for their own organization). Add language for the same in the terms and conditions that the rider must accept when onboarding. i.e. Tenants define what charges they want to charge/ display on their own portal (microsite), i.e configurable by the tenant admin. tenant admin also decides when each drier gets paid, how much, how frequently (integration with paysurity digital wallets (employer/ employee digital wallet).\n\n- Configurable policies for: cancellation/no-show, wait-time, luggage fees, multi-stop fees, gratuity presets."
-    },
-    {
-      "semantic_key": "d09e807d4007",
-      "level": 3,
-      "number": "7",
-      "title": "5 Policy Center (versioned, auditable policy engine) (mandatory)",
-      "heading_raw": "7.5 Policy Center (versioned, auditable policy engine) (mandatory)",
-      "content_md": "The platform must implement a **Policy Center** as the authoritative system for runtime behavior that must be configurable, versioned, and audited.\n\n**Policy types (minimum):**\n- Destination Mode\n- Airport Queue\n- Surge\n- Driver Tiering and prioritization\n- QR bonuses and referral attribution\n- Voice enablement and retention\n- Message retention and privacy defaults\n\n**Precedence (authoritative):** driver override \u2192 region \u2192 tenant \u2192 global default\n\n**Lifecycle:**\n- Draft \u2192 Validate \u2192 Publish (version increment)\n- Rollback to prior version (audited)\n- Diff view (who changed what)\n\n**Validation:**\n- JSON Schema (JSON Schema) validation (e.g., Ajv (Another JSON Validator) or equivalent)\n- Continuous Integration (CI) must fail if invalid schemas or invalid policy instances are committed.\n\n**Caching:**\n- Effective policy lookups must support caching with Entity Tag (ETag) semantics.\n\n**Policy Center APIs (minimum):**\n- GET `/policy-center/types`\n- GET `/policy-center/:type/effective`\n- POST `/policy-center/:type/drafts`\n- POST `/policy-center/:type/validate`\n- POST `/policy-center/:type/publish`\n- DELETE `/policy-center/:type/drafts/:id`\n\n\n---"
-    },
-    {
-      "semantic_key": "9520c7743d23",
-      "level": 2,
-      "number": "8",
-      "title": "Payments, ledger, payouts, and PaySurity integration",
-      "heading_raw": "8. Payments, ledger, payouts, and PaySurity integration",
-      "content_md": ""
-    },
-    {
-      "semantic_key": "37defd158132",
-      "level": 3,
-      "number": "8",
-      "title": "1 Orchestration model",
-      "heading_raw": "8.1 Orchestration model",
-      "content_md": "- RideShare calls PaySurity for tokenization, authorization, capture, refund, void.\n- PaySurity routes to Fluidpay or Argyle Payments (black box)."
-    },
-    {
-      "semantic_key": "a25be8688c4c",
-      "level": 3,
-      "number": "8",
-      "title": "2 Ledger integrity",
-      "heading_raw": "8.2 Ledger integrity",
-      "content_md": "- Ledger ensures no drift; daily reconciliation with alerts."
-    },
-    {
-      "semantic_key": "a2e650b3a167",
-      "level": 3,
-      "number": "8",
-      "title": "3 Driver payouts (tenant-managed)",
-      "heading_raw": "8.3 Driver payouts (tenant-managed)",
-      "content_md": ""
-    },
-    {
-      "semantic_key": "2622fcb1fe7d",
-      "level": 3,
-      "number": "8",
-      "title": "4 QR code attribution, bonuses, and wallet-based incentives (mandatory)",
-      "heading_raw": "8.4 QR code attribution, bonuses, and wallet-based incentives (mandatory)",
-      "content_md": "- Each branded vehicle must support a unique Quick Response (QR) code:\n  - Attribution tracking (which vehicle/tenant generated the lead),\n  - Scan \u2192 ride \u2192 bonus workflow (policy-controlled),\n  - Bonus funding source and settlement recorded in the ledger.\n- Branded vehicles can receive dispatch priority boosts (policy-controlled; bounded by fairness).\n- Incentives must be represented as ledger entries (double-entry) to avoid drift.\n\n**Acceptance:**\n- Given a QR scan generates a new rider booking, when the trip completes, then the configured bonus is created as a ledger entry and is auditable end-to-end.\n\n- Tenant configures payout schedule and eligibility.\n- Drivers see unpaid balance and payout history under tenant branding.\n- Early payout requests supported with platform-configurable fees.\n\n---"
-    },
-    {
-      "semantic_key": "b450a7574631",
-      "level": 2,
-      "number": "9",
-      "title": "Consoles (tenant + platform)",
-      "heading_raw": "9. Consoles (tenant + platform)",
-      "content_md": ""
-    },
-    {
-      "semantic_key": "358c3336312d",
-      "level": 3,
-      "number": "9",
-      "title": "1 Tenant dispatcher and operations console",
-      "heading_raw": "9.1 Tenant dispatcher and operations console",
-      "content_md": "- Live operations map: open/assigned/enroute trips; soon-to-be-free drivers; airport queue.\n- Manual assignment/reassignment; exception handling; scheduled ride alerts.\n- CRUD drivers/vehicles; compliance status; document approvals.\n- Pricing and policy controls allowed at tenant scope.\n- Disputes/refunds; incident logs; blacklist controls."
-    },
-    {
-      "semantic_key": "9a9f260487e1",
-      "level": 3,
-      "number": "9",
-      "title": "2 Tenant owner console",
-      "heading_raw": "9.2 Tenant owner console",
-      "content_md": "- Business settings, branding, microsite, policy configuration.\n- Fleet management and staff management.\n- Reports and analytics (revenue, utilization, cancellations, surge impact, payout totals)."
-    },
-    {
-      "semantic_key": "397824fdd531",
-      "level": 3,
-      "number": "9",
-      "title": "3 Platform super-admin console",
-      "heading_raw": "9.3 Platform super-admin console",
-      "content_md": "- Seed/CRUD tenants; CRUD/bulk CRUD tenant drivers/vehicles.\n- Feature gates and subscription controls per tenant.\n- Global policies (destination mode defaults, surge constraints, payout fee tiers, preferred tier weights).\n- Kill-switch console for tenant/driver/vehicle.\n- Trigger and view automated tests (single or grouped).\n- System health dashboard (metrics/logs/alerts) and root-cause surfacing.\n\n---"
-    },
-    {
-      "semantic_key": "4756cc4fedbe",
-      "level": 2,
-      "number": "10",
-      "title": "Public-facing website (platform marketing) \u2014 tenant acquisition",
-      "heading_raw": "10. Public-facing website (platform marketing) \u2014 tenant acquisition",
-      "content_md": "Purpose: attract passenger fleet owners and dispatch companies to become tenants.\n\nMinimum pages (placeholders allowed but must be wired):\n- Home (value proposition, CTA)\n- Features (dispatch, driver app, rider experience, payments)\n- Pricing (tiers, feature gates)\n- Industries/Regions (geo landing pages; SEO)\n- Case studies/testimonials (placeholder)\n- Contact / Request demo (lead form; calendar booking)\n- Security & Compliance (high-level)\n- Terms/Privacy\n\nLead capture:\n- \u201cBecome a Tenant\u201d form collects: company name, fleet size, service area, contact, desired launch date.\n- Leads enter platform pipeline (Customer Relationship Management (CRM) stub acceptable but must store in DB and notify platform team).\n\n---"
-    },
-    {
-      "semantic_key": "e7060dcd125d",
-      "level": 2,
-      "number": "11",
-      "title": "Observability, monitoring, analytics, and Service Level Objectives (SLOs)",
-      "heading_raw": "11. Observability, monitoring, analytics, and Service Level Objectives (SLOs)",
-      "content_md": ""
-    },
-    {
-      "semantic_key": "649532bafcb7",
-      "level": 3,
-      "number": "11",
-      "title": "1 Dead Letter Queue (DLQ), replay tooling, and failure classification (mandatory)",
-      "heading_raw": "11.1 Dead Letter Queue (DLQ), replay tooling, and failure classification (mandatory)",
-      "content_md": "- The platform must implement a Dead Letter Queue (DLQ) for failed asynchronous jobs (dispatch notifications, payment side effects, document OCR).\n- DLQ must support:\n  - Classification (transient vs permanent),\n  - Dry-run replay estimation (projected success rate),\n  - Replay execution with idempotency guarantees,\n  - Audit log of replay operations."
-    },
-    {
-      "semantic_key": "dee80909a1f6",
-      "level": 3,
-      "number": "11",
-      "title": "2 Chaos testing harness (mandatory)",
-      "heading_raw": "11.2 Chaos testing harness (mandatory)",
-      "content_md": "- The build must include chaos tests that intentionally disrupt:\n  - Dispatch service,\n  - Notification delivery,\n  - Policy cache,\nand validate recovery within the GO / NO-GO gates."
-    },
-    {
-      "semantic_key": "a98c5616c5f8",
-      "level": 3,
-      "number": "11",
-      "title": "3 Load testing harness (k6) (mandatory)",
-      "heading_raw": "11.3 Load testing harness (k6) (mandatory)",
-      "content_md": "- The build must include k6 load test scenarios for:\n  - Quote storm,\n  - Dispatch storm,\n  - Airport queue join/activate,\n  - Messaging burst.\n- Results must be exported to `out/k6.json` (or equivalent) for gate evaluation."
-    },
-    {
-      "semantic_key": "0b7958cf82f2",
-      "level": 3,
-      "number": "11",
-      "title": "4 GO / NO-GO integration (mandatory)",
-      "heading_raw": "11.4 GO / NO-GO integration (mandatory)",
-      "content_md": "- Observability outputs must feed the GO / NO-GO evaluator (see \u00a71.4).\n\n\n- Health and metrics endpoints: `/health`, `/metrics`.\n- Service Level Objectives (SLOs): quote p95 < 300 milliseconds (ms); match p95 < 20 seconds; error rate < 0.5%.\n- Centralized logs with correlation identifiers; audit viewer in platform console.\n- Google Analytics (GA) on public site and tenant microsites.\n\n---"
-    },
-    {
-      "semantic_key": "fd07e59191bd",
-      "level": 2,
-      "number": "12",
-      "title": "Data model (semantic; migrations must implement)",
-      "heading_raw": "12. Data model (semantic; migrations must implement)",
-      "content_md": "Minimum entities include:\n- tenant, tenant_features, users/roles\n- rider_profile, payment_methods\n- driver_profile, driver_documents, driver_background_checks, driver_credentials\n- vehicle, vehicle_documents, vehicle_classification\n- trip, trip_stops, trip_events, trip_state_transitions\n- offers, grabboard_claims, offer_state_transitions\n- policies: region policies, driver overrides, pricing rules, cancellation policies, preferred tier weights\n- airport queue tokens and events\n- messaging: trip_messages\n- ratings: trip_ratings\n- payments: payment intents, transactions, refunds, ledger entries, payouts, payout requests\n\n---"
-    },
-    {
-      "semantic_key": "78f8b5dbb56c",
-      "level": 2,
-      "number": "13",
-      "title": "State machines, timers, and contracts (authoritative)",
-      "heading_raw": "13. State machines, timers, and contracts (authoritative)",
-      "content_md": "- Trip state machine with allowed transitions and actor permissions.\n- Offer state machine: Created \u2192 Ringing \u2192 Accepted | Expired \u2192 Hopped \u2192 Claimed \u2192 Assigned \u2192 Cancelled.\n- Airport queue token state machine: Prequeue \u2192 Active \u2192 Paused \u2192 Removed/Expired.\n- Timer registry in `timers.json` used by code and versioned.\n\n---"
-    },
-    {
-      "semantic_key": "6ca77d35f165",
-      "level": 2,
-      "number": "14",
-      "title": "Application Programming Interface (API) contracts",
-      "heading_raw": "14. Application Programming Interface (API) contracts",
-      "content_md": "- OpenAPI (OpenAPI) specification is canonical for endpoints; CI fails if endpoints change without spec updates.\n- Admin endpoints for: tenant management, policies, compliance actions, tests, effective policy lookup.\n\n---"
-    },
-    {
-      "semantic_key": "e7fecdc9d2b8",
-      "level": 2,
-      "number": "15",
-      "title": "Release management and upgrades",
-      "heading_raw": "15. Release management and upgrades",
-      "content_md": "- Web: versioned deployments and cache busting; ability to force refresh for critical updates.\n- Native (if used): store release pipeline; backend compatibility via feature flags.\n\n---"
-    },
-    {
-      "semantic_key": "17bd02b7fa32",
-      "level": 2,
-      "number": "16",
-      "title": "Testing strategy (mandatory)",
-      "heading_raw": "16. Testing strategy (mandatory)",
-      "content_md": "Additional mandatory test classes:\n- Load tests (k6) must run in CI on a schedule and on release candidates.\n- Chaos tests must run at least on release candidates (or nightly).\n- DLQ replay tests must validate idempotency and projected success computations.\n\n\n- Unit tests: pricing/policies/state machines.\n- Integration tests: dispatch, PaySurity stubs, OCR pipeline, compliance gating + notifications.\n- End-to-end (E2E) tests: rider booking, driver acceptance, trip completion, payouts, messaging, ratings.\n- Platform console can trigger tests and display results.\n\n---"
-    },
-    {
-      "semantic_key": "a1cec20007ca",
-      "level": 2,
-      "number": "17",
-      "title": "Acceptance test catalog (minimum)",
-      "heading_raw": "17. Acceptance test catalog (minimum)",
-      "content_md": "Additional release gate acceptance tests (minimum):\n- GO / NO-GO gates evaluate from `out/k6.json`, `out/chaos.json`, `out/dlq.json` and produce `out/go-no-go.md`.\n- k6 failure rate < 0.5% and k6 p95 < 300 ms.\n- Chaos recovery \u2264 5 seconds.\n- DLQ projected replay success \u2265 70%.\n- Zero double assignments and zero invalid queue states under dispatch storm.\n\n- Compliance expiry gating blocks go-online/accepting; D-14 and D-1 notifications delivered and logged.\n- OCR auto-fills doc fields; driver confirms; tenant approves.\n- After assignment, rider sees driver live location and ETA refresh every 60 seconds.\n- Arrival detection starts wait timer; fees apply per configuration.\n- Scheduled ride requires driver confirmation; missing confirmation triggers re-offer and dispatch alert.\n- Luggage fee and fit warning + upgrade suggestion operate correctly.\n- Split-pay settles correctly and refunds allocate proportionally.\n- Surge disable forces multiplier=1.0; regional cap clamps multiplier.\n- Destination mode region disable suppresses bias; per-driver override can re-enable.\n- Preferred tiering prioritizes Professional Chauffeur + Large Luxury SUV over others (within ETA bounds).\n- Kill switches deactivate tenant/driver/vehicle within 60 seconds with audit.\n- Mutual-block pairing prevents a blocked driver/rider match.\n\n---"
-    },
-    {
-      "semantic_key": "2049bbdae61d",
-      "level": 2,
-      "number": "18",
-      "title": "Non-functional requirements",
-      "heading_raw": "18. Non-functional requirements",
-      "content_md": "- Availability 99.9%.\n- Accessibility: Web Content Accessibility Guidelines (WCAG) 2.1 AA.\n- Privacy: masked contact info; flight details never shown to drivers.\n- Security: audit trails for policy and administrative actions.\n\n---"
-    },
-    {
-      "semantic_key": "708dc93e7b49",
-      "level": 2,
-      "number": "19",
-      "title": "Flight awareness (privacy)",
-      "heading_raw": "19. Flight awareness (privacy)",
-      "content_md": "- Track flight ETA and adjust pickup; never expose flight details to drivers.\n- Provider calls cached and rate-limited; PII redacted in driver payloads.\n\n---"
-    },
-    {
-      "semantic_key": "3202624bfdd5",
-      "level": 2,
-      "number": "20",
-      "title": "Hard anti-drift rule",
-      "heading_raw": "20. Hard anti-drift rule",
-      "content_md": "If a missing timer/state transition/policy precedence is discovered during build, it must be added to this document before implementation proceeds."
-    },
-    {
-      "semantic_key": "31e5cc1f1ff7",
-      "level": 2,
-      "number": "21",
-      "title": "Marketplace, ads, and paid placements (feature-gated)",
-      "heading_raw": "21. Marketplace, ads, and paid placements (feature-gated)",
-      "content_md": "- Tenant microsites and/or platform site may include a Marketplace section for:\n  - Emergency recovery offers,\n  - Marketing services,\n  - Paid placements.\n- Paid placements require:\n  - Admin approval workflow,\n  - Start/end dates,\n  - Disclosure labels,\n  - Reporting (impressions, clicks, conversions)."
-    },
-    {
-      "semantic_key": "830170dd8789",
-      "level": 2,
-      "number": "22",
-      "title": "Chicagoland events engine (demand forecasting) (feature-gated)",
-      "heading_raw": "22. Chicagoland events engine (demand forecasting) (feature-gated)",
-      "content_md": "- The platform must support automated ingestion of events (weekly minimum cadence):\n  - Concerts,\n  - Sports,\n  - Cultural events.\n- Ingestion sources may include web scraping and partner feeds (must be policy-controlled, rate-limited, and legally compliant).\n- Normalized event fields (minimum):\n  - name, venue, geo, start/end date-time, category/type, expected attendance (optional), source URL.\n- Events drive demand forecasting for pricing and driver positioning (never overrides fairness or safety policies)."
-    },
-    {
-      "semantic_key": "f91a7c2fb496",
-      "level": 2,
-      "number": "23",
-      "title": "Provenance appendix (non-authoritative)",
-      "heading_raw": "23. Provenance appendix (non-authoritative)",
-      "content_md": "This section is **non-authoritative** and exists only to show source traceability for the semantic merge.\n\n- Source A (target authority): `BlackRavenia_RideShare_Canonical_Requirements_v6_1.md`\n- Source B (merged): `RideShare-chat1-requirements.txt`\n- Source C (merged context): `rideshare context.txt`\n\nAll requirements in Sources B and C have been incorporated into the authoritative sections above. If an omission is discovered, the omission must be added above (not here) per \u00a720 Hard anti-drift rule."
-    }
-  ]
+﻿{
+    "metadata":  {
+                     "name":  "BlackRavenia RideShare Platform Canonical Requirements",
+                     "version":  "6.1-merged-reorg-v3",
+                     "timestamp_america_chicago":  "2026-02-05 21:16:45",
+                     "canonical_authority":  true,
+                     "canonical_datastore":  "PostgreSQL",
+                     "no_supabase":  true,
+                     "source_markdown":  "BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md"
+                 },
+    "consumption_contract":  {
+                                 "as_is_first":  true,
+                                 "no_implementation_before_scan":  true,
+                                 "semantic_matching":  true,
+                                 "reverse_engineer_implemented_not_documented":  true,
+                                 "required_artifacts":  [
+                                                            "as_is_scan.md",
+                                                            "requirements_status.md",
+                                                            "progress_report.md",
+                                                            "implemented_not_documented.md",
+                                                            "AS-IS-REPORT.md",
+                                                            "COVERAGE-TABLE.md",
+                                                            "coverage.json",
+                                                            "GAPS-TODO.md",
+                                                            "PLAN-TO-100.md",
+                                                            "screen_index.md",
+                                                            "timers.json",
+                                                            "out/k6.json",
+                                                            "out/chaos.json",
+                                                            "out/dlq.json",
+                                                            "out/go-no-go.md"
+                                                        ],
+                                 "anti_drift_rule":  "If an implemented behavior exists without a requirement, reverse engineer it into this document and mark its status with evidence before proceeding."
+                             },
+    "status_schema":  {
+                          "states":  [
+                                         "Not Started",
+                                         "In Progress",
+                                         "Implemented",
+                                         "Tested",
+                                         "Shippable",
+                                         "Launch-ready",
+                                         "Blocked"
+                                     ],
+                          "evidence_required_for":  {
+                                                        "Implemented":  [
+                                                                            "file_paths",
+                                                                            "api_endpoints",
+                                                                            "db_migrations_or_queries"
+                                                                        ],
+                                                        "Tested":  [
+                                                                       "test_file_paths",
+                                                                       "ci_workflow_run_reference"
+                                                                   ],
+                                                        "Shippable":  [
+                                                                          "staging_deployment_reference",
+                                                                          "smoke_test_evidence",
+                                                                          "observability_links"
+                                                                      ]
+                                                    }
+                      },
+    "milestones":  [
+                       {
+                           "id":  "M01",
+                           "name":  "Platform Foundations completed",
+                           "scope_section_prefixes":  [
+                                                          "1",
+                                                          "2"
+                                                      ],
+                           "target_status":  "Shippable",
+                           "scope_semantic_keys":  [
+                                                       "de4d407cb239",
+                                                       "78e20b65bf1f",
+                                                       "2d9df1c4c7ca",
+                                                       "1094c8c2f5b2",
+                                                       "0cfd2885d67f",
+                                                       "4e448a0c70e7",
+                                                       "77e775e5cc82",
+                                                       "7ca30076c69a",
+                                                       "f35f728ec2fb",
+                                                       "e55298c9b3c9",
+                                                       "5b72333b8621",
+                                                       "5ccd322a11c1",
+                                                       "3a6578e8bcfb",
+                                                       "a88fd62946b3"
+                                                   ]
+                       },
+                       {
+                           "id":  "M02",
+                           "name":  "Identity, security, and auditability completed",
+                           "scope_section_prefixes":  [
+                                                          "3",
+                                                          "2.4"
+                                                      ],
+                           "target_status":  "Shippable",
+                           "scope_semantic_keys":  [
+                                                       "422649296f04",
+                                                       "546c8e4e70b5",
+                                                       "5422dd3f4345",
+                                                       "01065f23b1c8",
+                                                       "34b3cdefda52",
+                                                       "e7b238b31527",
+                                                       "8ef594faa56e",
+                                                       "e122447ea19a",
+                                                       "2958a15ee9e0",
+                                                       "538f52246578",
+                                                       "a8ba16b1f481"
+                                                   ]
+                       },
+                       {
+                           "id":  "M03",
+                           "name":  "Policy Center completed",
+                           "scope_section_prefixes":  [
+                                                          "7.5"
+                                                      ],
+                           "target_status":  "Shippable",
+                           "scope_semantic_keys":  [
+
+                                                   ]
+                       },
+                       {
+                           "id":  "M04",
+                           "name":  "Dispatch \u0026 real-time system completed",
+                           "scope_section_prefixes":  [
+                                                          "6",
+                                                          "11"
+                                                      ],
+                           "target_status":  "Shippable",
+                           "scope_semantic_keys":  [
+                                                       "ec2ae48c3cfd",
+                                                       "ad40f8493977",
+                                                       "27c99af63a22",
+                                                       "e71188cfe647",
+                                                       "d6528e08d404",
+                                                       "c4ebc6cfdbf1",
+                                                       "ebcc45cfef22",
+                                                       "a78108b74260",
+                                                       "0adf3977a30c",
+                                                       "e7060dcd125d",
+                                                       "649532bafcb7",
+                                                       "dee80909a1f6",
+                                                       "a98c5616c5f8",
+                                                       "0b7958cf82f2"
+                                                   ]
+                       },
+                       {
+                           "id":  "M05",
+                           "name":  "Pricing \u0026 quoting completed",
+                           "scope_section_prefixes":  [
+                                                          "7"
+                                                      ],
+                           "target_status":  "Shippable",
+                           "scope_semantic_keys":  [
+                                                       "98a5d420d961",
+                                                       "5991cf907387",
+                                                       "a550be23b5b3",
+                                                       "68cd371f1510",
+                                                       "8ace7c8fc9b4",
+                                                       "d09e807d4007"
+                                                   ]
+                       },
+                       {
+                           "id":  "M06",
+                           "name":  "Payments, ledger, and reconciliation completed",
+                           "scope_section_prefixes":  [
+                                                          "8"
+                                                      ],
+                           "target_status":  "Shippable",
+                           "scope_semantic_keys":  [
+                                                       "9520c7743d23",
+                                                       "37defd158132",
+                                                       "a25be8688c4c",
+                                                       "a2e650b3a167",
+                                                       "2622fcb1fe7d"
+                                                   ]
+                       },
+                       {
+                           "id":  "M07",
+                           "name":  "Driver App completed",
+                           "scope_section_prefixes":  [
+                                                          "5"
+                                                      ],
+                           "target_status":  "Shippable",
+                           "scope_semantic_keys":  [
+                                                       "3b2723f315f4",
+                                                       "41d0d991df35",
+                                                       "a91f3553b196",
+                                                       "49851069104f",
+                                                       "e70c5a7cfe3b",
+                                                       "f05a19bff47a",
+                                                       "1bf21f6f2200",
+                                                       "eb76df9c48a0",
+                                                       "6673dcd2e642"
+                                                   ]
+                       },
+                       {
+                           "id":  "M08",
+                           "name":  "Rider App completed",
+                           "scope_section_prefixes":  [
+                                                          "4"
+                                                      ],
+                           "target_status":  "Shippable",
+                           "scope_semantic_keys":  [
+                                                       "e7317c041988",
+                                                       "0f5950ad34af",
+                                                       "eca50edd43e1",
+                                                       "33893f027e1a",
+                                                       "f92d138b2ca0",
+                                                       "1ec898a5c811",
+                                                       "86afd62910d1",
+                                                       "2606e47b60b2"
+                                                   ]
+                       },
+                       {
+                           "id":  "M09",
+                           "name":  "Tenant Ops Console completed",
+                           "scope_section_prefixes":  [
+                                                          "9.1"
+                                                      ],
+                           "target_status":  "Shippable",
+                           "scope_semantic_keys":  [
+
+                                                   ]
+                       },
+                       {
+                           "id":  "M10",
+                           "name":  "Tenant Owner / Admin Console completed",
+                           "scope_section_prefixes":  [
+                                                          "9.2"
+                                                      ],
+                           "target_status":  "Shippable",
+                           "scope_semantic_keys":  [
+
+                                                   ]
+                       },
+                       {
+                           "id":  "M11",
+                           "name":  "Platform Admin Console completed",
+                           "scope_section_prefixes":  [
+                                                          "9.3"
+                                                      ],
+                           "target_status":  "Shippable",
+                           "scope_semantic_keys":  [
+
+                                                   ]
+                       },
+                       {
+                           "id":  "M12",
+                           "name":  "Observability, reliability, and safe deployment completed",
+                           "scope_section_prefixes":  [
+                                                          "1.4",
+                                                          "11",
+                                                          "16",
+                                                          "17"
+                                                      ],
+                           "target_status":  "Shippable",
+                           "scope_semantic_keys":  [
+                                                       "e7060dcd125d",
+                                                       "649532bafcb7",
+                                                       "dee80909a1f6",
+                                                       "a98c5616c5f8",
+                                                       "0b7958cf82f2",
+                                                       "17bd02b7fa32",
+                                                       "a1cec20007ca"
+                                                   ]
+                       },
+                       {
+                           "id":  "M13",
+                           "name":  "Public website + tenant microsites completed",
+                           "scope_section_prefixes":  [
+                                                          "10",
+                                                          "2.3"
+                                                      ],
+                           "target_status":  "Shippable",
+                           "scope_semantic_keys":  [
+                                                       "4756cc4fedbe"
+                                                   ]
+                       },
+                       {
+                           "id":  "M14",
+                           "name":  "Feature-gated expansions completed (optional)",
+                           "scope_section_prefixes":  [
+                                                          "21",
+                                                          "22"
+                                                      ],
+                           "target_status":  "Shippable",
+                           "optional":  true,
+                           "scope_semantic_keys":  [
+                                                       "31e5cc1f1ff7",
+                                                       "830170dd8789"
+                                                   ]
+                       }
+                   ],
+    "document_outline":  [
+                             {
+                                 "semantic_key":  "de4d407cb239",
+                                 "level":  2,
+                                 "number":  "1",
+                                 "title":  "Product governance, anti-drift guardrails, and evidence-based progress",
+                                 "heading_raw":  "1. Product governance, anti-drift guardrails, and evidence-based progress",
+                                 "content_md":  ""
+                             },
+                             {
+                                 "semantic_key":  "78e20b65bf1f",
+                                 "level":  3,
+                                 "number":  "1",
+                                 "title":  "1 Canonical build rules (strict)",
+                                 "heading_raw":  "1.1 Canonical build rules (strict)",
+                                 "content_md":  "- The build must be implemented against the semantics in this document.\n- No capability can be marked “Implemented” or “Tested” without evidence links.\n- **As-is first (mandatory):** Before implementing any change, the agentic Artificial Intelligence (AI) must run `as_is_scan.md`, populate `requirements_status.md` with evidence links, and update this document with any implemented-but-not-documented requirements (see §1.3 and §1.7)."
+                             },
+                             {
+                                 "semantic_key":  "2d9df1c4c7ca",
+                                 "level":  3,
+                                 "number":  "1",
+                                 "title":  "2 Definition of Done (DoD) (strict by default)",
+                                 "heading_raw":  "1.2 Definition of Done (DoD) (strict by default)",
+                                 "content_md":  "For each capability in this document:\n\n- **Designed**: screen(s) and flow(s) exist in `screen_index.md`, and relevant state machine/timers are specified.\n- **Implemented**: end-to-end path exists: User Interface (UI) → Application Programming Interface (API) → Database (DB) → side effects (notifications, policy propagation, ledger entries).\n- **Tested**: automated tests exist and pass in Continuous Integration (CI) for happy-path and key negative-paths.\n- **Shippable**: deployed to staging with smoke tests passing; observability signals visible (metrics/logs/alerts).\n- **Launch-ready**: shippable + operational playbooks + tenant onboarding + compliance workflows + incident response runbooks."
+                             },
+                             {
+                                 "semantic_key":  "1094c8c2f5b2",
+                                 "level":  3,
+                                 "number":  "1",
+                                 "title":  "3 Required build artifacts (must be produced by agentic AI)",
+                                 "heading_raw":  "1.3 Required build artifacts (must be produced by agentic AI)",
+                                 "content_md":  "The agentic AI must generate and maintain:\n\n1) `as_is_scan.md` — deterministic scan: stack, services, endpoints, migrations, tests, workflows.  \n2) `requirements_status.md` — semantic checklist mapping each capability to Not Started / In Progress / Implemented / Tested / Blocked, with evidence links.  \n3) `progress_report.md` — time-stamped deltas since last scan + risks + next actions, all evidence-linked.  \n4) `implemented_not_documented.md` — implemented code not covered in this document, with evidence.\n\n**Evidence gates (non-negotiable):**\n- “Implemented” requires: file paths + API routes/endpoints + DB migrations/queries.  \n- “Tested” requires: test file paths + CI proof (workflow + run output reference).  \n- “Shippable” requires: staging deployment reference + smoke test evidence."
+                             },
+                             {
+                                 "semantic_key":  "0cfd2885d67f",
+                                 "level":  3,
+                                 "number":  "1",
+                                 "title":  "4 Production readiness gates (GO / NO-GO) (hard gates)",
+                                 "heading_raw":  "1.4 Production readiness gates (GO / NO-GO) (hard gates)",
+                                 "content_md":  "- A release is permitted only if the **GO / NO-GO** evaluation exits successfully in Continuous Integration (CI) (Continuous Integration) and produces deterministic outputs.\n- The platform must include a deterministic gate evaluator (e.g., `scripts/go-no-go-gates.js`) that:\n  - Reads `out/k6.json`, `out/chaos.json`, and `out/dlq.json` (or equivalent artifacts),\n  - Evaluates each gate, emits a human-readable report `out/go-no-go.md`,\n  - Exits `0` for GO and `1` for NO-GO so it can block deployments.\n\n**Hard gates (minimum set):**\n1) k6 (load test) failure rate \u003c **0.5%**  \n2) k6 p95 (95th percentile) latency \u003c **300 milliseconds (ms)**  \n3) **Zero** double assignments (no rider assigned to two drivers; no driver assigned two active trips)  \n4) **Zero** invalid queue states (airport queue and offer queue state machines must not violate allowed transitions)  \n5) Recovery ≤ **5 seconds** after chaos (intentional component failure)  \n6) Dead Letter Queue (DLQ) replay projected success ≥ **70%** (dry-run validation)  "
+                             },
+                             {
+                                 "semantic_key":  "4e448a0c70e7",
+                                 "level":  3,
+                                 "number":  "1",
+                                 "title":  "5 Safe deployment automation (canary + rollback) (mandatory)",
+                                 "heading_raw":  "1.5 Safe deployment automation (canary + rollback) (mandatory)",
+                                 "content_md":  "- Deployments must support canary rollout stages: **25% → 50% → 100%**.\n- Automatic rollback must be triggered on any GO / NO-GO gate failure.\n- Each deployment must:\n  - Tag the release (Git tag),\n  - Snapshot runtime configuration (feature flags, policy versions) as deployment proof,\n  - Store the GO / NO-GO report artifact in CI."
+                             },
+                             {
+                                 "semantic_key":  "77e775e5cc82",
+                                 "level":  3,
+                                 "number":  "1",
+                                 "title":  "6 Reliability validation pipeline (as-is → to-be) (mandatory)",
+                                 "heading_raw":  "1.6 Reliability validation pipeline (as-is → to-be) (mandatory)",
+                                 "content_md":  "The platform must support and document an end-to-end validation pipeline that can be executed in CI:\n\n- Load test: dispatch storm and quote storm via k6.\n- Chaos test: intentionally kill/disable dispatch + notifications for a short interval; validate recovery.\n- DLQ analysis: classify transient failures and estimate replay success; provide replay tooling."
+                             },
+                             {
+                                 "semantic_key":  "7ca30076c69a",
+                                 "level":  3,
+                                 "number":  "1",
+                                 "title":  "7 Agentic AI audit outputs (required)",
+                                 "heading_raw":  "1.7 Agentic AI audit outputs (required)",
+                                 "content_md":  "In addition to the artifacts in §1.3, the agentic Artificial Intelligence (AI) must be able to produce (and refresh on demand):\n\n- `AS-IS-REPORT.md` — what exists now (features, endpoints, migrations, screens) vs this document.\n- `COVERAGE-TABLE.md` — requirement-by-requirement semantic coverage table.\n- `coverage.json` — machine-readable coverage output.\n- `GAPS-TODO.md` — ordered gap list (P0/P1/P2) with owners and dependencies.\n- `PLAN-TO-100.md` — sequenced plan to reach 100% Launch-ready per Definition of Done (DoD).\n\n**Mental model (non-negotiable):** Requirements → Evidence → Gates → Canary → Cutover\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "f35f728ec2fb",
+                                 "level":  3,
+                                 "number":  "1",
+                                 "title":  "8 Milestones and progress reporting (mandatory)",
+                                 "heading_raw":  "1.8 Milestones and progress reporting (mandatory)",
+                                 "content_md":  "A **milestone** is considered **Completed** only when **all** in-scope requirements are marked **Shippable** (or **Launch-ready**) in `requirements_status.md` **with evidence** per §1.3, and the applicable GO / NO-GO gates in §1.4 pass for the release candidate. Milestones must be reported when they transition to **Completed** and must include links to the evidence artifacts.\n\n**Milestone reporting (required):**\n- Update: `progress_report.md` (what changed, what evidence was produced, what is blocked).\n- Update: `requirements_status.md` (status + evidence links per requirement).\n- If a milestone uncovers implemented-but-not-documented capabilities, update `implemented_not_documented.md` and insert the new requirement text into the relevant section (see §1.7).\n\n**Milestones (minimum set, ordered):**\n1) **Platform Foundations completed**\n   - Repository structure, environment configuration, feature flags, migrations, seed data, base CI.\n   - Core DB schemas for tenants, users, roles, audit logs.\n\n2) **Identity, security, and auditability completed**\n   - Authentication (AuthN) (Authentication), authorization (AuthZ) (Authorization), RBAC, rate limiting, kill switches.\n   - Audit log viewer + immutable financial audit trail.\n\n3) **Policy Center completed**\n   - Draft → validate → publish → rollback; precedence; caching; schema validation; audit diff/history.\n\n4) **Dispatch \u0026 real-time system completed**\n   - Ring/hop, atomic assignment guarantees (no double assignment), WebSocket/SSE real-time updates, notification fanout.\n   - GrabBoard + Airport Queue state machines validated (zero invalid transitions).\n\n5) **Pricing \u0026 quoting completed**\n   - Vehicle/product pricing rules; surge; upfront quote generation; taxes/fees; precedence rules.\n   - Quote storm and dispatch storm load tests wired (k6).\n\n6) **Payments, ledger, and reconciliation completed**\n   - PaySurity orchestration; gateway abstraction; capture/refund; double-entry ledger.\n   - Daily reconciliation + exception alerts; DLQ handling for payment side effects.\n\n7) **Driver App completed**\n   - Onboarding (OCR), compliance expiry tracking, online/offline, offer/accept flows, in-trip flows, proof capture, earnings.\n   - Fleet/leased vehicle workflows (if feature-enabled).\n\n8) **Rider App completed**\n   - Booking (now/scheduled/hourly), tracking, messaging, ratings, receipts, support intake, consent gates.\n\n9) **Tenant Ops Console completed**\n   - Live map, dispatch oversight, reassign, compliance approvals, refunds/adjustments, support queue.\n\n10) **Tenant Owner / Admin Console completed**\n   - Branding, user management, policies, pricing toggles within constraints, analytics, payout scheduling controls.\n\n11) **Platform Admin Console completed**\n   - Tenant provisioning, feature gating, global policies, test runner, system health, observability dashboards.\n\n12) **Observability, reliability, and safe deployment completed**\n   - SLOs, DLQ + replay tooling, chaos tests, k6, GO / NO-GO evaluator, canary + rollback automation.\n\n13) **Public website + tenant microsites completed**\n   - SEO, sitemap/robots, lead capture, conversion tracking, compliance pages; white-label microsites.\n\n14) **Feature-gated expansions completed (optional)**\n   - Marketplace/ads placements, Chicagoland events ingestion/forecasting (only if enabled)."
+                             },
+                             {
+                                 "semantic_key":  "e55298c9b3c9",
+                                 "level":  2,
+                                 "number":  "2",
+                                 "title":  "Personas, roles, and tenancy model",
+                                 "heading_raw":  "2. Personas, roles, and tenancy model",
+                                 "content_md":  ""
+                             },
+                             {
+                                 "semantic_key":  "5b72333b8621",
+                                 "level":  3,
+                                 "number":  "2",
+                                 "title":  "1 Personas",
+                                 "heading_raw":  "2.1 Personas",
+                                 "content_md":  "- **Rider (End Customer)**: books rides, pays, tracks driver, rates driver/vehicle, manages trip history and receipts.\n- **Driver**: completes onboarding/compliance, goes online, accepts offers, navigates, chats, completes trips, views earnings/unpaid balance/payout history.\n- **Tenant Dispatcher / Operations Staff (Tenant Ops)**: monitors live operations, intervenes on assignments, manages drivers/vehicles, handles disputes.\n- **Tenant Owner / Fleet Operator (Tenant Owner)**: manages business settings, policies, fleet, analytics, staff.\n- **Fleet Owner (Fleet Owner)**: owns ≥2 vehicles under a tenant; assigns drivers to vehicles; manages leased vehicle inventory and access.\n- **Customer Support Representative (CSR) (Tenant CSR)**: handles rider and driver support cases, refunds, disputes, and incident intake.\n- **Platform Super Admin (Platform Owner)**: seeds/CRUD tenants, global policies, feature gates, pricing constraints, monitoring, kill switches, test execution.\n- **Platform Sub-Super Admin (Platform Staff)**: delegated platform ops, support, compliance review, incident response."
+                             },
+                             {
+                                 "semantic_key":  "5ccd322a11c1",
+                                 "level":  3,
+                                 "number":  "2",
+                                 "title":  "2 Tenancy and data isolation",
+                                 "heading_raw":  "2.2 Tenancy and data isolation",
+                                 "content_md":  "- Every relevant row includes `tenant_id`.\n- Tenants see only their own riders, drivers, vehicles, trips, payouts, messages, ratings, policies, analytics.\n- Platform Super Admin (and authorized platform staff) can view all tenant data for operations, compliance, auditing, and support.\n\n**Acceptance:**\n- Given Tenant A and Tenant B exist, when a Tenant A user queries trips, then only Tenant A trips are returned."
+                             },
+                             {
+                                 "semantic_key":  "3a6578e8bcfb",
+                                 "level":  3,
+                                 "number":  "2",
+                                 "title":  "3 White-label branding",
+                                 "heading_raw":  "2.3 White-label branding",
+                                 "content_md":  "- Rider and Driver experiences are branded per tenant (colors, logo, copy, domains).\n- Driver reimbursements/payouts are shown under tenant branding, because payout scheduling is controlled by the tenant.\n- Platform records the financial truth via ledger, but external gateway names remain hidden from tenants/drivers (PaySurity is the gateway “face”)."
+                             },
+                             {
+                                 "semantic_key":  "a88fd62946b3",
+                                 "level":  3,
+                                 "number":  "2",
+                                 "title":  "4 Role taxonomy (Role-Based Access Control (RBAC)) (authoritative)",
+                                 "heading_raw":  "2.4 Role taxonomy (Role-Based Access Control (RBAC)) (authoritative)",
+                                 "content_md":  "**Canonical roles (minimum):**\n- PLATFORM_SUPER_ADMIN\n- PLATFORM_SUB_SUPER_ADMIN\n- TENANT_OWNER\n- TENANT_OPS_ADMIN\n- TENANT_CSR\n- FLEET_OWNER\n- DRIVER\n- RIDER\n\n**Role mapping rule:**\n- Platform roles can operate across tenants (audited).\n- Tenant roles are tenant-scoped via `tenant_id`.\n- A user may hold multiple roles across tenants only if explicitly granted (audited).\n\n**Acceptance:**\n- Given a TENANT_CSR, when they view a support case, then they can only access cases within their tenant.\n- Given a PLATFORM_SUB_SUPER_ADMIN, when they perform a kill switch action, then it is audited and visible platform-wide.\n\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "422649296f04",
+                                 "level":  2,
+                                 "number":  "3",
+                                 "title":  "Identity, security, privacy, and compliance",
+                                 "heading_raw":  "3. Identity, security, privacy, and compliance",
+                                 "content_md":  ""
+                             },
+                             {
+                                 "semantic_key":  "546c8e4e70b5",
+                                 "level":  3,
+                                 "number":  "3",
+                                 "title":  "1 Authentication and authorization",
+                                 "heading_raw":  "3.1 Authentication and authorization",
+                                 "content_md":  "- Authentication: JSON Web Token (JWT) sessions.\n- Authorization: Role-Based Access Control (RBAC) with least privilege.\n- Audit logs for admin/policy/financial actions: who/what/when/where (tenant, user, IP)."
+                             },
+                             {
+                                 "semantic_key":  "5422dd3f4345",
+                                 "level":  3,
+                                 "number":  "3",
+                                 "title":  "2 Rate limiting and abuse prevention",
+                                 "heading_raw":  "3.2 Rate limiting and abuse prevention",
+                                 "content_md":  "- Web Application Firewall (WAF) + throttling for login, trip creation, payment attempts, messaging.\n- 429 responses include Retry-After."
+                             },
+                             {
+                                 "semantic_key":  "01065f23b1c8",
+                                 "level":  3,
+                                 "number":  "3",
+                                 "title":  "3 Personally Identifiable Information (PII) minimization",
+                                 "heading_raw":  "3.3 Personally Identifiable Information (PII) minimization",
+                                 "content_md":  "- Data retention policies for sensitive fields.\n- Export/delete tooling for tenant data, subject to legal retention."
+                             },
+                             {
+                                 "semantic_key":  "34b3cdefda52",
+                                 "level":  3,
+                                 "number":  "3",
+                                 "title":  "4 Masked communications and messaging retention",
+                                 "heading_raw":  "3.4 Masked communications and messaging retention",
+                                 "content_md":  "- Riders and drivers must not see each other’s phone or email.\n- In-app messaging is required; optional voice is feature-gated.\n- Messages retained for industry-standard period (default 180 days), configurable per tenant and platform policy."
+                             },
+                             {
+                                 "semantic_key":  "e7b238b31527",
+                                 "level":  3,
+                                 "number":  "3",
+                                 "title":  "5 Driver compliance gating (expiry + notifications)",
+                                 "heading_raw":  "3.5 Driver compliance gating (expiry + notifications)",
+                                 "content_md":  "- Driver cannot go online or accept trips if any required compliance item is expired:\n  - driver’s license,\n  - vehicle insurance,\n  - vehicle registration.\n- Optional strict mode: block login (default: allow login but restrict to compliance remediation + earnings views).\n- Notifications at D-14 and D-1 before expiry to driver and tenant operations contacts; delivery is logged."
+                             },
+                             {
+                                 "semantic_key":  "8ef594faa56e",
+                                 "level":  3,
+                                 "number":  "3",
+                                 "title":  "6 Document capture with Optical Character Recognition (OCR) auto-population",
+                                 "heading_raw":  "3.6 Document capture with Optical Character Recognition (OCR) auto-population",
+                                 "content_md":  "- Driver/vehicle document screens allow in-app camera capture.\n- Optical Character Recognition (OCR) parses documents to prefill fields (document number, expiry, name, plate, VIN (Vehicle Identification Number)).\n- Driver must review and confirm extracted data; edits are audited."
+                             },
+                             {
+                                 "semantic_key":  "e122447ea19a",
+                                 "level":  3,
+                                 "number":  "3",
+                                 "title":  "7 License status validation and background checks (pluggable)",
+                                 "heading_raw":  "3.7 License status validation and background checks (pluggable)",
+                                 "content_md":  "- Pluggable provider model for:\n  - license status (active/suspended/revoked) and Motor Vehicle Record (MVR),\n  - background screening,\n  - re-screening intervals (configurable) and incident-triggered re-checks.\n- Minimum viable: driver attestation + tenant review + scheduled reminders; provider integration is strongly recommended."
+                             },
+                             {
+                                 "semantic_key":  "2958a15ee9e0",
+                                 "level":  3,
+                                 "number":  "3",
+                                 "title":  "8 Optional specialized credentials for preferred dispatch status (feature-gated)",
+                                 "heading_raw":  "3.8 Optional specialized credentials for preferred dispatch status (feature-gated)",
+                                 "content_md":  "- Driver profile includes optional section: “Also open to Package/Courier Opportunities.”\n- Drivers can upload proofs for credentials such as:\n  - Professional Chauffeur license,\n  - Transportation Security Administration (TSA) certification,\n  - Hazardous Materials (Hazmat) certification,\n  - Medical/Pharma transport certification,\n  - Non-Emergency Medical Transport (NEMT) certification,\n  - Nuclear medicine transport certification.\n- Each credential requires proof capture via in-app camera, OCR parsing, expiry tracking, tenant approval."
+                             },
+                             {
+                                 "semantic_key":  "538f52246578",
+                                 "level":  3,
+                                 "number":  "3",
+                                 "title":  "9 Kill switches (platform + tenant)",
+                                 "heading_raw":  "3.9 Kill switches (platform + tenant)",
+                                 "content_md":  "- Platform Super Admin and designated platform staff can deactivate tenant, driver, or vehicle (reason required; audited). Effective within 60 seconds.\n- Tenants can deactivate their own drivers and vehicles."
+                             },
+                             {
+                                 "semantic_key":  "a8ba16b1f481",
+                                 "level":  3,
+                                 "number":  "3",
+                                 "title":  "10 Luxury service standards (mandatory for BlackRavenia tenants unless feature-gated)",
+                                 "heading_raw":  "3.10 Luxury service standards (mandatory for BlackRavenia tenants unless feature-gated)",
+                                 "content_md":  "The platform must support service-standard enforcement as compliance policy and operational scoring:\n\n- Driver dress code policy (e.g., suit \u0026 tie) with attestation + spot-check workflow.\n- Vehicle cleanliness policy (interior/exterior) with rider rating signals + ops review.\n- Amenities policy (e.g., water bottles stocked) with rider feedback capture.\n- Violations:\n  - Logged as incidents,\n  - Affect driver tiering and dispatch priority (policy-controlled),\n  - Can trigger temporary suspension pending review.\n\n**Acceptance:**\n- Given a driver has an active “Service Standards Violation” hold, when they attempt to go online, then policy determines whether they are blocked or permitted with reduced priority.\n\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "e7317c041988",
+                                 "level":  2,
+                                 "number":  "4",
+                                 "title":  "Rider application (Web first; mobile optional) — end-to-end experience",
+                                 "heading_raw":  "4. Rider application (Web first; mobile optional) — end-to-end experience",
+                                 "content_md":  ""
+                             },
+                             {
+                                 "semantic_key":  "0f5950ad34af",
+                                 "level":  3,
+                                 "number":  "4",
+                                 "title":  "1 Core flows",
+                                 "heading_raw":  "4.1 Core flows",
+                                 "content_md":  "- Account: sign-up/sign-in, profile, receipts, ride history.\n- Booking types: Book now (on-demand), Reserve (scheduled), Hourly.\n- Upfront pricing quote shown before confirmation.\n- Live tracking after assignment: driver location and ETA (Estimated Time of Arrival) refresh at least every 60 seconds.\n- Assigned driver + vehicle details shown (industry standard)."
+                             },
+                             {
+                                 "semantic_key":  "eca50edd43e1",
+                                 "level":  3,
+                                 "number":  "4",
+                                 "title":  "2 Passenger/luggage fit and fees",
+                                 "heading_raw":  "4.2 Passenger/luggage fit and fees",
+                                 "content_md":  "- Booking collects passenger count and large luggage count.\n- System warns if selected vehicle likely cannot fit passengers/luggage; suggests upgrade.\n- Luggage fee may apply based on configurable thresholds."
+                             },
+                             {
+                                 "semantic_key":  "33893f027e1a",
+                                 "level":  3,
+                                 "number":  "4",
+                                 "title":  "3 Stops, split-pay, gratuity",
+                                 "heading_raw":  "4.3 Stops, split-pay, gratuity",
+                                 "content_md":  "- Multiple stops supported; pricing rules configurable by tenant within platform limits.\n- Split-pay across multiple payers and/or payment methods.\n- Gratuity presets configurable (or rider-defined free entry)."
+                             },
+                             {
+                                 "semantic_key":  "f92d138b2ca0",
+                                 "level":  3,
+                                 "number":  "4",
+                                 "title":  "4 Cancellations, no-shows, support",
+                                 "heading_raw":  "4.4 Cancellations, no-shows, support",
+                                 "content_md":  "- Cancellation/no-show policies configurable by tenant within platform constraints, and disclosed before confirmation.\n- Support case tracking: issue types, attachments, status, resolution, potential SLA credits."
+                             },
+                             {
+                                 "semantic_key":  "1ec898a5c811",
+                                 "level":  3,
+                                 "number":  "4",
+                                 "title":  "5 Ratings and feedback",
+                                 "heading_raw":  "4.5 Ratings and feedback",
+                                 "content_md":  "- Rider can rate: driver, vehicle, cleanliness, friendliness (1–5) + optional textual feedback (max length configurable).\n- Rider can report safety/quality incidents tied to a trip."
+                             },
+                             {
+                                 "semantic_key":  "86afd62910d1",
+                                 "level":  3,
+                                 "number":  "4",
+                                 "title":  "6 In-app messaging",
+                                 "heading_raw":  "4.6 In-app messaging",
+                                 "content_md":  "- Rider and assigned driver can text-chat live; masked identities; retention policy applies."
+                             },
+                             {
+                                 "semantic_key":  "2606e47b60b2",
+                                 "level":  3,
+                                 "number":  "4",
+                                 "title":  "7 Consent gates and post-ride requirements (mandatory)",
+                                 "heading_raw":  "4.7 Consent gates and post-ride requirements (mandatory)",
+                                 "content_md":  "- Cookie consent is a hard gate on web experiences where legally required (policy-controlled by jurisdiction).\n- Strong tracking consent is required; no bypass (policy-controlled by jurisdiction).\n- Mutual ratings:\n  - Rider and driver must both provide a rating after each trip.\n  - A comment may be required with reasonable minimum/maximum length (tenant policy within platform constraints).\n\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "3b2723f315f4",
+                                 "level":  2,
+                                 "number":  "5",
+                                 "title":  "Driver application (Progressive Web App (PWA) or native) — end-to-end experience",
+                                 "heading_raw":  "5. Driver application (Progressive Web App (PWA) or native) — end-to-end experience",
+                                 "content_md":  ""
+                             },
+                             {
+                                 "semantic_key":  "41d0d991df35",
+                                 "level":  3,
+                                 "number":  "5",
+                                 "title":  "1 Onboarding and compliance",
+                                 "heading_raw":  "5.1 Onboarding and compliance",
+                                 "content_md":  "- Driver profile form + vehicle form(s).\n- In-app photo capture for documents; OCR auto-population; driver confirmation.\n- Tenant review/approval and status tracking.\n- Compliance expiry gating blocks go-online and acceptance."
+                             },
+                             {
+                                 "semantic_key":  "a91f3553b196",
+                                 "level":  3,
+                                 "number":  "5",
+                                 "title":  "2 Going online and offers",
+                                 "heading_raw":  "5.2 Going online and offers",
+                                 "content_md":  "- Driver status: offline/online/busy.\n- Offer flow: 5-second ring, auto-hop, GrabBoard claiming.\n- Real-time earnings + accumulated unpaid balance visible only to the driver."
+                             },
+                             {
+                                 "semantic_key":  "49851069104f",
+                                 "level":  3,
+                                 "number":  "5",
+                                 "title":  "3 Navigation and pickup workflow",
+                                 "heading_raw":  "5.3 Navigation and pickup workflow",
+                                 "content_md":  "- Driver sees rider details , not the passenger contact info and vice versa. (industry standard): rider first name + initial, pickup pin, pickup notes, passenger count, luggage count.\n- Google Maps deep-link navigation to pickup and destination (no platform routing cost requirement).\n- Arrival detection: within 50 feet + stationary 60 seconds triggers “Arrived” and starts wait timer.\n- Wait-time fees accrue per tenant-configured rates (bounded by platform)."
+                             },
+                             {
+                                 "semantic_key":  "e70c5a7cfe3b",
+                                 "level":  3,
+                                 "number":  "5",
+                                 "title":  "4 Trip completion, payouts, and early payout",
+                                 "heading_raw":  "5.4 Trip completion, payouts, and early payout",
+                                 "content_md":  "- Trip completion triggers payment capture and ledger entry.\n- Payout schedule is tenant-managed (weekly/biweekly/monthly) and visible to driver.\n- Early payout requests supported; fee tiers configurable by platform (lower fee for longer hold, higher for instant)."
+                             },
+                             {
+                                 "semantic_key":  "f05a19bff47a",
+                                 "level":  3,
+                                 "number":  "5",
+                                 "title":  "5 Destination mode, airport queueing, chat/voice",
+                                 "heading_raw":  "5.5 Destination mode, airport queueing, chat/voice",
+                                 "content_md":  "- Voice interface is feature-gated and must support:\n  - Driver voice intents (accept/decline, navigate, “arrived”, “start trip”, “end trip”),\n  - Rider voice intents (book, status, support intake),\n  - Ops voice intents (search trip, reassign, incident note).\n- Push-to-talk fallback is required.\n- Voice transcripts must be logged and retention must be controlled via Policy Center.\n\n- Destination Mode: no daily cap; policy controls at driver/region/tenant with precedence.\n- Airport prequeue and activation with fairness caps.\n- In-app chat required; voice optional and feature-gated."
+                             },
+                             {
+                                 "semantic_key":  "1bf21f6f2200",
+                                 "level":  3,
+                                 "number":  "5",
+                                 "title":  "6 Scheduled ride confirmation workflow",
+                                 "heading_raw":  "5.6 Scheduled ride confirmation workflow",
+                                 "content_md":  "- Scheduled rides require explicit driver confirmation within a configurable window.\n- Confirmation must consider driver location and travel time to arrive on time.\n- If not confirmed: system re-offers and alerts tenant dispatcher board."
+                             },
+                             {
+                                 "semantic_key":  "eb76df9c48a0",
+                                 "level":  3,
+                                 "number":  "5",
+                                 "title":  "7 Driver↔rider messaging and ratings",
+                                 "heading_raw":  "5.7 Driver↔rider messaging and ratings",
+                                 "content_md":  "- In-app messaging with rider; masked identities; retention policy applies.\n- Driver can rate rider (1–5) with optional feedback."
+                             },
+                             {
+                                 "semantic_key":  "6673dcd2e642",
+                                 "level":  3,
+                                 "number":  "5",
+                                 "title":  "8 Driver types, fleet ownership, and leased vehicle workflows (mandatory)",
+                                 "heading_raw":  "5.8 Driver types, fleet ownership, and leased vehicle workflows (mandatory)",
+                                 "content_md":  "**Driver types (minimum):**\n1) Owner-Operator (driver owns vehicle)\n2) Leased Vehicle Driver (lease documents required)\n\n**Fleet Owner rule:**\n- A Fleet Owner is defined as an entity with **≥2 vehicles** under a tenant.\n- Fleet Owners can:\n  - Add/remove drivers per vehicle,\n  - Disable a driver’s access to a vehicle instantly (immediate ride ineligibility, unless a ride is already in progress),\n  - Mark a vehicle as “Available for lease” (policy-gated).\n\n**Leased vehicle workflows (minimum):**\n- Driver can request to lease a listed vehicle (lease request).\n- Fleet Owner and/or Tenant Ops can approve/deny with terms (dates, deposit, fees) (all audited).\n- Co-driving proposal: driver can propose adding a second driver to the same vehicle.\n- Shift exchange: drivers can propose shift exchanges with a driver-defined exchange location/time window.\n\n**Acceptance:**\n- When a Fleet Owner removes a driver from a vehicle, then that driver cannot be dispatched rides for that vehicle immediately.\n\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "ec2ae48c3cfd",
+                                 "level":  2,
+                                 "number":  "6",
+                                 "title":  "Dispatch, matching, airport queue, and fairness",
+                                 "heading_raw":  "6. Dispatch, matching, airport queue, and fairness",
+                                 "content_md":  ""
+                             },
+                             {
+                                 "semantic_key":  "ad40f8493977",
+                                 "level":  3,
+                                 "number":  "6",
+                                 "title":  "1 Ring, hop, and fairness",
+                                 "heading_raw":  "6.1 Ring, hop, and fairness",
+                                 "content_md":  "- 5-second ring, auto-hop if not accepted.\n- ETA-aware selection; bounded skip logic with cooldown and compensation."
+                             },
+                             {
+                                 "semantic_key":  "27c99af63a22",
+                                 "level":  3,
+                                 "number":  "6.1",
+                                 "title":  "1 Dispatch guarantees (no double assignment) (mandatory)",
+                                 "heading_raw":  "6.1.1 Dispatch guarantees (no double assignment) (mandatory)",
+                                 "content_md":  "- The dispatch engine must guarantee **no double assignment** under concurrency.\n- Offer acceptance and trip assignment must be **atomic**.\n- Implementation must use one of:\n  - PostgreSQL (PostgreSQL) transactional locking (e.g., `SELECT ... FOR UPDATE`),\n  - PostgreSQL advisory locks,\n  - Optional Redis (Redis) with Lua (Lua) scripts (only as a locking primitive; canonical data remains in PostgreSQL).\n- On stale or conflicting acceptance attempts, the system must return HTTP (Hypertext Transfer Protocol) **409 Conflict**.\n\n**Acceptance:**\n- Under a dispatch storm test, the system produces zero double assignments and zero invalid queue states.\n\n- Conflict-safe claiming of offers; atomic claim; real-time updates."
+                             },
+                             {
+                                 "semantic_key":  "e71188cfe647",
+                                 "level":  3,
+                                 "number":  "6",
+                                 "title":  "2 GrabBoard",
+                                 "heading_raw":  "6.2 GrabBoard",
+                                 "content_md":  ""
+                             },
+                             {
+                                 "semantic_key":  "d6528e08d404",
+                                 "level":  3,
+                                 "number":  "6",
+                                 "title":  "3 Airport Queue 2.0",
+                                 "heading_raw":  "6.3 Airport Queue 2.0",
+                                 "content_md":  "- Prequeue tokens and active tokens.\n- Inner/outer zones; anti-abuse heuristics; fairness metrics."
+                             },
+                             {
+                                 "semantic_key":  "c4ebc6cfdbf1",
+                                 "level":  3,
+                                 "number":  "6",
+                                 "title":  "4 Destination-aware matching",
+                                 "heading_raw":  "6.4 Destination-aware matching",
+                                 "content_md":  "- Prefer rides aligned with driver destination only when fairness and ETA constraints satisfied.\n- Policy precedence: driver override → region policy → tenant default → global default."
+                             },
+                             {
+                                 "semantic_key":  "ebcc45cfef22",
+                                 "level":  3,
+                                 "number":  "6",
+                                 "title":  "5 Preferred driver/vehicle prioritization (configurable by geography and tenant)",
+                                 "heading_raw":  "6.5 Preferred driver/vehicle prioritization (configurable by geography and tenant)",
+                                 "content_md":  "The system must support configurable dispatch prioritization based on verified driver credentials and vehicle class, with region-specific rule packs.\n\nMinimum required rule set (Chicagoland example):\n- **Tier 1 (highest priority):** Verified Professional Chauffeur license + vehicle qualifies as Large Luxury Sport Utility Vehicle (SUV) (“black car” class).\n- **Tier 2:** Vehicle qualifies as Large Luxury SUV (black car class), even if not chauffeur-licensed.\n- **Tier 3:** All other eligible drivers/vehicles.\n\nAdditional constraints:\n- “Preferred status” must be configurable per region and per tenant (weights, enable/disable, and quotas/caps to avoid starvation).\n- “Preferred status” must never violate safety, compliance gating, or fairness constraints.\n- If a preferred driver is too far (ETA beyond threshold), the system must consider the next tier.\n\n**Acceptance:**\n- Given a Tier 1 and Tier 2 driver are both eligible and within ETA bounds, when matching a new ride in that region, then Tier 1 is offered first. If more than 1 tier 1 drivers are availble, the driver who has been emptty/ unassigned for the longest duration, gets offered the ride first. samr with lower tier drivers, i.e. if more than 1 tier 2 drivers are available, the driver who has been emptty/ unassigned for the longest duration, gets offered the ride first.\n- Given Tier 1 driver is outside ETA threshold, when matching, then Tier 2 or Tier 3 may be selected."
+                             },
+                             {
+                                 "semantic_key":  "a78108b74260",
+                                 "level":  3,
+                                 "number":  "6",
+                                 "title":  "6 Blacklists and mutual-block pairing prevention",
+                                 "heading_raw":  "6.6 Blacklists and mutual-block pairing prevention",
+                                 "content_md":  "- Tenant ops and platform ops can block a driver from matching with a specific rider (mutual-block rule).\n- Rider can optionally block a driver after a trip (tenant policy controls).\n- Block rules are enforced during matching.\n- System should allow for promotion (upgrade) and demotion of driver tiers by the dispatcher."
+                             },
+                             {
+                                 "semantic_key":  "0adf3977a30c",
+                                 "level":  3,
+                                 "number":  "6",
+                                 "title":  "7 Scheduled ride dispatch and confirmation exceptions",
+                                 "heading_raw":  "6.7 Scheduled ride dispatch and confirmation exceptions",
+                                 "content_md":  "- Scheduled rides are matched early; driver confirmation required.\n- If not confirmed or driver becomes non-compliant, ride is re-offered; tenant dispatch board is alerted.\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "98a5d420d961",
+                                 "level":  2,
+                                 "number":  "7",
+                                 "title":  "Pricing, surge, fees, and policy precedence",
+                                 "heading_raw":  "7. Pricing, surge, fees, and policy precedence",
+                                 "content_md":  ""
+                             },
+                             {
+                                 "semantic_key":  "5991cf907387",
+                                 "level":  3,
+                                 "number":  "7",
+                                 "title":  "1 Base pricing",
+                                 "heading_raw":  "7.1 Base pricing",
+                                 "content_md":  "- Zone/time/vehicle rules, minimum fares, airport fees, taxes."
+                             },
+                             {
+                                 "semantic_key":  "a550be23b5b3",
+                                 "level":  3,
+                                 "number":  "7",
+                                 "title":  "2 Surge pricing",
+                                 "heading_raw":  "7.2 Surge pricing",
+                                 "content_md":  "- Demand/supply surge multipliers per zone/product.\n- Feature gate: if surge disabled for tenant, multipliers resolve to 1.0."
+                             },
+                             {
+                                 "semantic_key":  "68cd371f1510",
+                                 "level":  3,
+                                 "number":  "7",
+                                 "title":  "3 Surge policy controls and precedence",
+                                 "heading_raw":  "7.3 Surge policy controls and precedence",
+                                 "content_md":  "- Region overrides: caps, disable, kill switch.\n- Precedence: region override → tenant surge toggle → global default.\n- Propagation within 60 seconds."
+                             },
+                             {
+                                 "semantic_key":  "8ace7c8fc9b4",
+                                 "level":  3,
+                                 "number":  "7",
+                                 "title":  "4 Cancellation, no-show, wait-time, luggage, stops, gratuity",
+                                 "heading_raw":  "7.4 Cancellation, no-show, wait-time, luggage, stops, gratuity",
+                                 "content_md":  "- Cancellation, no-show, wait-time, luggage, stops, gratuity rules per region.\n- Precedence: region → tenant → global default.\n- For tenant Gold Ravenia.co, if a driver is already enroute to a pickup, even if it is few seconds, charge the rider a cancellation fee which should be configurable by the super admin and or desgnated sub super admins/ desipatchers, and Tenants (for their own organization). Add language for the same in the terms and conditions that the rider must accept when onboarding. i.e. Tenants define what charges they want to charge/ display on their own portal (microsite), i.e configurable by the tenant admin. tenant admin also decides when each drier gets paid, how much, how frequently (integration with paysurity digital wallets (employer/ employee digital wallet).\n\n- Configurable policies for: cancellation/no-show, wait-time, luggage fees, multi-stop fees, gratuity presets."
+                             },
+                             {
+                                 "semantic_key":  "d09e807d4007",
+                                 "level":  3,
+                                 "number":  "7",
+                                 "title":  "5 Policy Center (versioned, auditable policy engine) (mandatory)",
+                                 "heading_raw":  "7.5 Policy Center (versioned, auditable policy engine) (mandatory)",
+                                 "content_md":  "The platform must implement a **Policy Center** as the authoritative system for runtime behavior that must be configurable, versioned, and audited.\n\n**Policy types (minimum):**\n- Destination Mode\n- Airport Queue\n- Surge\n- Driver Tiering and prioritization\n- QR bonuses and referral attribution\n- Voice enablement and retention\n- Message retention and privacy defaults\n\n**Precedence (authoritative):** driver override → region → tenant → global default\n\n**Lifecycle:**\n- Draft → Validate → Publish (version increment)\n- Rollback to prior version (audited)\n- Diff view (who changed what)\n\n**Validation:**\n- JSON Schema (JSON Schema) validation (e.g., Ajv (Another JSON Validator) or equivalent)\n- Continuous Integration (CI) must fail if invalid schemas or invalid policy instances are committed.\n\n**Caching:**\n- Effective policy lookups must support caching with Entity Tag (ETag) semantics.\n\n**Policy Center APIs (minimum):**\n- GET `/policy-center/types`\n- GET `/policy-center/:type/effective`\n- POST `/policy-center/:type/drafts`\n- POST `/policy-center/:type/validate`\n- POST `/policy-center/:type/publish`\n- DELETE `/policy-center/:type/drafts/:id`\n\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "9520c7743d23",
+                                 "level":  2,
+                                 "number":  "8",
+                                 "title":  "Payments, ledger, payouts, and PaySurity integration",
+                                 "heading_raw":  "8. Payments, ledger, payouts, and PaySurity integration",
+                                 "content_md":  ""
+                             },
+                             {
+                                 "semantic_key":  "37defd158132",
+                                 "level":  3,
+                                 "number":  "8",
+                                 "title":  "1 Orchestration model",
+                                 "heading_raw":  "8.1 Orchestration model",
+                                 "content_md":  "- RideShare calls PaySurity for tokenization, authorization, capture, refund, void.\n- PaySurity routes to Fluidpay or Argyle Payments (black box)."
+                             },
+                             {
+                                 "semantic_key":  "a25be8688c4c",
+                                 "level":  3,
+                                 "number":  "8",
+                                 "title":  "2 Ledger integrity",
+                                 "heading_raw":  "8.2 Ledger integrity",
+                                 "content_md":  "- Ledger ensures no drift; daily reconciliation with alerts."
+                             },
+                             {
+                                 "semantic_key":  "a2e650b3a167",
+                                 "level":  3,
+                                 "number":  "8",
+                                 "title":  "3 Driver payouts (tenant-managed)",
+                                 "heading_raw":  "8.3 Driver payouts (tenant-managed)",
+                                 "content_md":  ""
+                             },
+                             {
+                                 "semantic_key":  "2622fcb1fe7d",
+                                 "level":  3,
+                                 "number":  "8",
+                                 "title":  "4 QR code attribution, bonuses, and wallet-based incentives (mandatory)",
+                                 "heading_raw":  "8.4 QR code attribution, bonuses, and wallet-based incentives (mandatory)",
+                                 "content_md":  "- Each branded vehicle must support a unique Quick Response (QR) code:\n  - Attribution tracking (which vehicle/tenant generated the lead),\n  - Scan → ride → bonus workflow (policy-controlled),\n  - Bonus funding source and settlement recorded in the ledger.\n- Branded vehicles can receive dispatch priority boosts (policy-controlled; bounded by fairness).\n- Incentives must be represented as ledger entries (double-entry) to avoid drift.\n\n**Acceptance:**\n- Given a QR scan generates a new rider booking, when the trip completes, then the configured bonus is created as a ledger entry and is auditable end-to-end.\n\n- Tenant configures payout schedule and eligibility.\n- Drivers see unpaid balance and payout history under tenant branding.\n- Early payout requests supported with platform-configurable fees.\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "b450a7574631",
+                                 "level":  2,
+                                 "number":  "9",
+                                 "title":  "Consoles (tenant + platform)",
+                                 "heading_raw":  "9. Consoles (tenant + platform)",
+                                 "content_md":  ""
+                             },
+                             {
+                                 "semantic_key":  "358c3336312d",
+                                 "level":  3,
+                                 "number":  "9",
+                                 "title":  "1 Tenant dispatcher and operations console",
+                                 "heading_raw":  "9.1 Tenant dispatcher and operations console",
+                                 "content_md":  "- Live operations map: open/assigned/enroute trips; soon-to-be-free drivers; airport queue.\n- Manual assignment/reassignment; exception handling; scheduled ride alerts.\n- CRUD drivers/vehicles; compliance status; document approvals.\n- Pricing and policy controls allowed at tenant scope.\n- Disputes/refunds; incident logs; blacklist controls."
+                             },
+                             {
+                                 "semantic_key":  "9a9f260487e1",
+                                 "level":  3,
+                                 "number":  "9",
+                                 "title":  "2 Tenant owner console",
+                                 "heading_raw":  "9.2 Tenant owner console",
+                                 "content_md":  "- Business settings, branding, microsite, policy configuration.\n- Fleet management and staff management.\n- Reports and analytics (revenue, utilization, cancellations, surge impact, payout totals)."
+                             },
+                             {
+                                 "semantic_key":  "397824fdd531",
+                                 "level":  3,
+                                 "number":  "9",
+                                 "title":  "3 Platform super-admin console",
+                                 "heading_raw":  "9.3 Platform super-admin console",
+                                 "content_md":  "- Seed/CRUD tenants; CRUD/bulk CRUD tenant drivers/vehicles.\n- Feature gates and subscription controls per tenant.\n- Global policies (destination mode defaults, surge constraints, payout fee tiers, preferred tier weights).\n- Kill-switch console for tenant/driver/vehicle.\n- Trigger and view automated tests (single or grouped).\n- System health dashboard (metrics/logs/alerts) and root-cause surfacing.\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "4756cc4fedbe",
+                                 "level":  2,
+                                 "number":  "10",
+                                 "title":  "Public-facing website (platform marketing) — tenant acquisition",
+                                 "heading_raw":  "10. Public-facing website (platform marketing) — tenant acquisition",
+                                 "content_md":  "Purpose: attract passenger fleet owners and dispatch companies to become tenants.\n\nMinimum pages (placeholders allowed but must be wired):\n- Home (value proposition, CTA)\n- Features (dispatch, driver app, rider experience, payments)\n- Pricing (tiers, feature gates)\n- Industries/Regions (geo landing pages; SEO)\n- Case studies/testimonials (placeholder)\n- Contact / Request demo (lead form; calendar booking)\n- Security \u0026 Compliance (high-level)\n- Terms/Privacy\n\nLead capture:\n- “Become a Tenant” form collects: company name, fleet size, service area, contact, desired launch date.\n- Leads enter platform pipeline (Customer Relationship Management (CRM) stub acceptable but must store in DB and notify platform team).\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "e7060dcd125d",
+                                 "level":  2,
+                                 "number":  "11",
+                                 "title":  "Observability, monitoring, analytics, and Service Level Objectives (SLOs)",
+                                 "heading_raw":  "11. Observability, monitoring, analytics, and Service Level Objectives (SLOs)",
+                                 "content_md":  ""
+                             },
+                             {
+                                 "semantic_key":  "649532bafcb7",
+                                 "level":  3,
+                                 "number":  "11",
+                                 "title":  "1 Dead Letter Queue (DLQ), replay tooling, and failure classification (mandatory)",
+                                 "heading_raw":  "11.1 Dead Letter Queue (DLQ), replay tooling, and failure classification (mandatory)",
+                                 "content_md":  "- The platform must implement a Dead Letter Queue (DLQ) for failed asynchronous jobs (dispatch notifications, payment side effects, document OCR).\n- DLQ must support:\n  - Classification (transient vs permanent),\n  - Dry-run replay estimation (projected success rate),\n  - Replay execution with idempotency guarantees,\n  - Audit log of replay operations."
+                             },
+                             {
+                                 "semantic_key":  "dee80909a1f6",
+                                 "level":  3,
+                                 "number":  "11",
+                                 "title":  "2 Chaos testing harness (mandatory)",
+                                 "heading_raw":  "11.2 Chaos testing harness (mandatory)",
+                                 "content_md":  "- The build must include chaos tests that intentionally disrupt:\n  - Dispatch service,\n  - Notification delivery,\n  - Policy cache,\nand validate recovery within the GO / NO-GO gates."
+                             },
+                             {
+                                 "semantic_key":  "a98c5616c5f8",
+                                 "level":  3,
+                                 "number":  "11",
+                                 "title":  "3 Load testing harness (k6) (mandatory)",
+                                 "heading_raw":  "11.3 Load testing harness (k6) (mandatory)",
+                                 "content_md":  "- The build must include k6 load test scenarios for:\n  - Quote storm,\n  - Dispatch storm,\n  - Airport queue join/activate,\n  - Messaging burst.\n- Results must be exported to `out/k6.json` (or equivalent) for gate evaluation."
+                             },
+                             {
+                                 "semantic_key":  "0b7958cf82f2",
+                                 "level":  3,
+                                 "number":  "11",
+                                 "title":  "4 GO / NO-GO integration (mandatory)",
+                                 "heading_raw":  "11.4 GO / NO-GO integration (mandatory)",
+                                 "content_md":  "- Observability outputs must feed the GO / NO-GO evaluator (see §1.4).\n\n\n- Health and metrics endpoints: `/health`, `/metrics`.\n- Service Level Objectives (SLOs): quote p95 \u003c 300 milliseconds (ms); match p95 \u003c 20 seconds; error rate \u003c 0.5%.\n- Centralized logs with correlation identifiers; audit viewer in platform console.\n- Google Analytics (GA) on public site and tenant microsites.\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "fd07e59191bd",
+                                 "level":  2,
+                                 "number":  "12",
+                                 "title":  "Data model (semantic; migrations must implement)",
+                                 "heading_raw":  "12. Data model (semantic; migrations must implement)",
+                                 "content_md":  "Minimum entities include:\n- tenant, tenant_features, users/roles\n- rider_profile, payment_methods\n- driver_profile, driver_documents, driver_background_checks, driver_credentials\n- vehicle, vehicle_documents, vehicle_classification\n- trip, trip_stops, trip_events, trip_state_transitions\n- offers, grabboard_claims, offer_state_transitions\n- policies: region policies, driver overrides, pricing rules, cancellation policies, preferred tier weights\n- airport queue tokens and events\n- messaging: trip_messages\n- ratings: trip_ratings\n- payments: payment intents, transactions, refunds, ledger entries, payouts, payout requests\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "78f8b5dbb56c",
+                                 "level":  2,
+                                 "number":  "13",
+                                 "title":  "State machines, timers, and contracts (authoritative)",
+                                 "heading_raw":  "13. State machines, timers, and contracts (authoritative)",
+                                 "content_md":  "- Trip state machine with allowed transitions and actor permissions.\n- Offer state machine: Created → Ringing → Accepted | Expired → Hopped → Claimed → Assigned → Cancelled.\n- Airport queue token state machine: Prequeue → Active → Paused → Removed/Expired.\n- Timer registry in `timers.json` used by code and versioned.\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "6ca77d35f165",
+                                 "level":  2,
+                                 "number":  "14",
+                                 "title":  "Application Programming Interface (API) contracts",
+                                 "heading_raw":  "14. Application Programming Interface (API) contracts",
+                                 "content_md":  "- OpenAPI (OpenAPI) specification is canonical for endpoints; CI fails if endpoints change without spec updates.\n- Admin endpoints for: tenant management, policies, compliance actions, tests, effective policy lookup.\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "e7fecdc9d2b8",
+                                 "level":  2,
+                                 "number":  "15",
+                                 "title":  "Release management and upgrades",
+                                 "heading_raw":  "15. Release management and upgrades",
+                                 "content_md":  "- Web: versioned deployments and cache busting; ability to force refresh for critical updates.\n- Native (if used): store release pipeline; backend compatibility via feature flags.\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "17bd02b7fa32",
+                                 "level":  2,
+                                 "number":  "16",
+                                 "title":  "Testing strategy (mandatory)",
+                                 "heading_raw":  "16. Testing strategy (mandatory)",
+                                 "content_md":  "Additional mandatory test classes:\n- Load tests (k6) must run in CI on a schedule and on release candidates.\n- Chaos tests must run at least on release candidates (or nightly).\n- DLQ replay tests must validate idempotency and projected success computations.\n\n\n- Unit tests: pricing/policies/state machines.\n- Integration tests: dispatch, PaySurity stubs, OCR pipeline, compliance gating + notifications.\n- End-to-end (E2E) tests: rider booking, driver acceptance, trip completion, payouts, messaging, ratings.\n- Platform console can trigger tests and display results.\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "a1cec20007ca",
+                                 "level":  2,
+                                 "number":  "17",
+                                 "title":  "Acceptance test catalog (minimum)",
+                                 "heading_raw":  "17. Acceptance test catalog (minimum)",
+                                 "content_md":  "Additional release gate acceptance tests (minimum):\n- GO / NO-GO gates evaluate from `out/k6.json`, `out/chaos.json`, `out/dlq.json` and produce `out/go-no-go.md`.\n- k6 failure rate \u003c 0.5% and k6 p95 \u003c 300 ms.\n- Chaos recovery ≤ 5 seconds.\n- DLQ projected replay success ≥ 70%.\n- Zero double assignments and zero invalid queue states under dispatch storm.\n\n- Compliance expiry gating blocks go-online/accepting; D-14 and D-1 notifications delivered and logged.\n- OCR auto-fills doc fields; driver confirms; tenant approves.\n- After assignment, rider sees driver live location and ETA refresh every 60 seconds.\n- Arrival detection starts wait timer; fees apply per configuration.\n- Scheduled ride requires driver confirmation; missing confirmation triggers re-offer and dispatch alert.\n- Luggage fee and fit warning + upgrade suggestion operate correctly.\n- Split-pay settles correctly and refunds allocate proportionally.\n- Surge disable forces multiplier=1.0; regional cap clamps multiplier.\n- Destination mode region disable suppresses bias; per-driver override can re-enable.\n- Preferred tiering prioritizes Professional Chauffeur + Large Luxury SUV over others (within ETA bounds).\n- Kill switches deactivate tenant/driver/vehicle within 60 seconds with audit.\n- Mutual-block pairing prevents a blocked driver/rider match.\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "2049bbdae61d",
+                                 "level":  2,
+                                 "number":  "18",
+                                 "title":  "Non-functional requirements",
+                                 "heading_raw":  "18. Non-functional requirements",
+                                 "content_md":  "- Availability 99.9%.\n- Accessibility: Web Content Accessibility Guidelines (WCAG) 2.1 AA.\n- Privacy: masked contact info; flight details never shown to drivers.\n- Security: audit trails for policy and administrative actions.\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "708dc93e7b49",
+                                 "level":  2,
+                                 "number":  "19",
+                                 "title":  "Flight awareness (privacy)",
+                                 "heading_raw":  "19. Flight awareness (privacy)",
+                                 "content_md":  "- Track flight ETA and adjust pickup; never expose flight details to drivers.\n- Provider calls cached and rate-limited; PII redacted in driver payloads.\n\n---"
+                             },
+                             {
+                                 "semantic_key":  "3202624bfdd5",
+                                 "level":  2,
+                                 "number":  "20",
+                                 "title":  "Hard anti-drift rule",
+                                 "heading_raw":  "20. Hard anti-drift rule",
+                                 "content_md":  "If a missing timer/state transition/policy precedence is discovered during build, it must be added to this document before implementation proceeds."
+                             },
+                             {
+                                 "semantic_key":  "31e5cc1f1ff7",
+                                 "level":  2,
+                                 "number":  "21",
+                                 "title":  "Marketplace, ads, and paid placements (feature-gated)",
+                                 "heading_raw":  "21. Marketplace, ads, and paid placements (feature-gated)",
+                                 "content_md":  "- Tenant microsites and/or platform site may include a Marketplace section for:\n  - Emergency recovery offers,\n  - Marketing services,\n  - Paid placements.\n- Paid placements require:\n  - Admin approval workflow,\n  - Start/end dates,\n  - Disclosure labels,\n  - Reporting (impressions, clicks, conversions)."
+                             },
+                             {
+                                 "semantic_key":  "830170dd8789",
+                                 "level":  2,
+                                 "number":  "22",
+                                 "title":  "Chicagoland events engine (demand forecasting) (feature-gated)",
+                                 "heading_raw":  "22. Chicagoland events engine (demand forecasting) (feature-gated)",
+                                 "content_md":  "- The platform must support automated ingestion of events (weekly minimum cadence):\n  - Concerts,\n  - Sports,\n  - Cultural events.\n- Ingestion sources may include web scraping and partner feeds (must be policy-controlled, rate-limited, and legally compliant).\n- Normalized event fields (minimum):\n  - name, venue, geo, start/end date-time, category/type, expected attendance (optional), source URL.\n- Events drive demand forecasting for pricing and driver positioning (never overrides fairness or safety policies)."
+                             },
+                             {
+                                 "semantic_key":  "f91a7c2fb496",
+                                 "level":  2,
+                                 "number":  "23",
+                                 "title":  "Provenance appendix (non-authoritative)",
+                                 "heading_raw":  "23. Provenance appendix (non-authoritative)",
+                                 "content_md":  "This section is **non-authoritative** and exists only to show source traceability for the semantic merge.\n\n- Source A (target authority): `BlackRavenia_RideShare_Canonical_Requirements_v6_1.md`\n- Source B (merged): `RideShare-chat1-requirements.txt`\n- Source C (merged context): `rideshare context.txt`\n\nAll requirements in Sources B and C have been incorporated into the authoritative sections above. If an omission is discovered, the omission must be added above (not here) per §20 Hard anti-drift rule."
+                             }
+                         ]
 }
