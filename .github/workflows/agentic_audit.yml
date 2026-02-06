@@ -2,22 +2,20 @@ name: Agentic Audit (Requirements Status)
 
 on:
   workflow_dispatch:
+    inputs:
+      skip_agentic_scan:
+        description: "Skip OpenAI (OpenAI) agentic scan"
+        type: boolean
+        default: false
+  pull_request:
   push:
-    branches: [ "main" ]
-    paths:
-      - "scripts/**"
-      - "Requirements/**"
-      - "Agentic AI Work/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - ".github/workflows/**"
+    branches: ["main"]
 
 jobs:
   audit:
-    runs-on: windows-latest
-
-    env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
@@ -28,58 +26,67 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Setup pnpm (performant Node Package Manager)
-        uses: pnpm/action-setup@v4
-        with:
-          version: "9"
-          run_install: false
-
-      - name: Verify Node.js (Node.js) + pnpm (performant Node Package Manager)
-        shell: pwsh
+      - name: Enable Corepack (Corepack) + pnpm (performant Node Package Manager)
+        shell: bash
         run: |
-          node --version
+          corepack enable
+          corepack prepare pnpm@9 --activate
           pnpm --version
 
       - name: Setup Python (Python)
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: "3.11"
 
-      - name: Install Python deps (OpenAI SDK)
-        shell: pwsh
+      - name: Install Python deps (OpenAI (OpenAI) SDK (Software Development Kit))
+        shell: bash
         run: |
           python -m pip install --upgrade pip
-          python -m pip install openai
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f scripts/requirements.txt ]; then pip install -r scripts/requirements.txt; fi
+          pip install --upgrade openai
 
-      - name: Run audit (pnpm + agentic scan)
-        shell: pwsh
-        run: |
-          pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\run_audit.ps1
-
-      - name: Add summary (requirements_status.md header)
-
+      - name: Run audit (pnpm (performant Node Package Manager) + agentic scan)
         continue-on-error: true
-        if: always()
         shell: pwsh
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          "## Agentic Audit Summary" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-          if (Test-Path .\AgentOutput\requirements_status.md) {
-            "### requirements_status.md (first 25 lines)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-            Get-Content -Encoding UTF8 .\AgentOutput\requirements_status.md -TotalCount 25 | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          $skip = '${{ github.event.inputs.skip_agentic_scan }}' -eq 'true'
+          if ($skip) {
+            ./scripts/run_audit.ps1 -LogPath "./Artifacts/audit_log.txt" -SkipAgenticScan
           } else {
-            "No AgentOutput/requirements_status.md produced." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-          }
-          if (Test-Path .\Artifacts\audit_log.txt) {
-            "### audit_log.txt (last 80 lines)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-            Get-Content -Encoding UTF8 .\Artifacts\audit_log.txt -Tail 80 | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            ./scripts/run_audit.ps1 -LogPath "./Artifacts/audit_log.txt"
           }
 
-      - name: Upload artifacts (AgentOutput + audit log)
+      - name: Print audit log tail
+        if: always()
+        shell: bash
+        run: |
+          echo "=== audit_log.txt (tail 200) ==="
+          if [ -f ./Artifacts/audit_log.txt ]; then
+            tail -n 200 ./Artifacts/audit_log.txt
+          else
+            echo "No ./Artifacts/audit_log.txt found"
+          fi
+
+      - name: Upload artifacts (AgentOutput (Agent Output) + audit log)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: agentic-audit-output
+          name: agent-output
+          if-no-files-found: warn
           path: |
             AgentOutput/**
             Artifacts/audit_log.txt
-            Agentic AI Work/AgentOutput/**
+            Artifacts/audit_log_*.txt
+
+      - name: Add summary header
+        if: always()
+        shell: bash
+        run: |
+          echo "## Agentic Audit Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Branch: \`${{ github.ref_name }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Commit: \`${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Audit step uses continue-on-error; see artifacts for details." >> "$GITHUB_STEP_SUMMARY"
