@@ -27,12 +27,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
 
-      - name: Enable Corepack (Corepack) + pnpm (performant Node Package Manager)
+      - name: Setup pnpm (performant Node Package Manager)
+        uses: pnpm/action-setup@v4
+        with:
+          version: "9"
+          run_install: false
+
+      - name: Verify Node.js (Node.js) + pnpm (performant Node Package Manager)
         shell: pwsh
         run: |
-          corepack enable
+          node --version
           pnpm --version
 
       - name: Setup Python (Python)
@@ -50,25 +55,23 @@ jobs:
         shell: pwsh
         run: |
           pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\run_audit.ps1
-          
+
       - name: Add summary (requirements_status.md header)
+
+        continue-on-error: true
         if: always()
         shell: pwsh
         run: |
           "## Agentic Audit Summary" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           if (Test-Path .\AgentOutput\requirements_status.md) {
             "### requirements_status.md (first 25 lines)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-            "```" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
             Get-Content -Encoding UTF8 .\AgentOutput\requirements_status.md -TotalCount 25 | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-            "```" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           } else {
             "No AgentOutput/requirements_status.md produced." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           }
           if (Test-Path .\Artifacts\audit_log.txt) {
             "### audit_log.txt (last 80 lines)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-            "```" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
             Get-Content -Encoding UTF8 .\Artifacts\audit_log.txt -Tail 80 | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-            "```" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           }
 
       - name: Upload artifacts (AgentOutput + audit log)

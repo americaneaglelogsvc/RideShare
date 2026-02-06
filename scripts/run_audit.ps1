@@ -22,13 +22,13 @@ $overallExit = 0
 # A) JavaScript (JavaScript) quality gates (pnpm (performant Node Package Manager) preferred)
 # ----------------------------
 $pm = $null
-if (Test-Path .\pnpm-lock.yaml -and (Get-Command pnpm -ErrorAction SilentlyContinue)) {
+if ((Test-Path .\pnpm-lock.yaml) -and (Get-Command pnpm -ErrorAction SilentlyContinue)) {
   $pm = "pnpm"
 } elseif (Get-Command npm -ErrorAction SilentlyContinue) {
   $pm = "npm"
 }
 
-if (Test-Path .\package.json -and $pm) {
+if ((Test-Path .\package.json) -and $pm) {
   LogLine "package.json found. Package manager: $pm"
 
   if ($pm -eq "pnpm") {
