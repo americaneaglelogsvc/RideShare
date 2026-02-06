@@ -1,33 +1,41 @@
-﻿# Agent Runbook (Agentic Artificial Intelligence)
+﻿# Agent Runbook (Agentic Artificial Intelligence (AI)) — BlackRavenia RideShare
 
-## Inputs (Source of Truth)
-1) Canonical requirements: Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1.md
-2) Machine requirements export (JavaScript Object Notation Lines (JSONL)): Requirements/requirements.jsonl
-3) Status taxonomy: Requirements/status_taxonomy.json
-4) As-is manifest: Artifacts/as_is_manifest.json
-5) Audit log: Artifacts/audit_log.txt
+## Source of truth (READ ONLY)
+- Requirements (canonical):
+  - Requirements/CANONICAL.md
+  - Requirements/CANONICAL.json
+- Requirements provenance:
+  - Requirements/version_manifest.json
+  - Requirements/sources/*
+  - Requirements/_archive/* (reference only; do NOT treat as authoritative)
 
-## Required Outputs (Write Files)
-A) Reports/requirements_status.jsonl
-   - One JSON object per requirement.
-   - Must include: requirement_id, requirement_title, status, confidence_0_to_1, evidence[], gaps[], notes
-   - Evidence must reference real file paths, routes/endpoints, or tests.
+## Hard rule: As-is first (mandatory)
+Before proposing or implementing ANY change, produce as-is evidence and status:
+- Generate / refresh as-is evidence pack (file inventory + routes + database (DB) (Database) + APIs (Application Programming Interfaces) (APIs) + tests).
+- Mark requirements as complete ONLY when evidence meets the gating criteria in the canonical document.
 
-B) Reports/implemented_not_documented.md
-   - List features found in code not present in requirements export.
-   - Group by: UI (User Interface), API (Application Programming Interface), DB (Database), Background Jobs, Integrations.
-   - Each entry must include: what it is, where found (file paths), why it matters, recommended requirement to add.
+## Status taxonomy (use EXACT values)
+Not Started | In Progress | Implemented | Tested | Shippable | Launch-ready | Blocked
 
-C) Reports/build_plan.md
-   - Ordered plan to reach 100% launch-ready.
-   - Each step ties to requirement_id(s).
-   - Includes test coverage tasks.
+## Required outputs (WRITE here only)
+- Agentic AI Work/AgentOutput/requirements_status.jsonl
+- Agentic AI Work/AgentOutput/requirements_status.md
+- Agentic AI Work/AgentOutput/implemented_not_documented.md
+- Agentic AI Work/AgentOutput/progress_report.md
 
-## Status Rules
-- IMPLEMENTED_WITH_TESTS: evidence includes at least one test file that validates acceptance criteria.
-- IMPLEMENTED_NO_TESTS: implemented, but tests missing or do not cover acceptance criteria.
-- PARTIAL: some acceptance criteria satisfied, others missing.
-- NOT_STARTED: no evidence of implementation.
+## Evidence rules
+A requirement can be marked:
+- Implemented ONLY with: real file paths + UI (User Interface) (UI) screen or route + API endpoint/controller + DB schema/migration (when applicable).
+- Tested ONLY with: test file paths + command used OR Continuous Integration (CI) (Continuous Integration) run evidence.
+- Shippable ONLY with: staging deploy ref + smoke test evidence + observability links.
+- Launch-ready ONLY when Shippable + GO/NO-GO gates pass for release candidate.
 
-## Do Not Guess
-If uncertain, mark UNKNOWN_REVIEW_NEEDED and list exactly what evidence is missing.
+## Implemented-but-not-documented rule
+If you find a capability in code that is not in CANONICAL.md:
+1) Add it to implemented_not_documented.md with file evidence.
+2) Insert it into CANONICAL.md in the correct section.
+3) Add it to requirements_status.* with correct completion state + evidence.
+
+## Milestone reporting (mandatory)
+Use the milestones defined in Requirements/CANONICAL.json.
+Report when a milestone becomes "Completed" (all in-scope items are Shippable or Launch-ready with evidence).
