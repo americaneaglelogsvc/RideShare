@@ -2,9 +2,9 @@
 
 | Milestone | Total | Tested | Implemented | Blocked | Determinants of truth (route/db/test/ui/ci/file/other) |
 |---|---:|---:|---:|---:|---|
-| Core/Other | 10 | 0 | 0 | 0 | 0/0/0/1/0/1/0 |
+| Core/Other | 10 | 0 | 0 | 0 | 0/0/0/0/0/1/0 |
 | Dispatch Console | 5 | 0 | 0 | 0 | 0/0/0/0/0/0/0 |
-| Driver App | 17 | 0 | 0 | 0 | 0/0/0/2/0/0/0 |
+| Driver App | 17 | 0 | 0 | 0 | 0/0/0/0/0/0/0 |
 | Payments/Payouts | 2 | 0 | 0 | 0 | 0/0/0/0/0/0/0 |
 | Rider App | 22 | 0 | 0 | 0 | 0/0/0/0/0/0/0 |
 | Tenant Admin | 5 | 0 | 0 | 0 | 0/0/0/0/0/0/0 |

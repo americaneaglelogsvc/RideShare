@@ -1,20 +1,18 @@
 {
-  "generated_at_utc": "2026-02-06T08:20:34.060504Z",
-  "run_mode": "full",
+  "generated_at_utc": "2026-02-06T08:29:28.982420Z",
+  "run_mode": "test",
   "model": "gpt-5.2",
   "batch_size": 10,
-  "max_requirements": 500,
+  "max_requirements": 200,
   "requirements_total": 61,
-  "requirements_evaluated_this_run": 61,
+  "requirements_evaluated_this_run": 5,
   "status_counts": {
-    "Not Started": 59,
-    "In Progress": 2
+    "Not Started": 61
   },
   "determinants_of_truth_counts": {
-    "file": 1,
-    "ui": 3
+    "file": 1
   },
-  "git_sha": "6e75bff73dffb3f4f0993fbd6554c59e185a5e92",
-  "workflow_run_url": "https://github.com/rwbgoachic/RideShare/actions/runs/21743669226",
+  "git_sha": "1ce1bad37448224c337c7d66accd0c4fd1ea1b71",
+  "workflow_run_url": "https://github.com/rwbgoachic/RideShare/actions/runs/21743940498",
   "canonical_requirements": "/home/runner/work/RideShare/RideShare/Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md"
 }
