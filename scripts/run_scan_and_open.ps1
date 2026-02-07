@@ -51,19 +51,28 @@ New-Item -ItemType Directory -Force -Path $dest | Out-Null
 gh run download $runId -D $dest | Out-Null
 Write-Host "Downloaded artifacts to: $dest"
 
-$ms  = Get-ChildItem -Recurse $dest -Filter milestone_summary.md | Select-Object -First 1
-$rs  = Get-ChildItem -Recurse $dest -Filter requirements_status.md | Select-Object -First 1
-$ind = Get-ChildItem -Recurse $dest -Filter implemented_not_documented.md | Select-Object -First 1
+$ms   = Get-ChildItem -Recurse $dest -Filter milestone_summary.md | Select-Object -First 1
+$rs   = Get-ChildItem -Recurse $dest -Filter requirements_status.md | Select-Object -First 1
+$ind  = Get-ChildItem -Recurse $dest -Filter implemented_not_documented.md | Select-Object -First 1
 $jsonl = Get-ChildItem -Recurse $dest -Filter requirements_status.jsonl | Select-Object -First 1
 
 if ($ms)  { Invoke-Item $ms.FullName }
 if ($rs)  { Invoke-Item $rs.FullName }
 if ($ind) { Invoke-Item $ind.FullName }
 
-if (-not $jsonl) { throw "requirements_status.jsonl not found under $dest" }
+if (-not $jsonl) { throw "requirements_status.jsonl (JSONL (JavaScript Object Notation Lines)) not found under $dest" }
+
+# Prefer canonical taxonomy: Requirements/status_taxonomy.json
+$taxonomy = Join-Path $PSScriptRoot "..\Requirements\status_taxonomy.json"
+$taxonomy = (Resolve-Path $taxonomy -ErrorAction SilentlyContinue)
 
 $dash = Join-Path $jsonl.DirectoryName "dashboard.html"
-python ".\scripts\make_dashboard.py" --jsonl $jsonl.FullName --out $dash | Out-Null
-Invoke-Item $dash
 
+if ($taxonomy) {
+  python ".\scripts\make_dashboard.py" --jsonl $jsonl.FullName --out $dash --taxonomy $taxonomy.Path | Out-Null
+} else {
+  python ".\scripts\make_dashboard.py" --jsonl $jsonl.FullName --out $dash | Out-Null
+}
+
+Invoke-Item $dash
 Write-Host "DONE. Opened summary files + dashboard."

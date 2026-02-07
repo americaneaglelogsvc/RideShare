@@ -4,23 +4,81 @@ import argparse
 from pathlib import Path
 from collections import defaultdict
 
-def is_complete(status: str) -> bool:
-    if not status:
-        return False
-    s = status.strip().lower()
-    return any(k in s for k in ["done", "complete", "completed", "implemented", "pass", "passing"])
+def norm(s: str) -> str:
+    return (s or "").strip().lower()
 
 def esc(x):
     return html.escape("" if x is None else str(x))
+
+def load_complete_statuses(taxonomy_path: Path) -> set[str]:
+    """
+    Tries to load a status taxonomy JSON (JavaScript Object Notation) file and return the set of
+    statuses considered COMPLETE (terminal/done/pass).
+    Supports multiple schemas (defensive parsing).
+    """
+    if not taxonomy_path or not taxonomy_path.exists():
+        return set()
+
+    data = json.loads(taxonomy_path.read_text(encoding="utf-8"))
+    complete = set()
+
+    if isinstance(data, dict):
+        # Schema A: { "complete_statuses": ["Done", ...] }
+        for k in ["complete_statuses", "done_statuses", "terminal_statuses", "pass_statuses"]:
+            v = data.get(k)
+            if isinstance(v, list):
+                for x in v:
+                    if isinstance(x, str) and norm(x):
+                        complete.add(norm(x))
+
+        # Schema B: { "statuses": [ { "name": "...", "is_complete": true }, ... ] }
+        sts = data.get("statuses")
+        if isinstance(sts, list):
+            for s in sts:
+                if not isinstance(s, dict):
+                    continue
+                name = s.get("name") or s.get("id") or s.get("status") or s.get("label")
+                if not isinstance(name, str) or not norm(name):
+                    continue
+
+                flags = ["is_complete", "complete", "terminal", "done", "is_done", "is_terminal", "is_pass", "pass"]
+                if any(s.get(f) is True for f in flags):
+                    complete.add(norm(name))
+                    continue
+
+                cat = s.get("category") or s.get("type")
+                if isinstance(cat, str) and norm(cat) in {"complete", "completed", "done", "pass", "passed", "implemented"}:
+                    complete.add(norm(name))
+                    continue
+
+    return complete
+
+def is_complete(status: str, complete_set: set[str]) -> bool:
+    """
+    Primary: taxonomy-driven.
+    Fallback (only if taxonomy didn't provide anything): conservative keyword check.
+    """
+    s = norm(status)
+    if not s:
+        return False
+    if complete_set:
+        return s in complete_set
+
+    # Fallback (should rarely be used once taxonomy is present)
+    return any(k in s for k in ["done", "complete", "completed", "implemented", "pass", "passing"])
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jsonl", required=True, help="Path to requirements_status.jsonl (JSONL (JavaScript Object Notation Lines))")
     ap.add_argument("--out", required=True, help="Path to dashboard.html (HTML (HyperText Markup Language))")
+    ap.add_argument("--taxonomy", required=False, default="", help="Path to status_taxonomy.json (JSON (JavaScript Object Notation))")
     args = ap.parse_args()
 
     jsonl_path = Path(args.jsonl)
     out_html = Path(args.out)
+    taxonomy_path = Path(args.taxonomy) if args.taxonomy else None
+
+    complete_set = load_complete_statuses(taxonomy_path) if taxonomy_path else set()
 
     rows = []
     with jsonl_path.open("r", encoding="utf-8") as f:
@@ -31,7 +89,7 @@ def main():
             rows.append(json.loads(line))
 
     total = len(rows)
-    done = sum(1 for r in rows if is_complete(r.get("status","")))
+    done = sum(1 for r in rows if is_complete(r.get("status",""), complete_set))
     overall_pct = (done / total * 100.0) if total else 0.0
 
     by_m = defaultdict(list)
@@ -41,14 +99,22 @@ def main():
     milestones = []
     for m, items in by_m.items():
         t = len(items)
-        d = sum(1 for r in items if is_complete(r.get("status","")))
+        d = sum(1 for r in items if is_complete(r.get("status",""), complete_set))
         pct = (d / t * 100.0) if t else 0.0
         milestones.append((m, t, d, pct))
     milestones.sort(key=lambda x: (x[0] or ""))
 
-    next_up = [r for r in rows if not is_complete(r.get("status",""))]
+    next_up = [r for r in rows if not is_complete(r.get("status",""), complete_set)]
     next_up.sort(key=lambda r: (r.get("milestone",""), r.get("title","")))
     next_up = next_up[:25]
+
+    taxonomy_note = ""
+    if taxonomy_path and taxonomy_path.exists() and complete_set:
+        taxonomy_note = f"Taxonomy: {taxonomy_path.name} (complete states: {len(complete_set)})"
+    elif taxonomy_path and taxonomy_path.exists():
+        taxonomy_note = f"Taxonomy: {taxonomy_path.name} (loaded, but no explicit complete states found — using fallback)"
+    else:
+        taxonomy_note = "Taxonomy: (none) — using fallback"
 
     html_out = f"""<!doctype html>
 <html>
@@ -74,6 +140,7 @@ def main():
   <div class="card">
     <h1>RideShare — Requirements Dashboard</h1>
     <div class="muted">Source: {esc(jsonl_path.name)} (generated by GitHub Actions (GitHub Actions))</div>
+    <div class="muted">{esc(taxonomy_note)}</div>
     <div style="margin-top:12px" class="kpi">{overall_pct:.1f}% complete</div>
     <div class="muted">{done} done / {total} total</div>
   </div>

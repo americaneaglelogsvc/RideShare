@@ -1,0 +1,20 @@
+﻿{
+  "statuses": [
+    "NOT_STARTED",
+    "PARTIAL",
+    "IMPLEMENTED_NO_TESTS",
+    "IMPLEMENTED_WITH_TESTS",
+    "BLOCKED_DEPENDENCY",
+    "NEEDS_REFACTOR",
+    "DEPRECATED",
+    "UNKNOWN_REVIEW_NEEDED"
+  ],
+  "evidence_types": [
+    "FILE_PATH",
+    "CODE_SNIPPET_REFERENCE",
+    "ROUTE_OR_ENDPOINT",
+    "TEST_CASE",
+    "BUILD_OUTPUT",
+    "RUNTIME_PROOF"
+  ]
+}
