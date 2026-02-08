@@ -1,0 +1,17 @@
+name: rollback (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Rollback instructions
+        run: |
+          echo "Rollback is provider-specific."
+          echo "See docs/ROLLBACK_STRATEGY.md"

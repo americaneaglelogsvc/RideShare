@@ -1,0 +1,17 @@
+name: promote-production (production)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Promote stub
+        run: |
+          echo "Promotion stub. Trigger only after staging is green."

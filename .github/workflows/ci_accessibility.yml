@@ -1,0 +1,39 @@
+name: enterprise-ci-accessibility (ADA + WCAG AA)
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  a11y:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute decisions
+        run: python scripts/ci_decisions.py > decisions.env
+
+      - name: Run accessibility smoke (web only)
+        run: |
+          set -e
+          source decisions.env
+
+          if [ "$WEB_ENABLED" != "true" ]; then
+            echo "Web disabled; skipping accessibility gate."
+            exit 0
+          fi
+
+          if [ "$ACCESSIBILITY_ENABLED" != "true" ]; then
+            echo "Accessibility gate disabled; skipping."
+            exit 0
+          fi
+
+          export E2E_BASE_URL="$E2E_BASE_URL"
+
+          cd e2e
+          npm ci
+          npx playwright install --with-deps
+          npx playwright test a11y_smoke.spec.ts

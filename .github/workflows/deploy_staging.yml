@@ -1,0 +1,21 @@
+name: deploy-staging (staging)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy stub
+        run: |
+          echo "Deploy stub. Configure provider-specific steps."
+          echo "See docs/DEPLOY_VERCEL_RAILWAY.md"
+      - name: Smoke tests stub
+        run: |
+          echo "Smoke tests stub. Replace with real smoke tests against staging URL."

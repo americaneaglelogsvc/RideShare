@@ -1,0 +1,44 @@
+name: enterprise-ci-e2e-run (strict when enabled)
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute decisions
+        run: python scripts/ci_decisions.py > decisions.env
+
+      - name: Run web E2E (Playwright) if required
+        run: |
+          set -e
+          source decisions.env
+
+          if [ "$WEB_ENABLED" != "true" ]; then
+            echo "Web disabled; skipping E2E."
+            exit 0
+          fi
+
+          if [ "$REQUIRE_E2E_PASS" != "true" ]; then
+            echo "E2E pass not required; skipping E2E run."
+            exit 0
+          fi
+
+          if [ "$WEB_E2E_RUNNER" != "playwright" ]; then
+            echo "Web E2E runner not playwright; skipping."
+            exit 0
+          fi
+
+          export E2E_BASE_URL="$E2E_BASE_URL"
+
+          cd e2e
+          npm ci
+          npx playwright install --with-deps
+          npm test

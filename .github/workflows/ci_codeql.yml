@@ -1,0 +1,41 @@
+name: enterprise-ci-codeql (SAST optional)
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  codeql:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Decide if CodeQL should run
+        id: decide
+        run: |
+          python scripts/ci_decisions.py > decisions.env
+          source decisions.env
+          echo "CODEQL_OPTIONAL=$CODEQL_OPTIONAL" >> $GITHUB_OUTPUT
+
+      - name: Skip if disabled
+        if: steps.decide.outputs.CODEQL_OPTIONAL != 'true'
+        run: echo "Skipping CodeQL (disabled in PROJECT_PROFILE.json)."
+
+      - name: Initialize CodeQL
+        if: steps.decide.outputs.CODEQL_OPTIONAL == 'true'
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, python
+
+      - name: Autobuild
+        if: steps.decide.outputs.CODEQL_OPTIONAL == 'true'
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Analyze
+        if: steps.decide.outputs.CODEQL_OPTIONAL == 'true'
+        uses: github/codeql-action/analyze@v3
