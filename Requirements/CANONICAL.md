@@ -1,4 +1,10 @@
-﻿# Rideoo-RideShare Platform — Canonical Requirements (v6.1)
+﻿<!-- EBT (Enterprise Build Template) CANONICAL.md SYNC HEADER -->
+<!-- Synced: 2026-02-08 04:14:06 (local) -->
+<!-- Source: BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md -->
+<!-- SourcePath: C:\Users\Detaimfc\Downloads\RideShare\Requirements\BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md -->
+<!-- Note: Source file is preserved; this is a copy for EBT (Enterprise Build Template) scanning stability. -->
+
+# Rideoo-RideShare Platform — Canonical Requirements (v6.1)
 
 **Timestamp (America/Chicago): 2026-02-05 21:16:45**  
 
@@ -760,5 +766,235 @@ This section is **non-authoritative** and exists only to show source traceabilit
 - Source C (merged context): `rideshare context.txt`
 
 All requirements in Sources B and C have been incorporated into the authoritative sections above. If an omission is discovered, the omission must be added above (not here) per §20 Hard anti-drift rule.
+
+<!-- BEGIN: MERGED_ADDENDUMS_INTO_CANONICAL -->
+
+## Multi-Tenant (Tenant-First) Requirements (Merged)
+The following requirements were merged from prior addendum files to avoid any Enterprise Build Template (EBT) (Enterprise Build Template) rewiring.
+
+# MERGED FROM: ADDENDUM_MULTI_TENANT_TENANT_FIRST.md
+
+# RideShare Addendum: Multi-Tenant (Tenant-First) Architecture + Capabilities
+
+## Purpose
+RideShare is a SaaS (Software as a Service) multi-tenant platform where **tenants** launch and operate their **own Uber-like / limo-style dispatch business**, with full capability parity (within their tenant) as if RideShare launched a single-tenant consumer marketplace.
+
+## Core Principle (Explicit)
+**RIDE-TEN-ARCH-001 — Multi-Tenant System**
+- The platform shall be **multi-tenant**.
+- Each tenant shall have **siloed (isolated) configuration, users, data, and branding**.
+- Tenants shall not be aware of other tenants.
+
+**RIDE-TEN-ISO-002 — Tenant Isolation (Hard Requirement)**
+- All data entities shall be tenant-scoped via 	enant_id (or equivalent) and enforced at:
+  - API (Application Programming Interface) layer
+  - Database (Database) query layer
+  - Background jobs and queues
+  - Logs and analytics (tenant-scoped views)
+- Cross-tenant access attempts shall be blocked and logged as security events.
+
+**RIDE-TEN-PROV-003 — Tenant Provisioning**
+- System shall support tenant provisioning:
+  - Create tenant
+  - Assign plan + billing
+  - Assign tenant admin user(s)
+  - Assign branding (name, logo, colors)
+  - Assign subdomain and optionally custom domain
+  - Enable/disable tenant
+
+## Tenant “Full Platform” Capabilities (Parity Requirement)
+**RIDE-TEN-PARITY-010 — Tenant Capability Parity**
+Each tenant shall have (at minimum) all modules below, independently of other tenants:
+
+### 1) Tenant Public Microsite + Booking (Web)
+**RIDE-TEN-WEB-020 — Tenant Microsite**
+- Each tenant shall have a branded microsite (tenant subdomain/custom domain) that supports:
+  - Booking flow comparable to American Coach Limousine style booking:
+    - Pickup location
+    - Drop-off location
+    - Add stops (multi-stop itinerary)
+    - Pickup date/time
+    - “Immediate pickup” vs “Book for later”
+    - Hourly booking with “number of hours”
+    - Passenger count and luggage count
+    - Driver notes / special instructions
+    - “Calculate price” / quote preview before confirmation
+  - Saved favorites (saved locations)
+  - Clear CTA (Call To Action) to complete booking
+- Design target: equal or better usability vs reference site booking UX (User Experience). 
+
+### 2) Dispatch System (Tenant-Scoped)
+**RIDE-TEN-DISP-030 — Dispatch Console**
+- Tenant dispatcher UI (User Interface) shall support:
+  - Trip queue (new, accepted, enroute, arrived, onboard, completed, canceled)
+  - Manual assignment and reassignment of trips
+  - Driver availability view + geolocation
+  - Messaging (dispatcher ↔ driver; optionally dispatcher ↔ rider)
+  - Incident notes and audit trail (tenant-scoped)
+
+### 3) Driver Onboarding + Driver Operations (Tenant-Scoped)
+**RIDE-TEN-DRV-040 — Driver Onboarding**
+- Tenant shall configure onboarding requirements (at minimum):
+  - Driver profile + identity verification (license upload + selfie)
+  - Vehicle info + documents
+  - Background check integration stub (if not integrated initially, workflow must exist with “pending/approved/rejected” states)
+- Driver app / portal supports:
+  - Availability (online/offline)
+  - Accept/decline trips
+  - In-app proof capture (pickup + drop-off)
+  - Trip status updates
+  - Earnings view (tenant-scoped)
+
+### 4) Rider Experience (Tenant-Scoped)
+**RIDE-TEN-RIDER-050 — Uber-Style Booking Mechanics**
+Rider booking shall support “Uber-like” essentials:
+- Destination entry (“Where to?” style)
+- Ride options selection (service tiers)
+- Payment method selection in the flow
+- Scheduled rides (in-advance booking)
+- Optional “Reserve”-style experience (in-advance booking with locked-in price and planned pickup window)
+
+### 5) Branded Apps (Tenant-Scoped)
+**RIDE-TEN-APPS-060 — Tenant Branded Rider + Driver Apps**
+- Each tenant shall have a branded Rider app and Driver app:
+  - Tenant name, icon, splash, colors, in-app theme
+- Build/distribution requirement:
+  - System shall support an automated workflow (or documented process) to produce tenant-branded app builds for iOS (Apple App Store) and Android (Google Play Store).
+  - At minimum for MVP (Minimum Viable Product), apps may be a single multi-tenant app with dynamic tenant branding; however tenant-branded identity must be preserved in user experience and assets.
+
+### 6) Tenant Admin + Billing (SaaS)
+**RIDE-TEN-ADMIN-070 — Tenant Admin Portal**
+- Tenant admins manage:
+  - Users/roles (tenant roles only)
+  - Service areas
+  - Pricing rules (base, mileage, time, fees, surcharges)
+  - Vehicle classes/service tiers
+  - Branding assets
+  - Notifications templates
+
+**RIDE-TEN-BILL-080 — Tenant Billing**
+- Tenant subscription billing:
+  - Plan selection
+  - Invoice history
+  - Payment status
+  - Access gating if unpaid
+
+## Definition of Done (DoD) (Definition of Done) + Evidence (Agentic-Build Friendly)
+- Evidence of tenant isolation:
+  - Automated tests that attempt cross-tenant reads/writes and verify hard denial
+  - Audit log entries for blocked access attempts
+- Evidence of tenant microsite:
+  - Tenant subdomain routes correctly
+  - Branding differs between tenants
+  - Booking works end-to-end to dispatch queue
+- Evidence of tenant apps:
+  - Rider/Driver UI shows tenant branding and tenant-restricted data only
+
+
+---
+
+# MERGED FROM: ADDENDUM_TENANT_FIRST_DECISIONS_PAYMENTS_APPS_COMPLIANCE.md
+
+# RideShare Addendum: Tenant-First Decisions (Apps + Payments + Settlement + Service Area + Compliance + Retention)
+
+## A) Branded Rider + Driver Apps (MVP (Minimum Viable Product) first, but both required)
+**RIDE-APP-STRAT-001 — App Strategy (Phased)**
+- Phase 1 (MVP (Minimum Viable Product)):
+  - Deliver a single Rider app + single Driver app that are multi-tenant and support dynamic tenant branding (name, colors, logo, themed UI (User Interface)).
+  - Tenant selection/resolution must be deterministic (tenant slug, tenant code, or deep link) and enforced for all data access.
+- Phase 2 (Per-tenant branded apps):
+  - System shall support per-tenant branded app builds for iOS (Apple App Store) and Android (Google Play Store):
+    - Tenant-specific app identity (icons, splash, name, theme)
+    - Tenant-specific configuration bundle (tenant id/slug, endpoints, feature flags)
+  - Platform UI (User Interface) shall include a tenant “App Build Configuration” screen to store required metadata and assets.
+
+**DoD (Definition of Done) Evidence**
+- Phase 1: Two tenants demonstrate distinct branding in the same app binaries and cannot access each other’s data (tests included).
+- Phase 2: At least one tenant produces a separate build artifact using stored tenant assets/config.
+
+## B) Payments (All modes) routed via PaySurity (FluidPay). Platform collects then remits.
+**RIDE-PAY-001 — Payment Routing**
+- All rider payments shall route through PaySurity payment processing (FluidPay).
+- Platform shall collect funds and maintain tenant-scoped ledgers, then remit to tenant based on configured remittance schedule/rules.
+
+**RIDE-PAY-002 — Payment Modes**
+- System shall support all major payment modes, at minimum:
+  - Credit/debit cards (card-not-present)
+  - Apple Pay
+  - Google Pay
+  - ACH (Automated Clearing House) where applicable
+- Payment methods must be available inside the Rider booking flow.
+
+**RIDE-PAY-003 — Remittance + Ledger**
+- Maintain tenant-scoped financial ledger:
+  - Gross fares, fees, surcharges, taxes (if applicable), refunds, chargebacks/disputes
+  - Platform fees and tenant fees
+  - Driver payouts (if tenant uses platform payout tooling)
+- Remittance engine:
+  - Configurable per tenant (daily/weekly/manual)
+  - Generates remittance report (downloadable)
+  - Audit logs for all remittance actions
+
+**DoD (Definition of Done) Evidence**
+- End-to-end booking → authorized → captured → tenant ledger updated → remittance created in report form.
+- Tests verify tenant-scoped ledgers are isolated.
+
+## C) “Settled” logic for driver payout (configurable per tenant)
+**RIDE-SETTLE-001 — Settlement Trigger (Default for “our tenant”)**
+- For the platform’s own tenant (internal operations), driver payout eligibility shall be when payment is in “Completely Settled” state:
+  - Platform business checking account has received the funds (settled).
+  - Until settled: visible to staff as pending; driver sees pending (as defined in driver UI (User Interface)).
+
+**RIDE-SETTLE-002 — Settlement Trigger (Configurable for other tenants)**
+- For external tenants, settlement/payout trigger shall be configurable by platform staff per tenant:
+  - Options include: Authorized, Captured, Settled, Manual Approval, Scheduled (time-based).
+- Tenant cannot change this directly unless platform staff grants a configuration role; by default platform controls configuration.
+
+**DoD (Definition of Done) Evidence**
+- Two tenants with different payout triggers exhibit different payout eligibility behavior from the same event timeline (tests included).
+
+## D) Service area behavior (outside-zone handling) — clarified as configurable
+**RIDE-SVC-AREA-001 — Tenant Service Areas**
+- Tenants define service areas via zones (polygons/radii) and optional airport/special zones.
+
+**RIDE-SVC-AREA-002 — Outside-Zone Handling (Configurable)**
+- For bookings where pickup and/or drop-off is outside a tenant’s configured zones, behavior must be configurable per tenant:
+  - Block booking (hard stop)
+  - Allow “Quote Request” workflow (manual quote then customer confirms)
+  - Allow booking with configurable outside-zone surcharge/rate card
+
+**DoD (Definition of Done) Evidence**
+- Each mode is demonstrably selectable per tenant; booking behavior changes accordingly; tests cover outside-zone bookings.
+
+## E) Compliance monitoring (platform monitors; do NOT show compliance standings to tenants)
+**RIDE-COMP-001 — Internal-Only Compliance Monitoring**
+- Platform shall systemically monitor compliance signals for tenants/drivers (document presence/expiry, onboarding state completeness, incident flags).
+- Platform shall NOT expose “compliance standings” dashboards, scores, or compliance status messaging to tenants or their drivers/riders.
+- Platform staff-only UI (User Interface) shall exist to view compliance signals and histories.
+
+**RIDE-COMP-002 — Driver Document Capture**
+- Driver onboarding must capture required documents (license, vehicle docs, insurance, etc.) and track expiration dates.
+- Platform staff UI (User Interface) supports viewing and exporting driver document records per tenant.
+
+**DoD (Definition of Done) Evidence**
+- Tenant user cannot view any compliance scoring/standing UI (User Interface) or API (Application Programming Interface) fields (tests included).
+- Platform staff can see and export doc status per tenant.
+
+## F) Data retention (per Chicago standards) — implemented as configurable policy with auditability
+**RIDE-RET-001 — Retention Policy Configuration**
+- System shall implement data retention controls configurable by platform staff:
+  - Defaults set to meet Chicago compliance standards (durations stored as config values).
+  - Retention policies apply per tenant (tenant-scoped) where legally allowed.
+- System shall provide an internal staff UI (User Interface) page showing current retention settings and last review date.
+
+**RIDE-RET-002 — Retention Enforcement**
+- Automatic retention jobs enforce deletion/archival according to configured policy.
+- All retention actions logged in audit trail.
+
+**DoD (Definition of Done) Evidence**
+- Retention policy values exist in config, can be changed by platform staff, and are used by enforcement jobs (tests included).
+
+
+<!-- END: MERGED_ADDENDUMS_INTO_CANONICAL -->
 
 
