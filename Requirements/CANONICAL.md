@@ -1,8 +1,8 @@
 ﻿<!-- EBT (Enterprise Build Template) CANONICAL.md SYNC HEADER -->
-<!-- Synced: 2026-02-08 04:14:06 (local) -->
+<!-- Synced: 2026-02-08 05:02:49 (local) -->
 <!-- Source: BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md -->
 <!-- SourcePath: C:\Users\Detaimfc\Downloads\RideShare\Requirements\BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md -->
-<!-- Note: Source file is preserved; this is a copy for EBT (Enterprise Build Template) scanning stability. -->
+<!-- Note: Source file preserved; CANONICAL.md is the stable scan target for EBT (Enterprise Build Template). -->
 
 # Rideoo-RideShare Platform — Canonical Requirements (v6.1)
 
