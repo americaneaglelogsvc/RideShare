@@ -1,4 +1,4 @@
-﻿name: require-req-id
+name: require-req-id
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened, ready_for_review]
@@ -18,3 +18,9 @@ jobs:
             if (!re.test(text)) {
               core.setFailed('PR must reference at least one requirement ID (e.g., MS-001, PAY-123, ECOM-045, COMPENG-010).');
             }
+    if: ${{ !(((github.event_name == 'push' && github.ref != 'refs/heads/main' 
+      && (contains(github.event.head_commit.message, '[skip ci]') || 
+      contains(github.event.head_commit.message, '[ci skip]')))) || 
+      ((github.event_name == 'pull_request' && 
+      (contains(github.event.pull_request.title, '[skip ci]') || 
+      contains(github.event.pull_request.title, '[ci skip]')))))) }}

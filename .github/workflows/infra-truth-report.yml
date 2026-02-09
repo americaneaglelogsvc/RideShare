@@ -12,8 +12,15 @@ jobs:
         with:
           node-version: "20"
       - run: npm ci || npm i
-      - run: npx ts-node scripts/generate_infra_report.ts > infra_truth_report.json
+      - run: npx ts-node scripts/generate_infra_report.ts > 
+          infra_truth_report.json
       - uses: actions/upload-artifact@v4
         with:
           name: infra-truth-report
           path: infra_truth_report.json
+    if: ${{ !(((github.event_name == 'push' && github.ref != 'refs/heads/main' 
+      && (contains(github.event.head_commit.message, '[skip ci]') || 
+      contains(github.event.head_commit.message, '[ci skip]')))) || 
+      ((github.event_name == 'pull_request' && 
+      (contains(github.event.pull_request.title, '[skip ci]') || 
+      contains(github.event.pull_request.title, '[ci skip]')))))) }}

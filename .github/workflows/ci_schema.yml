@@ -2,7 +2,7 @@ name: enterprise-ci-schema (CANONICAL + PROJECT_PROFILE)
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: read
@@ -18,3 +18,9 @@ jobs:
       - run: pip install --disable-pip-version-check --no-cache-dir jsonschema
       - run: python scripts/validate_canonical_schema.py
       - run: python scripts/validate_project_profile_schema.py
+    if: ${{ !(((github.event_name == 'push' && github.ref != 'refs/heads/main' 
+      && (contains(github.event.head_commit.message, '[skip ci]') || 
+      contains(github.event.head_commit.message, '[ci skip]')))) || 
+      ((github.event_name == 'pull_request' && 
+      (contains(github.event.pull_request.title, '[skip ci]') || 
+      contains(github.event.pull_request.title, '[ci skip]')))))) }}

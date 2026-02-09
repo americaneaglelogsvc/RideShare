@@ -2,7 +2,7 @@ name: enterprise-ci-codeql (SAST optional)
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   actions: read
@@ -39,3 +39,9 @@ jobs:
       - name: Analyze
         if: steps.decide.outputs.CODEQL_OPTIONAL == 'true'
         uses: github/codeql-action/analyze@v3
+    if: ${{ !(((github.event_name == 'push' && github.ref != 'refs/heads/main' 
+      && (contains(github.event.head_commit.message, '[skip ci]') || 
+      contains(github.event.head_commit.message, '[ci skip]')))) || 
+      ((github.event_name == 'pull_request' && 
+      (contains(github.event.pull_request.title, '[skip ci]') || 
+      contains(github.event.pull_request.title, '[ci skip]')))))) }}

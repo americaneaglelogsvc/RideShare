@@ -26,7 +26,8 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Enable Corepack (Corepack) + pnpm (performant Node Package Manager)
+      - name: Enable Corepack (Corepack) + pnpm (performant Node Package 
+          Manager)
         shell: bash
         run: |
           corepack enable
@@ -38,7 +39,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Python deps (OpenAI (OpenAI) SDK (Software Development Kit))
+      - name: Install Python deps (OpenAI (OpenAI) SDK (Software Development 
+          Kit))
         shell: bash
         run: |
           python -m pip install --upgrade pip
@@ -84,9 +86,15 @@ jobs:
       - name: Add summary header
         if: always()
         shell: bash
-        run: |
+        run: |-
           echo "## Agentic Audit Summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Branch: \`${{ github.ref_name }}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Commit: \`${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Audit step uses continue-on-error; see artifacts for details." >> "$GITHUB_STEP_SUMMARY"
+    if: ${{ !(((github.event_name == 'push' && github.ref != 'refs/heads/main' 
+      && (contains(github.event.head_commit.message, '[skip ci]') || 
+      contains(github.event.head_commit.message, '[ci skip]')))) || 
+      ((github.event_name == 'pull_request' && 
+      (contains(github.event.pull_request.title, '[skip ci]') || 
+      contains(github.event.pull_request.title, '[ci skip]')))))) }}

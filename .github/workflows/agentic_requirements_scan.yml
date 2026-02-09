@@ -1,4 +1,4 @@
-﻿name: Agentic Requirements Scan
+name: Agentic Requirements Scan
 
 run-name: Agentic Scan • ${{ github.ref_name }} • ${{ github.sha }}
 
@@ -14,7 +14,8 @@ on:
         required: false
         default: "9999"
       commit_outputs:
-        description: "Commit generated JSON (JavaScript Object Notation)/JSONL (JSON Lines) + AgentOutput back to the branch (workflow_dispatch only)"
+        description: "Commit generated JSON (JavaScript Object Notation)/JSONL (JSON
+          Lines) + AgentOutput back to the branch (workflow_dispatch only)"
         required: false
         default: "false"
   push:
@@ -33,9 +34,11 @@ permissions:
   contents: write
 
 env:
-  CANON_REQUIREMENTS_JSON: Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.json
+  CANON_REQUIREMENTS_JSON: 
+    Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.json
   CANON_REQUIREMENTS_JSONL: Requirements/requirements.jsonl
-  REQUIREMENTS_MD: Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md
+  REQUIREMENTS_MD: 
+    Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md
   AGENT_OUTPUT_DIR: AgentOutput
   DEFAULT_MODE: full
   DEFAULT_MAX_REQUIREMENTS: "9999"
@@ -83,7 +86,8 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           MODE: ${{ github.event.inputs.mode || env.DEFAULT_MODE }}
-          MAX_REQUIREMENTS: ${{ github.event.inputs.max_requirements || env.DEFAULT_MAX_REQUIREMENTS }}
+          MAX_REQUIREMENTS: ${{ github.event.inputs.max_requirements || 
+            env.DEFAULT_MAX_REQUIREMENTS }}
         run: |
           mkdir -p "${AGENT_OUTPUT_DIR}"
 
@@ -115,7 +119,8 @@ jobs:
           retention-days: 14
 
       - name: Commit generated outputs (optional; workflow_dispatch only)
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_outputs == 'true' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && 
+          github.event.inputs.commit_outputs == 'true' }}
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
@@ -131,3 +136,9 @@ jobs:
           git commit -m "chore: sync requirements + agent output"
           git push
 
+    if: ${{ !(((github.event_name == 'push' && github.ref != 'refs/heads/main' 
+      && (contains(github.event.head_commit.message, '[skip ci]') || 
+      contains(github.event.head_commit.message, '[ci skip]')))) || 
+      ((github.event_name == 'pull_request' && 
+      (contains(github.event.pull_request.title, '[skip ci]') || 
+      contains(github.event.pull_request.title, '[ci skip]')))))) }}

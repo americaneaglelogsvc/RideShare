@@ -1,4 +1,4 @@
-# EBT (Enterprise Build Template) Readiness Runbook
+﻿# EBT (Enterprise Build Template) Readiness Runbook
 
 ## Why this exists
 We repeatedly hit the same build/automation blockers across repos. This runbook captures the exact, reusable fixes/policies that made PaySurity EBT-ready, so RideShare and AEL (American Eagle Logistics) can be brought to parity quickly.
@@ -46,7 +46,7 @@ We repeatedly hit the same build/automation blockers across repos. This runbook 
 A workflow cannot be manually triggered via workflow dispatch unless its YAML includes:
 - workflow_dispatch:
 
-If you see an HTTP 422 complaining about missing workflow_dispatch, it’s working as designed.
+If you see an HTTP 422 complaining about missing workflow_dispatch, itâ€™s working as designed.
 
 ---
 
@@ -63,10 +63,10 @@ Use this selectively (only on workflows that are known to cause noise or false f
 
 ---
 
-## 5) “Before you say EBT is broken” quick triage
+## 5) â€œBefore you say EBT is brokenâ€ quick triage
 - Confirm Node policy is consistent (all package.json + workflows).
 - Confirm pnpm lockfile exists and is tracked.
-- Confirm workflows aren’t failing only on Dependabot PRs due to strict gates.
+- Confirm workflows arenâ€™t failing only on Dependabot PRs due to strict gates.
 - Expect CRLF (Carriage Return Line Feed) warnings on Windows; treat as noise unless it causes real diffs or workflow failures.
 
 ---
@@ -76,3 +76,31 @@ If you need to publish a docs-only change without triggering workflows, use a co
 - skip ci / ci skip / skip actions / ctions skip
 
 (Only use this when you explicitly want to avoid running workflows.)
+
+<!-- RUNBOOK_APPEND: POWERSHELL_GOTCHAS_V1 -->
+
+## PowerShell + Git + GitHub Actions gotchas (learned during EBT debugging)
+
+- PowerShell \Stop="Stop" + native tools (like git) can turn expected stderr into terminating errors.
+  - Avoid “intentional failure then fallback” patterns.
+  - Prefer explicit existence checks (example): git show-ref --verify --quiet refs/heads/<branch>.
+
+- Branch creation: don’t git switch <new-branch> and expect it to “just work”.
+  - Use checks, or git switch -c <branch> after confirming it doesn’t exist.
+
+- gh workflow run only works if the workflow has workflow_dispatch.
+  - We saw HTTP 422 on the **Dependabot Updates** workflow because it lacks workflow_dispatch.
+
+- Repo remote moves happen; verify with git remote -v and fix via:
+  - git remote set-url origin https://github.com/PaySurity-Biz/<repo>.git
+
+- Avoid path mistakes and “wrong working directory” issues:
+  - Prefer absolute paths using Join-Path when writing files.
+
+- Line endings: you may see CRLF↔LF warnings on Windows.
+  - Don’t fight warnings; just keep YAML valid and avoid mangling indentation.
+
+- Dependabot/lockfiles:
+  - Dependabot needs the lockfile committed to apply security updates (example: pnpm-lock.yaml).
+  - Prefer an engines.node range like >=20.0.0 <21.0.0 over 20.x to reduce tool friction.
+
