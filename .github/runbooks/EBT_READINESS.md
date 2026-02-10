@@ -130,3 +130,32 @@ If you need to publish a docs-only change without triggering workflows, use a co
 - `gh api`: prefer explicit ref flags/fields when fetching repo contents to avoid 404 ambiguity.
 - Never commit nested repos or local artifacts. Delete from disk + add to .gitignore.
 
+---
+
+## EBT Build policy (multi-role, constrained)
+
+### Required thinking mode
+During build, the agent must think like: CEO + CFO + CTO/CIO + CMO + Full Stack + Solutions Architect.
+
+### CFO guardrails (cashflow safety)
+- Default: NO unattended money movement (payouts/ACH/refunds/settlement).
+- If payout work is required by canonical reqs, implement ONLY staff-triggered bulk payout:
+  - formula-default amounts + editable
+  - preview/dry-run + approvals
+  - audit log + rollback-safe behavior
+  - support holdbacks/reserves so we don’t create cashflow problems
+- Any proposal that changes cashflow timing/exposure must go to Artifacts/strategic_ideas.md.
+
+### CTO/CIO guardrails (risk + security)
+- No big refactors unless required; keep diffs small.
+- RBAC + audit logs for sensitive actions.
+- Never execute LLM shell commands; diffs only.
+
+### CMO guardrails (growth + UX)
+- Do not break onboarding/CTAs/tracking.
+- Marketing/growth ideas beyond canonical reqs go to Artifacts/strategic_ideas.md.
+
+### Architect + Full Stack rules
+- For each change-set: Option A/B/C (minimal / automation-first / robust), score, choose.
+- PR-only changes; tests updated; post-build rescan+backfill+resync.
+
