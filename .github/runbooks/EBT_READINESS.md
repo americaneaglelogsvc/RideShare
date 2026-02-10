@@ -121,3 +121,12 @@ If you need to publish a docs-only change without triggering workflows, use a co
 - Default model: gpt-5-mini (Input $0.25/1M, Output $2.00/1M tokens).
 - CI MUST fail once cumulative spend >= $90 (that failure is the alarm).
 - CI MUST keep `Artifacts/openai_usage_ledger.jsonl` so we can forecast spend vs work done.
+---
+
+## Lessons learned (PowerShell + CI hygiene)
+
+- PowerShell: escape `$` in double-quoted strings (use `` `$ ``) or use single quotes.
+- PowerShell: native tools may write to stderr even on success; with `$ErrorActionPreference="Stop"` that can terminate scripts. Prefer wrappers or avoid no-op commands.
+- `gh api`: prefer explicit ref flags/fields when fetching repo contents to avoid 404 ambiguity.
+- Never commit nested repos or local artifacts. Delete from disk + add to .gitignore.
+
