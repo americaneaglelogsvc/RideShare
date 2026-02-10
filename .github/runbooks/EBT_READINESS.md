@@ -104,3 +104,20 @@ If you need to publish a docs-only change without triggering workflows, use a co
   - Dependabot needs the lockfile committed to apply security updates (example: pnpm-lock.yaml).
   - Prefer an engines.node range like >=20.0.0 <21.0.0 over 20.x to reduce tool friction.
 
+---
+
+## Feb 8, 2026: REQUIRED EBT behavior (RideShare)
+
+### 1) Backfill implemented-but-not-documented → mother requirements MD (MANDATORY)
+- After scan produces `AgentOutput/implemented_not_documented.md`, CI MUST merge it into:
+  `Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md`
+- Then CI MUST re-sync MD → JSON so canonical JSON is the exact derivation of the mother MD.
+
+### 2) EBT MUST build (fill gaps) using OpenAI API (via GitHub Secrets)
+- Build runs MUST use `OPENAI_API_KEY` from org/repo secrets.
+- Build outputs MUST go to a branch + PR (never write directly to main).
+
+### 3) $90 budget alarm + spend ledger (MANDATORY)
+- Default model: gpt-5-mini (Input $0.25/1M, Output $2.00/1M tokens).
+- CI MUST fail once cumulative spend >= $90 (that failure is the alarm).
+- CI MUST keep `Artifacts/openai_usage_ledger.jsonl` so we can forecast spend vs work done.
