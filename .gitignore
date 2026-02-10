@@ -39,3 +39,10 @@ Artifacts/audit_log.txt
 out/
 
 _gh_artifacts/
+
+# Local artifacts (do not commit)
+RS Folder from PS/
+_remote_check/
+tenant_scan_results*.csv
+Requirements/_archive/
+AgentOutput/
