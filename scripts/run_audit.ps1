@@ -1,4 +1,4 @@
-param(
+﻿param(
   [string]$LogPath = ".\Artifacts\audit_log.txt",
   [switch]$SkipAgenticScan
 )
@@ -100,7 +100,7 @@ if (-not $SkipAgenticScan) {
       $env:MAX_CANDIDATES = "999999"
 
       LogLine "Running: agentic_scan_runner.py"
-      & $pythonExe @pyPrefix ".\scripts\agentic_scan_runner.py" --run-mode full --batch-size 999999 2>&1 | Tee-Object -FilePath $LogPath -Append | Out-Null
+      & $pythonExe @pyPrefix "scripts/agentic_scan_runner.py" --run-mode full --batch-size 999999 2>&1 | Tee-Object -FilePath $LogPath -Append | Out-Null
       $exit1 = $LASTEXITCODE
 
       if ($exit1 -ne 0) {
@@ -136,3 +136,4 @@ if (-not $SkipAgenticScan) {
 "=== AUDIT END: $(Get-Date -Format s) ===" | Add-Content -Encoding UTF8 $LogPath
 Write-Host "Wrote audit log: $LogPath" -ForegroundColor Green
 exit $overallExit
+

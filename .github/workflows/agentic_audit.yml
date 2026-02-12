@@ -1,4 +1,4 @@
-name: Agentic Audit (Requirements Status)
+﻿name: Agentic Audit (Requirements Status)
 
 on:
   workflow_dispatch:
@@ -46,7 +46,7 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f scripts/requirements.txt ]; then pip install -r scripts/requirements.txt; fi
-          pip install --upgrade openai
+          pip install --upgrade "openai<2"
 
       - name: Run audit (pnpm (performant Node Package Manager) + agentic scan)
         continue-on-error: true
@@ -93,3 +93,4 @@ jobs:
           echo "- Commit: \`${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Audit step uses continue-on-error; see artifacts for details." >> "$GITHUB_STEP_SUMMARY"
     if: ${{ (github.event_name != 'push' || !(contains(github.event.head_commit.message, '[skip ci]') || contains(github.event.head_commit.message, '[ci skip]'))) && (github.event_name != 'pull_request' || !(contains(github.event.pull_request.title, '[skip ci]') || contains(github.event.pull_request.title, '[ci skip]'))) }}
+
