@@ -16,9 +16,4 @@ jobs:
         with:
           python-version: "3.11"
       - run: python scripts/check_must_e2e_coverage.py
-    if: ${{ !(((github.event_name == 'push' && github.ref != 'refs/heads/main' 
-      && (contains(github.event.head_commit.message, '[skip ci]') || 
-      contains(github.event.head_commit.message, '[ci skip]')))) || 
-      ((github.event_name == 'pull_request' && 
-      (contains(github.event.pull_request.title, '[skip ci]') || 
-      contains(github.event.pull_request.title, '[ci skip]')))))) }}
+    if: ${{ (github.event_name != 'push' || !(contains(github.event.head_commit.message, '[skip ci]') || contains(github.event.head_commit.message, '[ci skip]'))) && (github.event_name != 'pull_request' || !(contains(github.event.pull_request.title, '[skip ci]') || contains(github.event.pull_request.title, '[ci skip]'))) }}
