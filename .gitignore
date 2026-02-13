@@ -46,3 +46,6 @@ _remote_check/
 tenant_scan_results*.csv
 Requirements/_archive/
 AgentOutput/
+
+_ci_logs/
+
