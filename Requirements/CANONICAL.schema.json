@@ -1,21 +1,23 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://paysurity-biz.github.io/rideshare/schemas/CANONICAL.schema.json",
-  "title": "CANONICAL requirement record",
+  "$id": "https://paysurity.biz/rideshare/schemas/canonical.schema.json",
+  "title": "RideShare Requirements CANONICAL Schema",
   "type": "object",
-  "required": ["req_id", "title", "status"],
+  "additionalProperties": true,
   "properties": {
-    "req_id": { "type": "string", "minLength": 1 },
-    "title":  { "type": "string", "minLength": 1 },
-    "status": { "type": "string", "minLength": 1 },
-
-    "module":   { "type": "string" },
-    "priority": { "type": "string" },
-
-    "acceptance": { "type": "array", "items": { "type": "string" } },
-    "evidence":   { "type": "array", "items": { "type": "string" } },
-
-    "notes": { "type": "string" }
-  },
-  "additionalProperties": true
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "req_id": { "type": "string", "minLength": 3 },
+          "title":  { "type": "string" },
+          "text":   { "type": "string" },
+          "status": { "type": "string" }
+        },
+        "required": ["req_id","text"]
+      }
+    }
+  }
 }

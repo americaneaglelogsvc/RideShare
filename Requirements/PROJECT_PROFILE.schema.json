@@ -1,24 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://paysurity-biz.github.io/rideshare/schemas/PROJECT_PROFILE.schema.json",
-  "title": "PROJECT_PROFILE",
+  "$id": "https://paysurity.biz/rideshare/schemas/project-profile.schema.json",
+  "title": "RideShare PROJECT_PROFILE Schema",
   "type": "object",
-  "required": ["project", "requirements_root"],
+  "additionalProperties": true,
   "properties": {
-    "project": {
-      "type": "object",
-      "required": ["name", "repo_full"],
-      "properties": {
-        "name":           { "type": "string", "minLength": 1 },
-        "repo_full":      { "type": "string", "minLength": 1 },
-        "default_branch": { "type": "string" }
-      },
-      "additionalProperties": true
-    },
-    "requirements_root":     { "type": "string", "minLength": 1 },
-    "status_taxonomy_path":  { "type": "string" },
-    "canon_schema_path":     { "type": "string" },
-    "profile_schema_path":   { "type": "string" }
+    "project": { "type": "string" },
+    "repo":    { "type": "string" },
+    "modules": { "type": "array", "items": { "type": "string" } },
+    "owners":  { "type": "array", "items": { "type": "string" } }
   },
-  "additionalProperties": true
+  "required": ["project","repo"]
 }
