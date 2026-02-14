@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paysurity.biz/rideshare/schemas/project-profile.schema.json",
+  "title": "RideShare PROJECT_PROFILE Schema",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "project": { "type": "string" },
+    "repo":    { "type": "string" },
+    "modules": { "type": "array", "items": { "type": "string" } },
+    "owners":  { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["project","repo"]
+}

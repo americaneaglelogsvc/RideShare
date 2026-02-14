@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paysurity.biz/rideshare/schemas/canonical.schema.json",
+  "title": "RideShare Requirements CANONICAL Schema",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "req_id": { "type": "string", "minLength": 3 },
+          "title":  { "type": "string" },
+          "text":   { "type": "string" },
+          "status": { "type": "string" }
+        },
+        "required": ["req_id","text"]
+      }
+    }
+  }
+}

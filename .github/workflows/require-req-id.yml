@@ -1,21 +1,19 @@
-name: require-req-id
+﻿name: require-req-id
+
 on:
   pull_request:
-    types: [opened, edited, synchronize, reopened, ready_for_review]
+  merge_group:
+
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Ensure PR has requirement ID
-        uses: actions/github-script@v7
         with:
-          script: |
-            const title = context.payload.pull_request.title || '';
-            const body  = context.payload.pull_request.body  || '';
-            const text  = ${title}\n;
-            const re = /\\b(GEN|SHARED|MS|PAY|DWL|POS-R|POS-G|POS-RET|LEGAL|LEGALEDGE|LEGDOC|SEC|COMP|COMPENG|COMPUI|APIGW|AFF|WEB|ECOM|MSC|OCR|REMOTE|DATA|ADMIN|REPORT|CONFIG|DRV|DWLAPI|DWLWEB|ERP|FILE|INFRA|K8S)-\\d{1,5}\\b/i;
-            if (!re.test(text)) {
-              core.setFailed('PR must reference at least one requirement ID (e.g., MS-001, PAY-123, ECOM-045, COMPENG-010).');
-            }
-    if: ${{ (github.event_name != 'push' || !(contains(github.event.head_commit.message, '[skip ci]') || contains(github.event.head_commit.message, '[ci skip]'))) && (github.event_name != 'pull_request' || !(contains(github.event.pull_request.title, '[skip ci]') || contains(github.event.pull_request.title, '[ci skip]'))) }}
+          fetch-depth: 0
+      - name: require-req-id
+        run: node scripts/require_req_id_check.cjs
+
