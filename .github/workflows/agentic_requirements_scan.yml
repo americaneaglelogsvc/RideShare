@@ -1,49 +1,9 @@
 name: Agentic Requirements Scan
 
-run-name: Agentic Scan â€¢ ${{ github.ref_name }} â€¢ ${{ github.sha }}
 on:
   pull_request:
   merge_group:
   workflow_dispatch:
-  workflow_dispatch:
-    inputs:
-      mode:
-        description: "Scan mode (full|test)"
-        required: false
-        default: "full"
-      max_requirements:
-        description: "Max requirements to scan"
-        required: false
-        default: "9999"
-      commit_outputs:
-        description: "Commit generated JSON (JavaScript Object Notation)/JSONL (JSON
-          Lines) + AgentOutput back to the branch (workflow_dispatch only)"
-        required: false
-        default: "false"
-  push:
-    branches: ["main"]
-    paths:
-      - "Requirements/**/*.md"
-      - "Requirements/**/*.json"
-      - "scripts/**"
-      - ".github/workflows/agentic_requirements_scan.yml"
-
-concurrency:
-  group: agentic-scan-${{ github.ref }}
-  cancel-in-progress: true
-
-permissions:
-  contents: write
-
-env:
-  CANON_REQUIREMENTS_JSON: 
-    Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.json
-  CANON_REQUIREMENTS_JSONL: Requirements/requirements.jsonl
-  REQUIREMENTS_MD: 
-    Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md
-  AGENT_OUTPUT_DIR: AgentOutput
-  DEFAULT_MODE: full
-  DEFAULT_MAX_REQUIREMENTS: "9999"
 
 jobs:
   scan:
@@ -67,7 +27,7 @@ jobs:
             pip install -r requirements.txt
           fi
 
-      - name: Sync requirements (MD (Markdown) â†’ JSON/JSONL) if MD exists
+      - name: Sync requirements (MD (Markdown) Ã¢â€ â€™ JSON/JSONL) if MD exists
         shell: bash
         run: |
           if [ -f "${REQUIREMENTS_MD}" ]; then
@@ -77,10 +37,10 @@ jobs:
                 --json "${CANON_REQUIREMENTS_JSON}" \
                 --jsonl "${CANON_REQUIREMENTS_JSONL}"
             else
-              echo "Missing scripts/sync_requirements_from_md.py; skipping MDâ†’JSON sync."
+              echo "Missing scripts/sync_requirements_from_md.py; skipping MDÃ¢â€ â€™JSON sync."
             fi
           else
-            echo "No MD file found at ${REQUIREMENTS_MD}; skipping MDâ†’JSON sync."
+            echo "No MD file found at ${REQUIREMENTS_MD}; skipping MDÃ¢â€ â€™JSON sync."
           fi
 
       - name: Run agentic scan (defaults to FULL + 9999)
