@@ -1,0 +1,19 @@
+﻿name: enterprise-ci-must-e2e-gate (MUST done => E2E exists)
+
+on:
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  must_e2e_gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: must-e2e-gate
+        run: node scripts/e2e_gate.cjs
+

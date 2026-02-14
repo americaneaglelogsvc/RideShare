@@ -1,0 +1,24 @@
+﻿name: enterprise-ci-budget-cap (optional)
+
+on:
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  budget:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: budget-cap (optional)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f "Budget/budget.json" ] || [ -f ".ci/budget.json" ]; then
+            echo "Budget config present; optional enforcement can be implemented here."
+          else
+            echo "No budget config found; skipping (optional)."
+          fi

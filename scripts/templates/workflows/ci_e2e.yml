@@ -1,0 +1,26 @@
+﻿name: ci-e2e (MUST flows marked done)
+
+on:
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  must_e2e_gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: e2e gate
+        run: node scripts/e2e_gate.cjs
+      - name: run e2e (only if playwright config exists)
+        if: ${{ hashFiles('playwright.config.*') != '' }}
+        run: |
+          set -euo pipefail
+          npm ci
+          npx playwright install --with-deps
+          npx playwright test
+

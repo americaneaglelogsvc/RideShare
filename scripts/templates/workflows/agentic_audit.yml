@@ -1,0 +1,113 @@
+name: Agentic Audit (Requirements Status)
+
+on:
+  workflow_dispatch:
+    inputs:
+      skip_agentic_scan:
+        description: "Skip OpenAI (OpenAI) agentic scan"
+        type: boolean
+        default: false
+  pull_request:
+  push:
+    branches: ["main"]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Summary Dashboard # SUMMARY_DASHBOARD
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Agentic Audit (Requirements Status)"
+            echo ""
+            echo "- Ref: "
+            echo "- SHA: "
+            echo "- Run: //actions/runs/"
+            echo ""
+            echo "### Outputs"
+            echo "- AgentOutput: "
+            echo ""
+            echo "_Summary marker: SUMMARY_DASHBOARD_"
+          } >> ""
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (Node.js)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable Corepack (Corepack) + pnpm (performant Node Package 
+          Manager)
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@9 --activate
+          pnpm --version
+
+      - name: Setup Python (Python)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python deps (OpenAI (OpenAI) SDK (Software Development 
+          Kit))
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f scripts/requirements.txt ]; then pip install -r scripts/requirements.txt; fi
+          pip install --upgrade "openai<2"
+
+      - name: Run audit (pnpm (performant Node Package Manager) + agentic scan)
+        continue-on-error: true
+        shell: pwsh
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          $skip = '${{ github.event.inputs.skip_agentic_scan }}' -eq 'true'
+          if ($skip) {
+            ./scripts/run_audit.ps1 -LogPath "./Artifacts/audit_log.txt" -SkipAgenticScan
+          } else {
+            ./scripts/run_audit.ps1 -LogPath "./Artifacts/audit_log.txt"
+          }
+
+      - name: Print audit log tail
+        if: always()
+        shell: bash
+        run: |
+          echo "=== audit_log.txt (tail 200) ==="
+          if [ -f ./Artifacts/audit_log.txt ]; then
+            tail -n 200 ./Artifacts/audit_log.txt
+          else
+            echo "No ./Artifacts/audit_log.txt found"
+          fi
+
+      - name: Upload artifacts (AgentOutput (Agent Output) + audit log)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-output
+          if-no-files-found: warn
+          path: |
+            AgentOutput/**
+            Artifacts/audit_log.txt
+            Artifacts/audit_log_*.txt
+
+      - name: Add summary header
+        if: always()
+        shell: bash
+        run: |-
+          echo "## Agentic Audit Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Branch: \`${{ github.ref_name }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Commit: \`${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Audit step uses continue-on-error; see artifacts for details." >> "$GITHUB_STEP_SUMMARY"
+    if: ${{ (github.event_name != 'push' || !(contains(github.event.head_commit.message, '[skip ci]') || contains(github.event.head_commit.message, '[ci skip]'))) && (github.event_name != 'pull_request' || !(contains(github.event.pull_request.title, '[skip ci]') || contains(github.event.pull_request.title, '[ci skip]'))) }}
+

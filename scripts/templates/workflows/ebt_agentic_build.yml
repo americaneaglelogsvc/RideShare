@@ -1,0 +1,103 @@
+﻿name: EBT Agentic Build (RideShare)
+
+on:
+  workflow_dispatch:
+    inputs:
+      budget_usd:
+        required: false
+        default: "90"
+      model:
+        required: false
+        default: "gpt-5-mini"
+      mode:
+        description: "plan|build"
+        required: false
+        default: "build"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  REQUIREMENTS_MD: Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md
+  CANON_JSON: Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.json
+  CANON_JSONL: Requirements/requirements.jsonl
+  LEDGER: Artifacts/openai_usage_ledger.jsonl
+
+jobs:
+  ebt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade "openai<2"
+
+      - name: Sync MD → JSON/JSONL
+        shell: bash
+        run: |
+          test -f scripts/sync_requirements_from_md.py
+          python scripts/sync_requirements_from_md.py --md "${REQUIREMENTS_MD}" --json "${CANON_JSON}" --jsonl "${CANON_JSONL}"
+
+      - name: Scan (produces status + implemented_not_documented)
+        shell: bash
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          mkdir -p AgentOutput Artifacts
+          if [ -f scripts/agentic_scan_runner.py ]; then
+            python scripts/agentic_scan_runner.py --requirements-json "${CANON_JSON}" --mode full --max-requirements 9999 --out-dir AgentOutput
+          else
+            test -f scripts/agentic_requirements_scan_runner.py
+            python scripts/agentic_requirements_scan_runner.py --requirements-json "${CANON_JSON}" --mode full --max-requirements 9999 --out-dir AgentOutput
+          fi
+
+      - name: Backfill mother MD from implemented_not_documented
+        shell: bash
+        run: |
+          python scripts/backfill_requirements_from_implemented.py "${REQUIREMENTS_MD}" "AgentOutput/implemented_not_documented.md"
+
+      - name: Re-sync MD → JSON/JSONL
+        shell: bash
+        run: |
+          python scripts/sync_requirements_from_md.py --md "${REQUIREMENTS_MD}" --json "${CANON_JSON}" --jsonl "${CANON_JSONL}"
+
+      - name: Build (fill gaps)
+        shell: bash
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ github.event.inputs.model }}
+          OPENAI_BUDGET_USD: ${{ github.event.inputs.budget_usd }}
+          OPENAI_LEDGER_PATH: ${{ env.LEDGER }}
+          MODE: ${{ github.event.inputs.mode }}
+        run: |
+          if [ -f scripts/agentic_build_runner.py ]; then
+            python scripts/agentic_build_runner.py --mode "${MODE}" --max_cost_usd "${OPENAI_BUDGET_USD}"
+          else
+            echo "scripts/agentic_build_runner.py missing (next PR adds it). Wiring is ready."
+            exit 2
+          fi
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ebt-agentic-build-${{ github.run_id }}
+          path: |
+            AgentOutput/**
+            Artifacts/**
+            Requirements/**
+          if-no-files-found: warn
+
+

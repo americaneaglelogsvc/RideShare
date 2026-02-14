@@ -1,0 +1,35 @@
+name: ci-requirements-boundary
+
+on:
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Guard payments boundary
+        shell: pwsh
+        run: ./scripts/guard_payments_boundary.ps1
+
+      - name: Summary Dashboard # SUMMARY_DASHBOARD
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## ci-requirements-boundary"
+            echo ""
+            echo "- Ref: "
+            echo "- SHA: "
+            echo "- Run: //actions/runs/"
+            echo ""
+            echo "_Summary marker: SUMMARY_DASHBOARD_"
+          } >> ""
+

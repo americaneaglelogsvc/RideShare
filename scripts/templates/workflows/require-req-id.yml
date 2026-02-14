@@ -1,0 +1,19 @@
+﻿name: require-req-id
+
+on:
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: require-req-id
+        run: node scripts/require_req_id_check.cjs
+

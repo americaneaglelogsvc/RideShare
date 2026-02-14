@@ -1,0 +1,16 @@
+﻿name: enterprise-ci-deps (OSV)
+
+on:
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  osv:
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.3.3"
+    permissions:
+      actions: read
+      security-events: write
+      contents: read
