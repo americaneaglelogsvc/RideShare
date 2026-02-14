@@ -1,0 +1,144 @@
+name: Agentic Requirements Scan
+
+on:
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+    inputs:
+      mode:
+        required: false
+        default: LITE
+      max_requirements:
+        required: false
+        default: "9999"
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary Dashboard # SUMMARY_DASHBOARD
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Agentic Requirements Scan"
+            echo ""
+            echo "- Ref: "
+            echo "- SHA: "
+            echo "- Run: //actions/runs/"
+            echo ""
+            echo "### Outputs"
+            echo "- AgentOutput: "
+            echo "- Canon JSON: "
+            echo "- Canon JSONL: "
+            echo ""
+            echo "_Summary marker: SUMMARY_DASHBOARD_"
+          } >> ""
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps (if requirements.txt exists)
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Set defaults
+        shell: bash
+        run: |
+          echo "AGENT_OUTPUT_DIR=AgentOutput" >> $GITHUB_ENV
+          echo "REQUIREMENTS_MD=Requirements/CANONICAL.md" >> $GITHUB_ENV
+          echo "CANON_REQUIREMENTS_JSON=Requirements/CANONICAL.requirements.json" >> $GITHUB_ENV
+          echo "CANON_REQUIREMENTS_JSONL=Requirements/CANONICAL.requirements.jsonl" >> $GITHUB_ENV
+
+      - name: Sync requirements (MD -> JSON/JSONL) if MD exists
+        shell: bash
+        run: |
+          if [ -f "${REQUIREMENTS_MD}" ]; then
+            if [ -f "scripts/sync_requirements_from_md.py" ]; then
+              python scripts/sync_requirements_from_md.py \
+                --md "${REQUIREMENTS_MD}" \
+                --json "${CANON_REQUIREMENTS_JSON}" \
+                --jsonl "${CANON_REQUIREMENTS_JSONL}"
+            else
+              echo "Missing scripts/sync_requirements_from_md.py; skipping MD->JSON sync."
+            fi
+          else
+            echo "No MD file found at ${REQUIREMENTS_MD}; skipping MD->JSON sync."
+          fi
+
+      - name: Run agentic scan
+        shell: bash
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          MODE="${{ github.event.inputs.mode }}"
+          if [ -z "${MODE}" ]; then MODE="LITE"; fi
+
+          MAX_REQUIREMENTS="${{ github.event.inputs.max_requirements }}"
+          if [ -z "${MAX_REQUIREMENTS}" ]; then MAX_REQUIREMENTS="9999"; fi
+
+          mkdir -p "${AGENT_OUTPUT_DIR}"
+
+          REQ_JSON="${CANON_REQUIREMENTS_JSON}"
+          if [ ! -f "${REQ_JSON}" ]; then
+            for c in "Requirements/CANONICAL.requirements.json" "Requirements/CANONICAL.json" "Requirements/requirements.json" "Requirements/canonical_requirements.json"; do
+              if [ -f "$c" ]; then REQ_JSON="$c"; break; fi
+            done
+          fi
+
+          if [ ! -f "${REQ_JSON}" ]; then
+            echo "No requirements JSON found; emitting placeholder + exiting success."
+            echo "[]" > "${AGENT_OUTPUT_DIR}/requirements.placeholder.json"
+            exit 0
+          fi
+
+          # Make scan reliable for merges (no secret => SUCCESS with artifact)
+          if [ -z "${OPENAI_API_KEY:-}" ]; then
+            echo "OPENAI_API_KEY not set; skipping agentic scan; exiting success."
+            printf '{"skipped":true,"reason":"missing OPENAI_API_KEY","mode":"%s","max_requirements":"%s","requirements_json":"%s"}\n' \
+              "${MODE}" "${MAX_REQUIREMENTS}" "${REQ_JSON}" \
+              > "${AGENT_OUTPUT_DIR}/scan_skipped.json"
+            exit 0
+          fi
+
+          if [ -f "scripts/agentic_scan_runner.py" ]; then
+            SCAN="scripts/agentic_scan_runner.py"
+          elif [ -f "scripts/agentic_requirements_scan_runner.py" ]; then
+            SCAN="scripts/agentic_requirements_scan_runner.py"
+          else
+            echo "Missing scan runner script in scripts/. Expected agentic_scan_runner.py or agentic_requirements_scan_runner.py"
+            exit 2
+          fi
+
+          python "${SCAN}" \
+            --requirements-json "${REQ_JSON}" \
+            --mode "${MODE}" \
+            --max-requirements "${MAX_REQUIREMENTS}" \
+            --out-dir "${AGENT_OUTPUT_DIR}"
+
+      - name: Upload artifacts (ALWAYS)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AgentOutput-${{ github.run_id }}
+          path: |
+            ${{ env.AGENT_OUTPUT_DIR }}
+            ${{ env.CANON_REQUIREMENTS_JSON }}
+            ${{ env.CANON_REQUIREMENTS_JSONL }}
+          if-no-files-found: warn
