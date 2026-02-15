@@ -69,10 +69,11 @@ $taxonomy = (Resolve-Path $taxonomy -ErrorAction SilentlyContinue)
 $dash = Join-Path $jsonl.DirectoryName "dashboard.html"
 
 if ($taxonomy) {
-  python ".\scripts\make_dashboard.py" --jsonl $jsonl.FullName --out $dash --taxonomy $taxonomy.Path | Out-Null
+  python "scripts/make_dashboard.py" --jsonl $jsonl.FullName --out $dash --taxonomy $taxonomy.Path | Out-Null
 } else {
-  python ".\scripts\make_dashboard.py" --jsonl $jsonl.FullName --out $dash | Out-Null
+  python "scripts/make_dashboard.py" --jsonl $jsonl.FullName --out $dash | Out-Null
 }
 
 Invoke-Item $dash
 Write-Host "DONE. Opened summary files + dashboard."
+

@@ -109,9 +109,9 @@ if (-not $SkipAgenticScan) {
       } else {
         LogLine "OK: agentic_scan_runner.py completed."
 
-        if (Test-Path ".\scripts\validate_agent_output.py") {
+        if (Test-Path "scripts/validate_agent_output.py") {
           LogLine "Running: validate_agent_output.py"
-          & $pythonExe @pyPrefix ".\scripts\validate_agent_output.py" 2>&1 | Tee-Object -FilePath $LogPath -Append | Out-Null
+          & $pythonExe @pyPrefix "scripts/validate_agent_output.py" 2>&1 | Tee-Object -FilePath $LogPath -Append | Out-Null
           if ($LASTEXITCODE -ne 0) {
             $overallExit = 1
             LogLine "ERROR: validate_agent_output.py failed (exit=$LASTEXITCODE)."
@@ -136,4 +136,5 @@ if (-not $SkipAgenticScan) {
 "=== AUDIT END: $(Get-Date -Format s) ===" | Add-Content -Encoding UTF8 $LogPath
 Write-Host "Wrote audit log: $LogPath" -ForegroundColor Green
 exit $overallExit
+
 

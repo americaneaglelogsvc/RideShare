@@ -51,3 +51,10 @@ _ci_logs/
 
 _ebt_artifacts_*/
 _review_from_ebt_*/
+
+# local agent run outputs
+_agent_artifacts_*/
+_agent_artifacts_postEBT_*/
+_audit_*/
+_ebt_artifacts_*/
+_ebt_test_req_ids.txt
