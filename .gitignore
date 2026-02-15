@@ -58,3 +58,6 @@ _agent_artifacts_postEBT_*/
 _audit_*/
 _ebt_artifacts_*/
 _ebt_test_req_ids.txt
+# local agent artifacts (do not commit)
+_scan_*
+_agent_*
