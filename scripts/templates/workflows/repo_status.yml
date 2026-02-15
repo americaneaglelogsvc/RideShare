@@ -5,48 +5,43 @@ on:
   push:
     branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 permissions:
-  actions: read
   contents: read
+  actions: read
   pull-requests: read
 
 jobs:
   status:
+    name: status
     runs-on: ubuntu-latest
     steps:
-      - name: Summary (human-readable)
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo  = context.repo.repo;
-
-            const runs = await github.rest.actions.listWorkflowRunsForRepo({
-              owner, repo, per_page: 15, branch: "main"
-            });
-
-            const lines = [];
-            lines.push(`# Repo Status`);
-            lines.push(``);
-            lines.push(`## Recent runs (main)`);
-            lines.push(`| Status | Workflow | Event | Updated | URL |`);
-            lines.push(`|---|---|---|---|---|`);
-
-            for (const r of runs.data.workflow_runs) {
-              const status = (r.conclusion || r.status || "").toString();
-              const wf     = (r.name || "").toString().replace(/\|/g, " ");
-              const ev     = (r.event || "").toString();
-              const upd    = (r.updated_at || "").toString();
-              const url    = (r.html_url || "").toString();
-              lines.push(`| ${status} | ${wf} | ${ev} | ${upd} | ${url} |`);
-            }
-
-            core.summary.addRaw(lines.join("\n")).write();
-
-      - name: Artifacts hint
-        if: always()
+      - name: Dashboard
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Notes" >> $GITHUB_STEP_SUMMARY
-          echo "- For agentic outputs, open the run -> **Artifacts** (AgentOutput / agent-output)." >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Repo Status"
+            echo ""
+            echo "- Repo: $GITHUB_REPOSITORY"
+            echo "- Ref:  $GITHUB_REF_NAME"
+            echo "- SHA:  $GITHUB_SHA"
+            echo ""
+            echo "### Recent runs (last 15)"
+            echo '```'
+            gh run list --repo "$GITHUB_REPOSITORY" --limit 15 || true
+            echo '```'
+            echo ""
+            echo "### Open PRs (top 15)"
+            echo '```'
+            gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 15 || true
+            echo '```'
+            echo ""
+            echo "### Branch protection (main) (best-effort)"
+            echo '```'
+            gh api "repos/$GITHUB_REPOSITORY/branches/main/protection" --jq '{protected:true, required_status_checks:(.required_status_checks.contexts // [])}' 2>/dev/null || echo "unavailable"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
