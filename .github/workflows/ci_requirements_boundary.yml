@@ -17,4 +17,5 @@ jobs:
 
       - name: Guard payments boundary
         shell: pwsh
-        run: ./scripts/guard_payments_boundary.ps1
+        run: scripts/guard_payments_boundary.ps1
+
