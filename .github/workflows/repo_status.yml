@@ -1,0 +1,49 @@
+name: Repo Status
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 6 * * *'
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Summarize repo status
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          echo "## Repo Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Repo: $GITHUB_REPOSITORY" >> $GITHUB_STEP_SUMMARY
+          echo "- Ref: $GITHUB_REF_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "- SHA: $GITHUB_SHA" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Branch protection (main)" >> $GITHUB_STEP_SUMMARY
+          prot=$(gh api repos/$GITHUB_REPOSITORY/branches/main/protection 2>/dev/null || true)
+          if [ -z "$prot" ]; then
+            echo "- protection: (not readable or not enabled)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- protection: enabled" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Workflow template health" >> $GITHUB_STEP_SUMMARY
+          tplCount=$(ls -1 scripts/templates/workflows/*.yml 2>/dev/null | wc -l | tr -d " ")
+          wfCount=$(ls -1 .github/workflows/*.yml 2>/dev/null | wc -l | tr -d " ")
+          echo "- templates: $tplCount" >> $GITHUB_STEP_SUMMARY
+          echo "- .github/workflows: $wfCount" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Recent runs (top 10)" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          gh run list --repo $GITHUB_REPOSITORY --limit 10 || true
+          echo "```" >> $GITHUB_STEP_SUMMARY
