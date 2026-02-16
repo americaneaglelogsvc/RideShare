@@ -17,8 +17,10 @@ on:
 permissions:
   contents: write
   pull-requests: write
-
 env:
+  ARTIFACTS_DIR: Artifacts
+  EBT_AUTO_PR: "1"
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   REQUIREMENTS_MD: Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md
   CANON_JSON: Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.json
   CANON_JSONL: Requirements/requirements.jsonl
@@ -52,7 +54,10 @@ jobs:
 
       - name: Scan (produces status + implemented_not_documented)
         shell: bash
-        env:
+env:
+  ARTIFACTS_DIR: Artifacts
+  EBT_AUTO_PR: "1"
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           mkdir -p AgentOutput Artifacts
@@ -75,7 +80,10 @@ jobs:
 
       - name: Build (fill gaps)
         shell: bash
-        env:
+env:
+  ARTIFACTS_DIR: Artifacts
+  EBT_AUTO_PR: "1"
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ github.event.inputs.model }}
           OPENAI_BUDGET_USD: ${{ github.event.inputs.budget_usd }}
@@ -99,5 +107,6 @@ jobs:
             Artifacts/**
             Requirements/**
           if-no-files-found: warn
+
 
 
