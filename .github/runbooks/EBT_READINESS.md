@@ -110,7 +110,7 @@ If you need to publish a docs-only change without triggering workflows, use a co
 
 ### 1) Backfill implemented-but-not-documented → mother requirements MD (MANDATORY)
 - After scan produces `AgentOutput/implemented_not_documented.md`, CI MUST merge it into:
-  `Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md`
+  `Requirements/CANONICAL_v6_1_MERGED_REORG_v3.md`
 - Then CI MUST re-sync MD → JSON so canonical JSON is the exact derivation of the mother MD.
 
 ### 2) EBT MUST build (fill gaps) using OpenAI API (via GitHub Secrets)
@@ -158,4 +158,5 @@ During build, the agent must think like: CEO + CFO + CTO/CIO + CMO + Full Stack 
 ### Architect + Full Stack rules
 - For each change-set: Option A/B/C (minimal / automation-first / robust), score, choose.
 - PR-only changes; tests updated; post-build rescan+backfill+resync.
+
 

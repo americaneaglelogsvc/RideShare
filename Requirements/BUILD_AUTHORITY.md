@@ -1,7 +1,7 @@
 ﻿# Build Authority (STRICT)
 
 The ONLY requirements source-of-truth is:
-- BlackRavenia_RideShare_Canonical_Requirements_v6_1.md
+- CANONICAL_v6_1.md
 
 All other documents are governance/process artifacts only.
 They MUST NOT be used to create or change requirements.
@@ -19,4 +19,5 @@ If a capability is missing, update ONLY the canonical requirements document.
 - Settlement gating is RideShare-native: driver/tenant payout MUST occur only when the trip is in Completely Settled state (platform checking has received funds), regardless of provider.
 
 <!-- END: PAYMENTS_PROVIDER_BOUNDARY -->
+
 
