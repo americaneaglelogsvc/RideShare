@@ -1,4 +1,4 @@
-# Rideoo-RideShare Platform — Canonical Requirements (v6.1)
+﻿# Rideoo-RideShare Platform â€” Canonical Requirements (v6.1)
 
 **Timestamp (America/Chicago): 2026-02-05 18:30:41**  
 
@@ -7,13 +7,13 @@
 **targrt market: posh/ high end/ corporate/ Luxury passengers
 **Merged sources (semantic):** `RideShare-chat1-requirements.txt` + `rideshare context.txt`
  Passenger rides first. Multi-tenant, white-label Software as a Service (SaaS) platform with tenant-branded microsites and per-tenant feature gating.  
-**Database:** PostgreSQL (PostgreSQL) — **PostgreSQL-only canonical datastore; no Supabase**  
+**Database:** PostgreSQL (PostgreSQL) â€” **PostgreSQL-only canonical datastore; no Supabase**  
 **Maps & Infrastructure:** Google-first (Google Cloud Platform (GCP), Google Cloud Storage (GCS), Google Cloud SQL (Cloud SQL), Google Maps Platform, Firebase Cloud Messaging (FCM), Google Analytics (GA), Google Workspace (Gmail, Calendar)).  
 **Payments:** PaySurity (internal) as orchestration layer; Fluidpay and Argyle Payments are treated as black-box gateways for tenants and drivers (white-labeled under PaySurity).  
 **Optional future integration:** American Eagle Logistics (AEL) for package/courier opportunities (feature-gated; passenger rides remain the primary product).
 
 > **Single requirements authority:** This document is the ONLY build authority.  
-> **Semantic matching:** The agentic Artificial Intelligence (AI) must evaluate “as-is” status by meaning and end-to-end coverage, not by Requirement Identifier (REQ ID) matching.
+> **Semantic matching:** The agentic Artificial Intelligence (AI) must evaluate â€œas-isâ€ status by meaning and end-to-end coverage, not by Requirement Identifier (REQ ID) matching.
 
 ---
 
@@ -21,13 +21,13 @@
 
 ### 1.1 Canonical build rules (strict)
 - The build must be implemented against the semantics in this document.
-- No capability can be marked “Implemented” or “Tested” without evidence links.
+- No capability can be marked â€œImplementedâ€ or â€œTestedâ€ without evidence links.
 
 ### 1.2 Definition of Done (DoD) (strict by default)
 For each capability in this document:
 
 - **Designed**: screen(s) and flow(s) exist in `screen_index.md`, and relevant state machine/timers are specified.
-- **Implemented**: end-to-end path exists: User Interface (UI) → Application Programming Interface (API) → Database (DB) → side effects (notifications, policy propagation, ledger entries).
+- **Implemented**: end-to-end path exists: User Interface (UI) â†’ Application Programming Interface (API) â†’ Database (DB) â†’ side effects (notifications, policy propagation, ledger entries).
 - **Tested**: automated tests exist and pass in Continuous Integration (CI) for happy-path and key negative-paths.
 - **Shippable**: deployed to staging with smoke tests passing; observability signals visible (metrics/logs/alerts).
 - **Launch-ready**: shippable + operational playbooks + tenant onboarding + compliance workflows + incident response runbooks.
@@ -35,15 +35,15 @@ For each capability in this document:
 ### 1.3 Required build artifacts (must be produced by agentic AI)
 The agentic AI must generate and maintain:
 
-1) `as_is_scan.md` — deterministic scan: stack, services, endpoints, migrations, tests, workflows.  
-2) `requirements_status.md` — semantic checklist mapping each capability to Not Started / In Progress / Implemented / Tested / Blocked, with evidence links.  
-3) `progress_report.md` — time-stamped deltas since last scan + risks + next actions, all evidence-linked.  
-4) `implemented_not_documented.md` — implemented code not covered in this document, with evidence.
+1) `as_is_scan.md` â€” deterministic scan: stack, services, endpoints, migrations, tests, workflows.  
+2) `requirements_status.md` â€” semantic checklist mapping each capability to Not Started / In Progress / Implemented / Tested / Blocked, with evidence links.  
+3) `progress_report.md` â€” time-stamped deltas since last scan + risks + next actions, all evidence-linked.  
+4) `implemented_not_documented.md` â€” implemented code not covered in this document, with evidence.
 
 **Evidence gates (non-negotiable):**
-- “Implemented” requires: file paths + API routes/endpoints + DB migrations/queries.  
-- “Tested” requires: test file paths + CI proof (workflow + run output reference).  
-- “Shippable” requires: staging deployment reference + smoke test evidence.
+- â€œImplementedâ€ requires: file paths + API routes/endpoints + DB migrations/queries.  
+- â€œTestedâ€ requires: test file paths + CI proof (workflow + run output reference).  
+- â€œShippableâ€ requires: staging deployment reference + smoke test evidence.
 
 ---
 
@@ -54,7 +54,7 @@ The agentic AI must generate and maintain:
 - **Driver**: completes onboarding/compliance, goes online, accepts offers, navigates, chats, completes trips, views earnings/unpaid balance/payout history.
 - **Tenant Dispatcher / Operations Staff (Tenant Ops)**: monitors live operations, intervenes on assignments, manages drivers/vehicles, handles disputes.
 - **Tenant Owner / Fleet Operator (Tenant Owner)**: manages business settings, policies, fleet, analytics, staff.
-- **Fleet Owner (Fleet Owner)**: owns ≥2 vehicles under a tenant; assigns drivers to vehicles; manages leased vehicle inventory and access.
+- **Fleet Owner (Fleet Owner)**: owns â‰¥2 vehicles under a tenant; assigns drivers to vehicles; manages leased vehicle inventory and access.
 - **Customer Support Representative (CSR) (Tenant CSR)**: handles rider and driver support cases, refunds, disputes, and incident intake.
 - **Tenant Owner / Fleet Operator (Tenant Owner)**: manages business settings, policies, fleet, analytics, staff.
 - **Platform Super Admin (Platform Owner)**: seeds/CRUD tenants, global policies, feature gates, pricing constraints, monitoring, kill switches, test execution.
@@ -92,7 +92,7 @@ The agentic AI must generate and maintain:
 
 - Rider and Driver experiences are branded per tenant (colors, logo, copy, domains).
 - Driver reimbursements/payouts are shown under tenant branding, because payout scheduling is controlled by the tenant.
-- Platform records the financial truth via ledger, but external gateway names remain hidden from tenants/drivers (PaySurity is the gateway “face”).
+- Platform records the financial truth via ledger, but external gateway names remain hidden from tenants/drivers (PaySurity is the gateway â€œfaceâ€).
 
 ---
 
@@ -112,13 +112,13 @@ The agentic AI must generate and maintain:
 - Export/delete tooling for tenant data, subject to legal retention.
 
 ### 3.4 Masked communications and messaging retention
-- Riders and drivers must not see each other’s phone or email.
+- Riders and drivers must not see each otherâ€™s phone or email.
 - In-app messaging is required; optional voice is feature-gated.
 - Messages retained for industry-standard period (default 180 days), configurable per tenant and platform policy.
 
 ### 3.5 Driver compliance gating (expiry + notifications)
 - Driver cannot go online or accept trips if any required compliance item is expired:
-  - driver’s license,
+  - driverâ€™s license,
   - vehicle insurance,
   - vehicle registration.
 - Optional strict mode: block login (default: allow login but restrict to compliance remediation + earnings views).
@@ -137,7 +137,7 @@ The agentic AI must generate and maintain:
 - Minimum viable: driver attestation + tenant review + scheduled reminders; provider integration is strongly recommended.
 
 ### 3.8 Optional specialized credentials for preferred dispatch status (feature-gated)
-- Driver profile includes optional section: “Also open to Package/Courier Opportunities.”
+- Driver profile includes optional section: â€œAlso open to Package/Courier Opportunities.â€
 - Drivers can upload proofs for credentials such as:
   - Professional Chauffeur license,
   - Transportation Security Administration (TSA) certification,
@@ -161,14 +161,14 @@ The platform must support service-standard enforcement as compliance policy and 
   - Can trigger temporary suspension pending review.
 
 **Acceptance:**
-- Given a driver has an active “Service Standards Violation” hold, when they attempt to go online, then policy determines whether they are blocked or permitted with reduced priority.
+- Given a driver has an active â€œService Standards Violationâ€ hold, when they attempt to go online, then policy determines whether they are blocked or permitted with reduced priority.
 
 - Platform Super Admin and designated platform staff can deactivate tenant, driver, or vehicle (reason required; audited). Effective within 60 seconds.
 - Tenants can deactivate their own drivers and vehicles.
 
 ---
 
-## 4. Rider application (Web first; mobile optional) — end-to-end experience
+## 4. Rider application (Web first; mobile optional) â€” end-to-end experience
 
 ### 4.1 Core flows
 - Account: sign-up/sign-in, profile, receipts, ride history.
@@ -192,7 +192,7 @@ The platform must support service-standard enforcement as compliance policy and 
 - Support case tracking: issue types, attachments, status, resolution, potential SLA credits.
 
 ### 4.5 Ratings and feedback
-- Rider can rate: driver, vehicle, cleanliness, friendliness (1–5) + optional textual feedback (max length configurable).
+- Rider can rate: driver, vehicle, cleanliness, friendliness (1â€“5) + optional textual feedback (max length configurable).
 - Rider can report safety/quality incidents tied to a trip.
 
 ### 4.6 In-app messaging
@@ -208,7 +208,7 @@ The platform must support service-standard enforcement as compliance policy and 
 
 ---
 
-## 5. Driver application (Progressive Web App (PWA) or native) — end-to-end experience
+## 5. Driver application (Progressive Web App (PWA) or native) â€” end-to-end experience
 
 ### 5.1 Onboarding and compliance
 - Driver profile form + vehicle form(s).
@@ -224,7 +224,7 @@ The platform must support service-standard enforcement as compliance policy and 
 ### 5.3 Navigation and pickup workflow
 - Driver sees rider details , not the passenger contact info and vice versa. (industry standard): rider first name + initial, pickup pin, pickup notes, passenger count, luggage count.
 - Google Maps deep-link navigation to pickup and destination (no platform routing cost requirement).
-- Arrival detection: within 50 feet + stationary 60 seconds triggers “Arrived” and starts wait timer.
+- Arrival detection: within 50 feet + stationary 60 seconds triggers â€œArrivedâ€ and starts wait timer.
 - Wait-time fees accrue per tenant-configured rates (bounded by platform).
 
 ### 5.4 Trip completion, payouts, and early payout
@@ -234,7 +234,7 @@ The platform must support service-standard enforcement as compliance policy and 
 
 ### 5.5 Destination mode, airport queueing, chat/voice
 - Voice interface is feature-gated and must support:
-  - Driver voice intents (accept/decline, navigate, “arrived”, “start trip”, “end trip”),
+  - Driver voice intents (accept/decline, navigate, â€œarrivedâ€, â€œstart tripâ€, â€œend tripâ€),
   - Rider voice intents (book, status, support intake),
   - Ops voice intents (search trip, reassign, incident note).
 - Push-to-talk fallback is required.
@@ -249,7 +249,7 @@ The platform must support service-standard enforcement as compliance policy and 
 - Confirmation must consider driver location and travel time to arrive on time.
 - If not confirmed: system re-offers and alerts tenant dispatcher board.
 
-### 5.7 Driver↔rider messaging and ratings
+### 5.7 Driverâ†”rider messaging and ratings
 
 ### 5.8 Driver types, fleet ownership, and leased vehicle workflows (mandatory)
 **Driver types (minimum):**
@@ -257,11 +257,11 @@ The platform must support service-standard enforcement as compliance policy and 
 2) Leased Vehicle Driver (lease documents required)
 
 **Fleet Owner rule:**
-- A Fleet Owner is defined as an entity with **≥2 vehicles** under a tenant.
+- A Fleet Owner is defined as an entity with **â‰¥2 vehicles** under a tenant.
 - Fleet Owners can:
   - Add/remove drivers per vehicle,
-  - Disable a driver’s access to a vehicle instantly (immediate ride ineligibility, unless a ride is already in progress),
-  - Mark a vehicle as “Available for lease” (policy-gated).
+  - Disable a driverâ€™s access to a vehicle instantly (immediate ride ineligibility, unless a ride is already in progress),
+  - Mark a vehicle as â€œAvailable for leaseâ€ (policy-gated).
 
 **Leased vehicle workflows (minimum):**
 - Driver can request to lease a listed vehicle (lease request).
@@ -273,7 +273,7 @@ The platform must support service-standard enforcement as compliance policy and 
 - When a Fleet Owner removes a driver from a vehicle, then that driver cannot be dispatched rides for that vehicle immediately.
 
 - In-app messaging with rider; masked identities; retention policy applies.
-- Driver can rate rider (1–5) with optional feedback.
+- Driver can rate rider (1â€“5) with optional feedback.
 
 ---
 
@@ -305,19 +305,19 @@ The platform must support service-standard enforcement as compliance policy and 
 
 ### 6.4 Destination-aware matching
 - Prefer rides aligned with driver destination only when fairness and ETA constraints satisfied.
-- Policy precedence: driver override → region policy → tenant default → global default.
+- Policy precedence: driver override â†’ region policy â†’ tenant default â†’ global default.
 
 ### 6.5 Preferred driver/vehicle prioritization (configurable by geography and tenant)
 The system must support configurable dispatch prioritization based on verified driver credentials and vehicle class, with region-specific rule packs.
 
 Minimum required rule set (Chicagoland example):
-- **Tier 1 (highest priority):** Verified Professional Chauffeur license + vehicle qualifies as Large Luxury Sport Utility Vehicle (SUV) (“black car” class).
+- **Tier 1 (highest priority):** Verified Professional Chauffeur license + vehicle qualifies as Large Luxury Sport Utility Vehicle (SUV) (â€œblack carâ€ class).
 - **Tier 2:** Vehicle qualifies as Large Luxury SUV (black car class), even if not chauffeur-licensed.
 - **Tier 3:** All other eligible drivers/vehicles.
 
 Additional constraints:
-- “Preferred status” must be configurable per region and per tenant (weights, enable/disable, and quotas/caps to avoid starvation).
-- “Preferred status” must never violate safety, compliance gating, or fairness constraints.
+- â€œPreferred statusâ€ must be configurable per region and per tenant (weights, enable/disable, and quotas/caps to avoid starvation).
+- â€œPreferred statusâ€ must never violate safety, compliance gating, or fairness constraints.
 - If a preferred driver is too far (ETA beyond threshold), the system must consider the next tier.
 
 **Acceptance:**
@@ -347,12 +347,12 @@ Additional constraints:
 
 ### 7.3 Surge policy controls and precedence
 - Region overrides: caps, disable, kill switch.
-- Precedence: region override → tenant surge toggle → global default.
+- Precedence: region override â†’ tenant surge toggle â†’ global default.
 - Propagation within 60 seconds.
 
 ### 7.4 Cancellation, no-show, wait-time, luggage, stops, gratuity
 - Cancellation, no-show, wait-time, luggage, stops, gratuity rules per region.
-- Precedence: region → tenant → global default.
+- Precedence: region â†’ tenant â†’ global default.
 - For tenant Gold Ravenia.co, if a driver is already enroute to a pickup, even if it is few seconds, charge the rider a cancellation fee which should be configurable by the super admin and or desgnated sub super admins/ desipatchers, and Tenants (for their own organization). Add language for the same in the terms and conditions that the rider must accept when onboarding. i.e. Tenants define what charges they want to charge/ display on their own portal (microsite), i.e configurable by the tenant admin. tenant admin also decides when each drier gets paid, how much, how frequently (integration with paysurity digital wallets (employer/ employee digital wallet).
 
 ### 7.5 Policy Center (versioned, auditable policy engine) (mandatory)
@@ -367,10 +367,10 @@ The platform must implement a **Policy Center** as the authoritative system for 
 - Voice enablement and retention
 - Message retention and privacy defaults
 
-**Precedence (authoritative):** driver override → region → tenant → global default
+**Precedence (authoritative):** driver override â†’ region â†’ tenant â†’ global default
 
 **Lifecycle:**
-- Draft → Validate → Publish (version increment)
+- Draft â†’ Validate â†’ Publish (version increment)
 - Rollback to prior version (audited)
 - Diff view (who changed what)
 
@@ -407,7 +407,7 @@ The platform must implement a **Policy Center** as the authoritative system for 
 ### 8.4 QR code attribution, bonuses, and wallet-based incentives (mandatory)
 - Each branded vehicle must support a unique Quick Response (QR) code:
   - Attribution tracking (which vehicle/tenant generated the lead),
-  - Scan → ride → bonus workflow (policy-controlled),
+  - Scan â†’ ride â†’ bonus workflow (policy-controlled),
   - Bonus funding source and settlement recorded in the ledger.
 - Branded vehicles can receive dispatch priority boosts (policy-controlled; bounded by fairness).
 - Incentives must be represented as ledger entries (double-entry) to avoid drift.
@@ -445,7 +445,7 @@ The platform must implement a **Policy Center** as the authoritative system for 
 
 ---
 
-## 10. Public-facing website (platform marketing) — tenant acquisition
+## 10. Public-facing website (platform marketing) â€” tenant acquisition
 
 Purpose: attract passenger fleet owners and dispatch companies to become tenants.
 
@@ -460,7 +460,7 @@ Minimum pages (placeholders allowed but must be wired):
 - Terms/Privacy
 
 Lead capture:
-- “Become a Tenant” form collects: company name, fleet size, service area, contact, desired launch date.
+- â€œBecome a Tenantâ€ form collects: company name, fleet size, service area, contact, desired launch date.
 - Leads enter platform pipeline (Customer Relationship Management (CRM) stub acceptable but must store in DB and notify platform team).
 
 ---
@@ -491,7 +491,7 @@ and validate recovery within the GO / NO-GO gates.
 - Results must be exported to `out/k6.json` (or equivalent) for gate evaluation.
 
 ### 11.4 GO / NO-GO integration (mandatory)
-- Observability outputs must feed the GO / NO-GO evaluator (see §1.4).
+- Observability outputs must feed the GO / NO-GO evaluator (see Â§1.4).
 
 
 - Health and metrics endpoints: `/health`, `/metrics`.
@@ -521,8 +521,8 @@ Minimum entities include:
 ## 13. State machines, timers, and contracts (authoritative)
 
 - Trip state machine with allowed transitions and actor permissions.
-- Offer state machine: Created → Ringing → Accepted | Expired → Hopped → Claimed → Assigned → Cancelled.
-- Airport queue token state machine: Prequeue → Active → Paused → Removed/Expired.
+- Offer state machine: Created â†’ Ringing â†’ Accepted | Expired â†’ Hopped â†’ Claimed â†’ Assigned â†’ Cancelled.
+- Airport queue token state machine: Prequeue â†’ Active â†’ Paused â†’ Removed/Expired.
 - Timer registry in `timers.json` used by code and versioned.
 
 ---
@@ -561,8 +561,8 @@ Additional mandatory test classes:
 Additional release gate acceptance tests (minimum):
 - GO / NO-GO gates evaluate from `out/k6.json`, `out/chaos.json`, `out/dlq.json` and produce `out/go-no-go.md`.
 - k6 failure rate < 0.5% and k6 p95 < 300 ms.
-- Chaos recovery ≤ 5 seconds.
-- DLQ projected replay success ≥ 70%.
+- Chaos recovery â‰¤ 5 seconds.
+- DLQ projected replay success â‰¥ 70%.
 - Zero double assignments and zero invalid queue states under dispatch storm.
 
 - Compliance expiry gating blocks go-online/accepting; D-14 and D-1 notifications delivered and logged.
@@ -612,18 +612,18 @@ If a missing timer/state transition/policy precedence is discovered during build
 2) k6 p95 (95th percentile) latency < **300 milliseconds (ms)**  
 3) **Zero** double assignments (no rider assigned to two drivers; no driver assigned two active trips)  
 4) **Zero** invalid queue states (airport queue and offer queue state machines must not violate allowed transitions)  
-5) Recovery ≤ **5 seconds** after chaos (intentional component failure)  
-6) Dead Letter Queue (DLQ) replay projected success ≥ **70%** (dry-run validation)  
+5) Recovery â‰¤ **5 seconds** after chaos (intentional component failure)  
+6) Dead Letter Queue (DLQ) replay projected success â‰¥ **70%** (dry-run validation)  
 
 ### 1.5 Safe deployment automation (canary + rollback) (mandatory)
-- Deployments must support canary rollout stages: **25% → 50% → 100%**.
+- Deployments must support canary rollout stages: **25% â†’ 50% â†’ 100%**.
 - Automatic rollback must be triggered on any GO / NO-GO gate failure.
 - Each deployment must:
   - Tag the release (Git tag),
   - Snapshot runtime configuration (feature flags, policy versions) as deployment proof,
   - Store the GO / NO-GO report artifact in CI.
 
-### 1.6 Reliability validation pipeline (as-is → to-be) (mandatory)
+### 1.6 Reliability validation pipeline (as-is â†’ to-be) (mandatory)
 The platform must support and document an end-to-end validation pipeline that can be executed in CI:
 
 - Load test: dispatch storm and quote storm via k6.
@@ -631,15 +631,15 @@ The platform must support and document an end-to-end validation pipeline that ca
 - DLQ analysis: classify transient failures and estimate replay success; provide replay tooling.
 
 ### 1.7 Agentic AI audit outputs (required)
-In addition to the artifacts in §1.3, the agentic Artificial Intelligence (AI) must be able to produce (and refresh on demand):
+In addition to the artifacts in Â§1.3, the agentic Artificial Intelligence (AI) must be able to produce (and refresh on demand):
 
-- `AS-IS-REPORT.md` — what exists now (features, endpoints, migrations, screens) vs this document.
-- `COVERAGE-TABLE.md` — requirement-by-requirement semantic coverage table.
-- `coverage.json` — machine-readable coverage output.
-- `GAPS-TODO.md` — ordered gap list (P0/P1/P2) with owners and dependencies.
-- `PLAN-TO-100.md` — sequenced plan to reach 100% Launch-ready per Definition of Done (DoD).
+- `AS-IS-REPORT.md` â€” what exists now (features, endpoints, migrations, screens) vs this document.
+- `COVERAGE-TABLE.md` â€” requirement-by-requirement semantic coverage table.
+- `coverage.json` â€” machine-readable coverage output.
+- `GAPS-TODO.md` â€” ordered gap list (P0/P1/P2) with owners and dependencies.
+- `PLAN-TO-100.md` â€” sequenced plan to reach 100% Launch-ready per Definition of Done (DoD).
 
-**Mental model (non-negotiable):** Requirements → Evidence → Gates → Canary → Cutover
+**Mental model (non-negotiable):** Requirements â†’ Evidence â†’ Gates â†’ Canary â†’ Cutover
 
 ## 21. Marketplace, ads, and paid placements (feature-gated)
 - Tenant microsites and/or platform site may include a Marketplace section for:
@@ -667,9 +667,10 @@ In addition to the artifacts in §1.3, the agentic Artificial Intelligence (AI) 
 ## 23. Provenance appendix (non-authoritative)
 This section is **non-authoritative** and exists only to show source traceability for the semantic merge.
 
-- Source A (target authority): `BlackRavenia_RideShare_Canonical_Requirements_v6_1.md`
+- Source A (target authority): `CANONICAL_v6_1.md`
 - Source B (merged): `RideShare-chat1-requirements.txt`
 - Source C (merged context): `rideshare context.txt`
 
-All requirements in Sources B and C have been incorporated into the authoritative sections above. If an omission is discovered, the omission must be added above (not here) per §20 Hard anti-drift rule.
+All requirements in Sources B and C have been incorporated into the authoritative sections above. If an omission is discovered, the omission must be added above (not here) per Â§20 Hard anti-drift rule.
+
 

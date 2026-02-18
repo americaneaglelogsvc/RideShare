@@ -2,7 +2,7 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$canonical = ".\Requirements\BlackRavenia_RideShare_Canonical_Requirements_v6_1.md"
+$canonical = ".\Requirements\CANONICAL_v6_1.md"
 $outJsonl  = ".\Requirements\requirements.jsonl"
 $outJson   = ".\Requirements\requirements.json"
 
@@ -42,3 +42,4 @@ Copy-Item -Force $outJson  ".\AgentInput\requirements.json"
 Write-Host ("Wrote: " + $outJsonl) -ForegroundColor Green
 Write-Host ("Wrote: " + $outJson)  -ForegroundColor Green
 Write-Host "DONE." -ForegroundColor Green
+

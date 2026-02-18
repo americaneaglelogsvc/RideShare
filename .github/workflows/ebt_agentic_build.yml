@@ -1,5 +1,5 @@
-# reindex: 20260216-010523
-﻿name: EBT Agentic Build (RideShare)
+﻿# reindex: 20260216-010523
+ï»¿name: EBT Agentic Build (RideShare)
 
 on:
   workflow_dispatch:
@@ -22,8 +22,8 @@ env:
   ARTIFACTS_DIR: Artifacts
   EBT_AUTO_PR: "1"
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  REQUIREMENTS_MD: Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md
-  CANON_JSON: Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.json
+  REQUIREMENTS_MD: Requirements/CANONICAL.md
+  CANON_JSON: Requirements/CANONICAL.json
   CANON_JSONL: Requirements/requirements.jsonl
   LEDGER: Artifacts/openai_usage_ledger.jsonl
 
@@ -47,7 +47,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade "openai<2"
 
-      - name: Sync MD → JSON/JSONL
+      - name: Sync MD â†’ JSON/JSONL
         shell: bash
         run: |
           test -f scripts/sync_requirements_from_md.py
@@ -74,7 +74,7 @@ env:
         run: |
           python scripts/backfill_requirements_from_implemented.py "${REQUIREMENTS_MD}" "AgentOutput/implemented_not_documented.md"
 
-      - name: Re-sync MD → JSON/JSONL
+      - name: Re-sync MD â†’ JSON/JSONL
         shell: bash
         run: |
           python scripts/sync_requirements_from_md.py --md "${REQUIREMENTS_MD}" --json "${CANON_JSON}" --jsonl "${CANON_JSONL}"
@@ -108,6 +108,7 @@ env:
             Artifacts/**
             Requirements/**
           if-no-files-found: warn
+
 
 
 

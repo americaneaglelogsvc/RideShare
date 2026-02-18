@@ -1,4 +1,4 @@
-﻿# Rideoo-RideShare Platform â€” Canonical Requirements (v6.1, rev v10)
+# Rideoo-RideShare Platform — Canonical Requirements (v6.1, rev v10)
 
 **Timestamp (America/Chicago): 2026-02-17 21:45**  
 
@@ -21,11 +21,11 @@
 **Optional future integration:** American Eagle Logistics (AEL) for package/courier opportunities (feature-gated; passenger rides remain the primary product).
 
 > **Single requirements authority:** This document is the ONLY build authority.  
-> **Semantic matching:** The agentic AI must evaluate â€œas-isâ€ status by meaning and end-to-end coverage, not by Requirement Identifier (REQ ID) matching.
+> **Semantic matching:** The agentic AI must evaluate “as-is” status by meaning and end-to-end coverage, not by Requirement Identifier (REQ ID) matching.
 
 ---
 
-## 0. Requirements Index (req_id â†’ DoD)
+## 0. Requirements Index (req_id → DoD)
 
 This index is the parsing surface for traceability and DoD gating.
 
@@ -74,14 +74,14 @@ This index is the parsing surface for traceability and DoD gating.
 
 ### 1.1 Canonical build rules (strict)
 - The build must be implemented against the semantics in this document.
-- No capability can be marked â€œImplementedâ€ or â€œTestedâ€ without evidence links.
-- **As-is first (mandatory):** Before implementing any change, the agentic AI must run `as_is_scan.md`, populate `requirements_status.md` with evidence links, and update this document with any implemented-but-not-documented requirements (see Â§1.3 and Â§1.7).
+- No capability can be marked “Implemented” or “Tested” without evidence links.
+- **As-is first (mandatory):** Before implementing any change, the agentic AI must run `as_is_scan.md`, populate `requirements_status.md` with evidence links, and update this document with any implemented-but-not-documented requirements (see §1.3 and §1.7).
 
 ### 1.2 DoD (strict by default)
 For each capability in this document:
 
 - **Designed**: screen(s) and flow(s) exist in `screen_index.md`, and relevant state machine/timers are specified.
-- **Implemented**: end-to-end path exists: UI â†’ API â†’ DB â†’ side effects (notifications, policy propagation, ledger entries).
+- **Implemented**: end-to-end path exists: UI → API → DB → side effects (notifications, policy propagation, ledger entries).
 - **Tested**: automated tests exist and pass in CI for happy-path and key negative-paths.
 - **Shippable**: deployed to staging with smoke tests passing; observability signals visible (metrics/logs/alerts).
 - **Launch-ready**: shippable + operational playbooks + tenant onboarding + compliance workflows + incident response runbooks.
@@ -89,15 +89,15 @@ For each capability in this document:
 ### 1.3 Required build artifacts (must be produced by agentic AI)
 The agentic AI must generate and maintain:
 
-1) `as_is_scan.md` â€” deterministic scan: stack, services, endpoints, migrations, tests, workflows.  
-2) `requirements_status.md` â€” semantic checklist mapping each capability to Not Started / In Progress / Implemented / Tested / Blocked, with evidence links.  
-3) `progress_report.md` â€” time-stamped deltas since last scan + risks + next actions, all evidence-linked.  
-4) `implemented_not_documented.md` â€” implemented code not covered in this document, with evidence.
+1) `as_is_scan.md` — deterministic scan: stack, services, endpoints, migrations, tests, workflows.  
+2) `requirements_status.md` — semantic checklist mapping each capability to Not Started / In Progress / Implemented / Tested / Blocked, with evidence links.  
+3) `progress_report.md` — time-stamped deltas since last scan + risks + next actions, all evidence-linked.  
+4) `implemented_not_documented.md` — implemented code not covered in this document, with evidence.
 
 **Evidence gates (non-negotiable):**
-- â€œImplementedâ€ requires: file paths + API routes/endpoints + DB migrations/queries.  
-- â€œTestedâ€ requires: test file paths + CI proof (workflow + run output reference).  
-- â€œShippableâ€ requires: staging deployment reference + smoke test evidence.
+- “Implemented” requires: file paths + API routes/endpoints + DB migrations/queries.  
+- “Tested” requires: test file paths + CI proof (workflow + run output reference).  
+- “Shippable” requires: staging deployment reference + smoke test evidence.
 
 ### 1.4 Production readiness gates (GO / NO-GO) (hard gates)
 - A release is permitted only if the **GO / NO-GO** evaluation exits successfully in CI and produces deterministic outputs.
@@ -111,18 +111,18 @@ The agentic AI must generate and maintain:
 2) k6 p95 latency < **300 milliseconds (ms)**  
 3) **Zero** double assignments (no rider assigned to two drivers; no driver assigned two active trips)  
 4) **Zero** invalid queue states (airport queue and offer queue state machines must not violate allowed transitions)  
-5) Recovery â‰¤ **5 seconds** after chaos (intentional component failure)  
-6) DLQ replay projected success â‰¥ **70%** (dry-run validation)  
+5) Recovery ≤ **5 seconds** after chaos (intentional component failure)  
+6) DLQ replay projected success ≥ **70%** (dry-run validation)  
 
 ### 1.5 Safe deployment automation (canary + rollback) (mandatory)
-- Deployments must support canary rollout stages: **25% â†’ 50% â†’ 100%**.
+- Deployments must support canary rollout stages: **25% → 50% → 100%**.
 - Automatic rollback must be triggered on any GO / NO-GO gate failure.
 - Each deployment must:
   - Tag the release (Git tag),
   - Snapshot runtime configuration (feature flags, policy versions) as deployment proof,
   - Store the GO / NO-GO report artifact in CI.
 
-### 1.6 Reliability validation pipeline (as-is â†’ to-be) (mandatory)
+### 1.6 Reliability validation pipeline (as-is → to-be) (mandatory)
 The platform must support and document an end-to-end validation pipeline that can be executed in CI:
 
 - Load test: dispatch storm and quote storm via k6.
@@ -130,27 +130,27 @@ The platform must support and document an end-to-end validation pipeline that ca
 - DLQ analysis: classify transient failures and estimate replay success; provide replay tooling.
 
 ### 1.7 Agentic AI audit outputs (required)
-In addition to the artifacts in Â§1.3, the agentic AI must be able to produce (and refresh on demand):
+In addition to the artifacts in §1.3, the agentic AI must be able to produce (and refresh on demand):
 
-- `AS-IS-REPORT.md` â€” what exists now (features, endpoints, migrations, screens) vs this document.
-- `COVERAGE-TABLE.md` â€” requirement-by-requirement semantic coverage table.
-- `coverage.json` â€” machine-readable coverage output.
-- `GAPS-TODO.md` â€” ordered gap list (P0/P1/P2) with owners and dependencies.
-- `PLAN-TO-100.md` â€” sequenced plan to reach 100% Launch-ready per DoD.
+- `AS-IS-REPORT.md` — what exists now (features, endpoints, migrations, screens) vs this document.
+- `COVERAGE-TABLE.md` — requirement-by-requirement semantic coverage table.
+- `coverage.json` — machine-readable coverage output.
+- `GAPS-TODO.md` — ordered gap list (P0/P1/P2) with owners and dependencies.
+- `PLAN-TO-100.md` — sequenced plan to reach 100% Launch-ready per DoD.
 
-**Mental model (non-negotiable):** Requirements â†’ Evidence â†’ Gates â†’ Canary â†’ Cutover
+**Mental model (non-negotiable):** Requirements → Evidence → Gates → Canary → Cutover
 
 ---
 
 
 ### 1.8 Milestones and progress reporting (mandatory)
 
-A **milestone** is considered **Completed** only when **all** in-scope requirements are marked **Shippable** (or **Launch-ready**) in `requirements_status.md` **with evidence** per Â§1.3, and the applicable GO / NO-GO gates in Â§1.4 pass for the release candidate. Milestones must be reported when they transition to **Completed** and must include links to the evidence artifacts.
+A **milestone** is considered **Completed** only when **all** in-scope requirements are marked **Shippable** (or **Launch-ready**) in `requirements_status.md` **with evidence** per §1.3, and the applicable GO / NO-GO gates in §1.4 pass for the release candidate. Milestones must be reported when they transition to **Completed** and must include links to the evidence artifacts.
 
 **Milestone reporting (required):**
 - Update: `progress_report.md` (what changed, what evidence was produced, what is blocked).
 - Update: `requirements_status.md` (status + evidence links per requirement).
-- If a milestone uncovers implemented-but-not-documented capabilities, update `implemented_not_documented.md` and insert the new requirement text into the relevant section (see Â§1.7).
+- If a milestone uncovers implemented-but-not-documented capabilities, update `implemented_not_documented.md` and insert the new requirement text into the relevant section (see §1.7).
 
 **Milestones (minimum set, ordered):**
 1) **Platform Foundations completed**
@@ -162,7 +162,7 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
    - Audit log viewer + immutable financial audit trail.
 
 3) **Policy Center completed**
-   - Draft â†’ validate â†’ publish â†’ rollback; precedence; caching; schema validation; audit diff/history.
+   - Draft → validate → publish → rollback; precedence; caching; schema validation; audit diff/history.
 
 4) **Dispatch & real-time system completed**
    - Ring/hop, single-assignment integrity (no double assignment), WebSocket real-time updates (primary) with SSE fallback and short-poll fallback, notification fanout.
@@ -204,11 +204,11 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
 
 ## 1.9 Hosting, environments, and GCP target architecture (mandatory)
 
-**ENV-0001 â€” Environments**
+**ENV-0001 — Environments**
 - Must support `dev`, `staging`, `prod` with isolated configs and credentials.
 - `staging` must be production-like and used for GO / NO-GO gates.
 
-**GCP-ARCH-0001 â€” Required GCP services (baseline)**
+**GCP-ARCH-0001 — Required GCP services (baseline)**
 - Compute: Cloud Run (services + workers) OR GKE (optional later)
 - DB: Cloud SQL (PostgreSQL)
 - Object storage: GCS (documents, images, receipts, exports)
@@ -220,17 +220,17 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
 - Push notifications: FCM (Android/web) + APNs via FCM (iOS)
 - Analytics: GA (platform site + tenant microsites)
 
-**GCP-ARCH-0002 â€” Tenant microsites hosting cost policy**
-- Tenant microsites are hosted under Rideooâ€™s umbrella (shared GCP infra).
+**GCP-ARCH-0002 — Tenant microsites hosting cost policy**
+- Tenant microsites are hosted under Rideoo’s umbrella (shared GCP infra).
 - Cost impact is primarily bandwidth + storage; static-first + CDN keeps marginal cost low per tenant.
 - Per-tenant domain mappings must be automated (primary domain + aliases).
 
-**GCP-AUTH-0001 â€” GitHub Actions â†” GCP auth (pinned)**
+**GCP-AUTH-0001 — GitHub Actions ↔ GCP auth (pinned)**
 - CI/CD must use **OIDC + WIF** (no long-lived SA key JSON in GitHub secrets).
 - A repo-scoped CI identity (SA) must be impersonated by GitHub Actions via WIF.
 - Repo Variables required: `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WIF_PROVIDER`, `GCP_SA_EMAIL`.
 
-**GCP-CD-0001 â€” Deploy pipeline (pinned)**
+**GCP-CD-0001 — Deploy pipeline (pinned)**
 - GitHub Actions is the primary CD engine.
 - `main` deploys to `staging` by default; `prod` deploy requires GO/NO-GO gate.
 - Deploys target Cloud Run services; public exposure is explicit per service (default deny).
@@ -248,7 +248,7 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
 - **Driver**: completes onboarding/compliance, goes online, accepts offers, navigates, chats, completes trips, views earnings/unpaid balance/payout history.
 - **Tenant Dispatcher / Operations Staff (Tenant Ops)**: monitors live operations, intervenes on assignments, manages drivers/vehicles, handles disputes.
 - **Tenant Owner / Fleet Operator (Tenant Owner)**: manages business settings, policies, fleet, analytics, staff.
-- **Fleet Owner (Fleet Owner)**: owns â‰¥2 vehicles under a tenant; assigns drivers to vehicles; manages leased vehicle inventory and access.
+- **Fleet Owner (Fleet Owner)**: owns ≥2 vehicles under a tenant; assigns drivers to vehicles; manages leased vehicle inventory and access.
 - **Customer Support Representative (CSR) (Tenant CSR)**: handles rider and driver support cases, refunds, disputes, and incident intake.
 - **Platform Super Admin (Platform Owner)**: seeds/CRUD tenants, global policies, feature gates, pricing constraints, monitoring, kill switches, test execution.
 - **Platform Sub-Super Admin (Platform Staff)**: delegated platform ops, support, compliance review, incident response.
@@ -264,7 +264,7 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
 
 ### 2.2A Platform config + tenant config objects (authoritative)
 
-**CFG-PLAT-0001 â€” platform_config (platform-scoped; Super Admin only)**
+**CFG-PLAT-0001 — platform_config (platform-scoped; Super Admin only)**
 - The platform must store a single versioned `platform_config` object that defines:
   - platform fee catalog (fee_code, basis, limits)
   - billing autopull policy (schedules, retries, dunning states)
@@ -273,7 +273,7 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
   - required disclosure text blocks (immutable core text + versioned updates)
   - global reference data seeds (optional; tenants may override locally)
 
-**CFG-TEN-0001 â€” tenant_config (tenant-scoped; tenant admin within platform caps)**
+**CFG-TEN-0001 — tenant_config (tenant-scoped; tenant admin within platform caps)**
 - Each tenant must store a versioned `tenant_config` object that defines:
   - branding + microsite settings (template, tokens, domains, SEO)
   - pricing + quote rules (service classes, pricing params)
@@ -282,7 +282,7 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
   - policy_center link (current `tenant_policy_config` version id)
   - driver/rider UX toggles (within platform caps)
 
-**CFG-JSON-0001 â€” JSON schema requirement**
+**CFG-JSON-0001 — JSON schema requirement**
 - `platform_config`, `tenant_config`, and `tenant_policy_config` must be JSON-schema validated on:
   - save (draft)
   - publish (active)
@@ -291,7 +291,7 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
   - records an audit event with diff summary
   - supports rollback to a prior version
 
-**CFG-JSON-0002 â€” Minimum keys (non-exhaustive)**
+**CFG-JSON-0002 — Minimum keys (non-exhaustive)**
 ```json
 {
   "platform_config": {
@@ -319,7 +319,7 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
 
 - Rider and Driver experiences are branded per tenant (colors, logo, copy, domains, microsites).
 - **Tenant-scoped driver UX:** drivers only see data for the tenant they are currently authenticated into. There is **no consolidated multi-tenant driver dashboard** (no aggregated earnings/trips/payouts across tenants).
-- Drivers may work with multiple tenants by authenticating separately into each tenantâ€™s driver experience (separate sessions; tenant data isolation preserved).
+- Drivers may work with multiple tenants by authenticating separately into each tenant’s driver experience (separate sessions; tenant data isolation preserved).
 - **Money presentation rule:** driver receipts and payout history must show:
   - `Paid by: {TenantName}`
   - `Processed via: Rideoo`
@@ -355,13 +355,13 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
 
 ### 3.X Legal pack + liability positioning (required)
 
-**RIDE-LEGAL-010 â€” Required legal documents (versioned + signed acceptance)**
+**RIDE-LEGAL-010 — Required legal documents (versioned + signed acceptance)**
 - Tenant SaaS agreement + autopay authorization (ACH debit consent + fallback)
 - Tenant admin T&Cs, Driver T&Cs, Rider T&Cs
 - Privacy policy + data processing terms (tenant vs platform responsibilities)
 - Dispute routing policy: tenant handles rider/driver disputes; platform provides logs + tooling
 
-**RIDE-LEGAL-020 â€” Indemnity + defense**
+**RIDE-LEGAL-020 — Indemnity + defense**
 - Tenants must indemnify and defend the platform (and owners/affiliates) for claims arising from rides, driver conduct, vehicle compliance, insurance, and local regulatory compliance.
 - Platform is a SaaS provider; tenant is responsible for operations, compliance, insurance, and dispute resolution.
 
@@ -376,7 +376,7 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
 
 
 
-**RIDE-BOOK-ANTI-010 â€” Cross-tenant â€œshoppingâ€ is not blocked (pinned)**
+**RIDE-BOOK-ANTI-010 — Cross-tenant “shopping” is not blocked (pinned)**
 - The platform must not detect-and-block a rider from placing similar bookings across multiple tenants.
 - The platform must not disclose cross-tenant booking activity to tenants.
 - Tenant-local duplicate booking controls may exist only within the same tenant, if tenant enables them via Policy Center.
@@ -393,13 +393,13 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
   - Requests are logged, status-tracked, and require an authorized admin approval step RBAC.
   - Deletion is implemented as: irreversible erasure where permitted, and legal-hold redaction where required; all actions are auditable.
 ### 3.4 Masked communications and messaging retention
-- Riders and drivers must not see each otherâ€™s phone or email.
+- Riders and drivers must not see each other’s phone or email.
 - In-app messaging is required; optional voice is feature-gated.
 - Messages retained for industry-standard period (default 180 days), configurable per tenant and platform policy.
 
 ### 3.5 Driver compliance gating (expiry + notifications)
 - Driver cannot go online or accept trips if any required compliance item is expired:
-  - driverâ€™s license,
+  - driver’s license,
   - vehicle insurance,
   - vehicle registration.
 - Optional strict mode: block login (default: allow login but restrict to compliance remediation + earnings views).
@@ -418,7 +418,7 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
 - Minimum viable: driver attestation + tenant review + scheduled reminders; provider integration is strongly recommended.
 
 ### 3.8 Optional specialized credentials for preferred dispatch status (feature-gated)
-- Driver profile includes optional section: â€œAlso open to Package/Courier Opportunities.â€
+- Driver profile includes optional section: “Also open to Package/Courier Opportunities.”
 - Drivers can upload proofs for credentials such as:
   - Professional Chauffeur license,
   - Transportation Security Administration (TSA) certification,
@@ -446,14 +446,14 @@ The platform must support service-standard enforcement as compliance policy and 
   - Can trigger temporary suspension pending review.
 
 **Acceptance:**
-- Given a driver has an active â€œService Standards Violationâ€ hold, when they attempt to go online, then policy determines whether they are blocked or permitted with reduced priority.
+- Given a driver has an active “Service Standards Violation” hold, when they attempt to go online, then policy determines whether they are blocked or permitted with reduced priority.
 
 
 ---
 
-## 4. Rider application (Web + mobile required; seamless sync) â€” end-to-end experience
+## 4. Rider application (Web + mobile required; seamless sync) — end-to-end experience
 
-**RIDE-APP-SYNC-010 â€” Rider Web + mobile parity + sync (mandatory)**
+**RIDE-APP-SYNC-010 — Rider Web + mobile parity + sync (mandatory)**
 - Rider experience must be available as:
   - Rideoo Rider Web App (responsive, latest web tech)
   - Rideoo Rider Mobile App (iOS + Android)
@@ -488,9 +488,9 @@ The platform must support service-standard enforcement as compliance policy and 
 - Support case tracking must include incident and insurance claim initiation:
   - Case types include: rider safety incident, vehicle accident, property damage, fare dispute, payment dispute/chargeback, and lost item.
   - Attachments: photos, video, police report reference, witness statement (optional), and trip ID binding.
-  - Case lifecycle: open â†’ triage â†’ in-review â†’ resolved/denied â†’ archived; SLA timers and audit trail.
+  - Case lifecycle: open → triage → in-review → resolved/denied → archived; SLA timers and audit trail.
 ### 4.5 Ratings and feedback
-- Rider can rate: driver, vehicle, cleanliness, friendliness (1â€“5) + optional textual feedback (max length configurable).
+- Rider can rate: driver, vehicle, cleanliness, friendliness (1–5) + optional textual feedback (max length configurable).
 - Rider can report safety/quality incidents tied to a trip.
 
 ### 4.6 In-app messaging
@@ -508,9 +508,9 @@ The platform must support service-standard enforcement as compliance policy and 
 
 ---
 
-## 5. Driver application (Web + mobile required; seamless sync; tenant-scoped) â€” end-to-end experience
+## 5. Driver application (Web + mobile required; seamless sync; tenant-scoped) — end-to-end experience
 
-**DRV-APP-SYNC-010 â€” Driver Web + mobile parity + sync (mandatory)**
+**DRV-APP-SYNC-010 — Driver Web + mobile parity + sync (mandatory)**
 - Driver experience must be available as:
   - Rideoo Driver Web App (responsive)
   - Rideoo Driver Mobile App (iOS + Android)
@@ -547,7 +547,7 @@ The platform must support service-standard enforcement as compliance policy and 
 
 ### 5.5 Destination mode, airport queueing, chat/voice
 - Voice interface is feature-gated and must support:
-  - Driver voice intents (accept/decline, navigate, â€œarrivedâ€, â€œstart tripâ€, â€œend tripâ€),
+  - Driver voice intents (accept/decline, navigate, “arrived”, “start trip”, “end trip”),
   - Rider voice intents (book, status, support intake),
   - Ops voice intents (search trip, reassign, incident note).
 - Push-to-talk fallback is required.
@@ -562,11 +562,11 @@ The platform must support service-standard enforcement as compliance policy and 
 - Confirmation must consider driver location and travel time to arrive on time.
 - If not confirmed: system re-offers and alerts tenant dispatcher board.
 
-### 5.7 Driverâ†”rider messaging and ratings
+### 5.7 Driver↔rider messaging and ratings
 
 
 - In-app messaging with rider; masked identities; retention policy applies.
-- Driver can rate rider (1â€“5) with optional feedback.
+- Driver can rate rider (1–5) with optional feedback.
 
 ### 5.8 Driver types, fleet ownership, and leased vehicle workflows (mandatory)
 **Driver types (minimum):**
@@ -574,11 +574,11 @@ The platform must support service-standard enforcement as compliance policy and 
 2) Leased Vehicle Driver (lease documents required)
 
 **Fleet Owner rule:**
-- A Fleet Owner is defined as an entity with **â‰¥2 vehicles** under a tenant.
+- A Fleet Owner is defined as an entity with **≥2 vehicles** under a tenant.
 - Fleet Owners can:
   - Add/remove drivers per vehicle,
-  - Disable a driverâ€™s access to a vehicle instantly (immediate ride ineligibility, unless a ride is already in progress),
-  - Mark a vehicle as â€œAvailable for leaseâ€ (policy-gated).
+  - Disable a driver’s access to a vehicle instantly (immediate ride ineligibility, unless a ride is already in progress),
+  - Mark a vehicle as “Available for lease” (policy-gated).
 
 **Leased vehicle workflows (minimum):**
 - Driver can request to lease a listed vehicle (lease request).
@@ -622,19 +622,19 @@ The platform must support service-standard enforcement as compliance policy and 
 
 ### 6.4 Destination-aware matching
 - Prefer rides aligned with driver destination only when fairness and ETA constraints satisfied.
-- Policy precedence: tenant-configured policy â†’ driver preferences (only if tenant enables) â†’ optional templates (non-authoritative).
+- Policy precedence: tenant-configured policy → driver preferences (only if tenant enables) → optional templates (non-authoritative).
 
 ### 6.5 Preferred driver/vehicle prioritization (configurable by geography and tenant)
 The system must support configurable dispatch prioritization based on verified driver credentials and vehicle class, with region-specific rule packs.
 
 Minimum required rule set (Chicagoland example):
-- **Tier 1 (highest priority):** Verified Professional Chauffeur license + vehicle qualifies as Large Luxury Sport Utility Vehicle (SUV) (â€œblack carâ€ class).
+- **Tier 1 (highest priority):** Verified Professional Chauffeur license + vehicle qualifies as Large Luxury Sport Utility Vehicle (SUV) (“black car” class).
 - **Tier 2:** Vehicle qualifies as Large Luxury SUV (black car class), even if not chauffeur-licensed.
 - **Tier 3:** All other eligible drivers/vehicles.
 
 Additional constraints:
-- â€œPreferred statusâ€ must be configurable per region and per tenant (weights, enable/disable, and quotas/caps to avoid starvation).
-- â€œPreferred statusâ€ must never violate safety, compliance gating, or fairness constraints.
+- “Preferred status” must be configurable per region and per tenant (weights, enable/disable, and quotas/caps to avoid starvation).
+- “Preferred status” must never violate safety, compliance gating, or fairness constraints.
 - If a preferred driver is too far (ETA beyond threshold), the system must consider the next tier.
 
 **Acceptance:**
@@ -664,7 +664,7 @@ Additional constraints:
 
 ### 7.3 Surge policy controls and precedence
 - Region overrides: caps, disable, kill switch.
-- Precedence: region override â†’ tenant surge toggle â†’ seed template.
+- Precedence: region override → tenant surge toggle → seed template.
 - Propagation within 60 seconds.
 
 ### 7.4 Cancellation, no-show, wait-time, luggage, stops, gratuity
@@ -690,7 +690,7 @@ The platform must implement a **Policy Center** as the authoritative system for 
 **Precedence:** tenant-configurable (stored in Policy Center); if unset, treat as tenant-only
 
 **Lifecycle:**
-- Draft â†’ Validate â†’ Publish (version increment)
+- Draft → Validate → Publish (version increment)
 - Rollback to prior version (audited)
 - Diff view (who changed what)
 
@@ -720,24 +720,24 @@ The platform must implement a **Policy Center** as the authoritative system for 
 
 ### 8.Y Rider disclosure panel (required)
 
-**RIDE-DISC-010 â€” Disclosure panel (rider-accessible)**
+**RIDE-DISC-010 — Disclosure panel (rider-accessible)**
 - Rider-accessible **disclosure panel** must be available on: booking confirmation, live trip screen, and receipt.
-- Must show tenant-provided disclosures (including insurance/compliance statements) in a â€œwho covers whatâ€ clarity format by ride phase/status.
+- Must show tenant-provided disclosures (including insurance/compliance statements) in a “who covers what” clarity format by ride phase/status.
 - Must explicitly state: platform is SaaS provider and does not insure rides; tenant is responsible for operations, compliance, insurance, and dispute resolution.
 - Disclosure content must be tenant-versioned (version_id + timestamp) and stored for audit; edits require tenant admin confirmation.
 
 
 
-**RIDE-PAY-010 â€” Tenant Direct Settlement (default)**
-- Default mode: rider funds settle to the tenantâ€™s merchant account/bank (tenant is merchant of record).
+**RIDE-PAY-010 — Tenant Direct Settlement (default)**
+- Default mode: rider funds settle to the tenant’s merchant account/bank (tenant is merchant of record).
 - Tenant may use PaySurity merchant services (preferred) or an external processor (if allowed by super admin policy).
 - Platform does **not** hold tenant funds in this mode; platform fees are collected via automated billing (below).
 
-**RIDE-PAY-020 â€” PaySurity Settlement (optional)**
+**RIDE-PAY-020 — PaySurity Settlement (optional)**
 - Optional mode (tenant opt-in): funds route through PaySurity settlement rails; PaySurity nets fees and remits tenant net on a tenant-configured schedule.
 - This mode must be explicitly disclosed to the tenant during onboarding and recorded as signed acceptance.
 
-**RIDE-PAY-030 â€” Billing + autopull (invoices + schedule + as-needed triggers)**
+**RIDE-PAY-030 — Billing + autopull (invoices + schedule + as-needed triggers)**
 - In all payment operating modes, the platform must be able to collect Rideoo fees from the tenant:
   - via tenant bank account (ACH debit mandate), and/or
   - via tenant wallet balance (if wallet enabled).
@@ -754,18 +754,18 @@ The platform must implement a **Policy Center** as the authoritative system for 
 
 
 
-**RIDE-PAY-040 â€” Default fee schedule (configurable; super admin can change)**
-- Subscription (per tenant org) â€” defaults:
+**RIDE-PAY-040 — Default fee schedule (configurable; super admin can change)**
+- Subscription (per tenant org) — defaults:
   - Starter: $299/month
   - Pro: $799/month
   - Enterprise: $1,499/month
-- Per completed ride platform fee (tenant pays) â€” default:
+- Per completed ride platform fee (tenant pays) — default:
   - max($0.75, 2.0% of fare), with configurable min/max caps.
 - Instant cash-out fee (driver cash-out at will; tenant can disable per-driver/per-group):
   - default: 1.5% of payout, minimum $1.99, maximum configurable.
   - fee beneficiary: PaySurity (must be ledgered + reconcilable vs gateway/provider statements).
 
-**RIDE-PAY-050 â€” Payout controls (prevent â€œautonomous chaosâ€)**
+**RIDE-PAY-050 — Payout controls (prevent “autonomous chaos”)**
 - Bulk payouts must be user-triggered (tenant admin / designated staff), with:
   - system-calculated amounts (config formulas) + editable adjustments
   - preview + confirm + export
@@ -790,22 +790,22 @@ The platform must implement a **Policy Center** as the authoritative system for 
 
 ### 8.3A Driver payouts + cash-out (enable-only; tenant-configurable; platform fees configurable)
 
-**RIDE-PAYOUT-100 â€” Payout modes (tenant-managed vs platform-triggered)**
+**RIDE-PAYOUT-100 — Payout modes (tenant-managed vs platform-triggered)**
 - The platform must support both payout operating modes per tenant:
   - **Tenant-managed payouts:** tenant pays drivers outside Rideoo; Rideoo tracks earnings and provides statements/reports only.
   - **Platform-triggered payouts (PaySurity rail):** Rideoo executes payouts on behalf of the tenant.
-- **Pinned PAY-FLOW-0100:** If a tenant enables platform-triggered driver payouts, the tenant automatically agrees that funds for **ALL rides** for that tenant flow through Rideoo first (PaySurity rail). Rideoo executes driver payouts from Rideooâ€™s account and applies platform-controlled configurable fees. Tenant consent must be captured, versioned, and auditable.
+- **Pinned PAY-FLOW-0100:** If a tenant enables platform-triggered driver payouts, the tenant automatically agrees that funds for **ALL rides** for that tenant flow through Rideoo first (PaySurity rail). Rideoo executes driver payouts from Rideoo’s account and applies platform-controlled configurable fees. Tenant consent must be captured, versioned, and auditable.
 
-**RIDE-PAYOUT-101 â€” â€œCompletely Settledâ€ truth (bank_settled)**
+**RIDE-PAYOUT-101 — “Completely Settled” truth (bank_settled)**
 - When platform-triggered payouts are enabled, a driver payout (including on-demand cash-out) must be permitted only when the related ride funds are in **Completely Settled** state.
 - Default Completely Settled threshold: `bank_settled`.
 - Driver UI must show per-trip and/or per-earning line status:
   - `pending` (not settled)
   - `eligible` (settled)
   - `paid` (payout executed)
-- Tenant may configure business-facing policies (wait/cancel/no-show) via Tenant Policy Center; Rideoo does not impose any tenantâ†”rider or tenantâ†”driver business rules by default.
+- Tenant may configure business-facing policies (wait/cancel/no-show) via Tenant Policy Center; Rideoo does not impose any tenant↔rider or tenant↔driver business rules by default.
 
-**RIDE-PAYOUT-102 â€” On-demand cash-out request UX (request anytime; pay only eligible)**
+**RIDE-PAYOUT-102 — On-demand cash-out request UX (request anytime; pay only eligible)**
 - Driver must be able to **request cash-out at any time**.
 - System must compute **eligible** cash-out amount based on:
   - payment settlement state (bank_settled for platform-triggered payouts),
@@ -817,9 +817,9 @@ The platform must implement a **Policy Center** as the authoritative system for 
   - max instant amount per interval,
   - minimum time between cash-outs,
   - minimum reserve/holdback (percent or fixed).
-- If eligible amount is zero, driver UI must show â€œNot eligible yetâ€ with reasons (e.g., pending settlement).
+- If eligible amount is zero, driver UI must show “Not eligible yet” with reasons (e.g., pending settlement).
 
-**RIDE-PAYOUT-103 â€” Fee model (platform-controlled; tenant-visible)**
+**RIDE-PAYOUT-103 — Fee model (platform-controlled; tenant-visible)**
 - All Rideoo platform fees (subscription + per-ride fees + payout fees + optional doc-gen fees) are configurable by platform Super Admin (and designated sub super admins).
 - When platform-triggered payouts are enabled:
   - payout execution fee(s) are platform-configurable,
@@ -827,15 +827,15 @@ The platform must implement a **Policy Center** as the authoritative system for 
   - driver receipt must still **appear as paid by tenant** (see RIDE-PAYOUT-110).
 - Tenants can configure their own driver-facing fees only if platform policy allows; otherwise the tenant UI exposes these as read-only.
 
-**RIDE-PAYOUT-104 â€” Payout status + receipts (driver + tenant views)**
-- Driver view per payout: `queued` â†’ `processing` â†’ `paid` OR `failed` (with retry guidance).
+**RIDE-PAYOUT-104 — Payout status + receipts (driver + tenant views)**
+- Driver view per payout: `queued` → `processing` → `paid` OR `failed` (with retry guidance).
 - Tenant view: payout queue + history + export.
 - Each payout receipt must include:
   - `Paid by: {TenantName}`
   - `Processed via: Rideoo`
   - Support-only/internal details may show: `Funded by: Rideoo (PaySurity rail)`.
 
-**RIDE-PAYOUT-105 â€” Adjustments, reversals, and recovery (drivers + tenants)**
+**RIDE-PAYOUT-105 — Adjustments, reversals, and recovery (drivers + tenants)**
 - System must support an **adjustment object** that adds/subtracts from driver earnings ledger.
 - Recovery mechanisms must exist for both drivers and tenants:
   - wallet debit (if wallet exists),
@@ -844,18 +844,18 @@ The platform must implement a **Policy Center** as the authoritative system for 
 - Recovery requires explicit consent capture (versioned, logged) and platform-configurable caps (per event, per day/week).
 - Tenants must be able to view recovery events affecting their drivers; drivers must see recovery notices and receipts in tenant context.
 
-**RIDE-PAYOUT-106 â€” Ledger linkage + reconciliation**
+**RIDE-PAYOUT-106 — Ledger linkage + reconciliation**
 - Every payout/cash-out must create linked ledger entries for:
   - gross amount, fees, net payout, reserves/holdbacks (if enabled),
   - source earnings ids (trip + adjustment),
   - payout execution ids.
 - Reconciliation must detect mismatches between ledger totals and PaySurity rail records and create exceptions visible to tenant admins and platform ops.
 
-**RIDE-PAYOUT-108 â€” Regular payout schedule (tenant-configurable)**
+**RIDE-PAYOUT-108 — Regular payout schedule (tenant-configurable)**
 - Tenant may configure payout cadence (daily/weekly/biweekly/monthly) and cutoff window.
 - When enabled, scheduled payouts include all eligible balances not already paid/cashed-out, respecting settlement gating and reserves/holdbacks (if enabled).
 
-**RIDE-PAYOUT-110 â€” â€œPaid by tenantâ€ presentation + receipt truth**
+**RIDE-PAYOUT-110 — “Paid by tenant” presentation + receipt truth**
 - Driver-facing payout artifacts must include:
   - `Paid by: {TenantName}`
   - `Processed via: Rideoo`
@@ -865,15 +865,15 @@ The platform must implement a **Policy Center** as the authoritative system for 
 
 ### 8.3B Bulk payout runs (enable-only; tenant + platform roles)
 
-**RIDE-PAYOUT-111 â€” Bulk payout preview + edit + confirm**
+**RIDE-PAYOUT-111 — Bulk payout preview + edit + confirm**
 - Authorized tenant roles and/or platform roles can create a Bulk Payout Run scoped to tenant, date range, and eligibility filters.
 - Bulk Payout Run must support:
   1) Preview (line-item breakdown + totals),
   2) Edit (amounts/line-items with required reason codes),
   3) Confirm (actor + timestamp + checksum of totals).
 
-**RIDE-PAYOUT-112 â€” Bulk payout execution + audit**
-- Execution must be idempotent and emit per-item statuses: `queued` â†’ `processing` â†’ `paid` OR `failed`.
+**RIDE-PAYOUT-112 — Bulk payout execution + audit**
+- Execution must be idempotent and emit per-item statuses: `queued` → `processing` → `paid` OR `failed`.
 - Retries must reuse the same idempotency key; partial failures must produce an exception list; no silent drops.
 - Full audit trail required for create/edit/confirm/execute actions, including reasons and checksums.
 
@@ -894,7 +894,7 @@ The platform must implement a **Policy Center** as the authoritative system for 
 ### 8.4 QR code attribution, bonuses, and wallet-based incentives (mandatory)
 - Each branded vehicle must support a unique Quick Response (QR) code:
   - Attribution tracking (which vehicle/tenant generated the lead),
-  - Scan â†’ ride â†’ bonus workflow (policy-controlled),
+  - Scan → ride → bonus workflow (policy-controlled),
   - Bonus funding source and settlement recorded in the ledger.
 - Branded vehicles can receive dispatch priority boosts (policy-controlled; bounded by fairness).
 - Incentives must be represented as ledger entries (double-entry) to avoid drift.
@@ -910,26 +910,26 @@ The platform must implement a **Policy Center** as the authoritative system for 
 
 ### 8.5 Tax docs generation for drivers (fee-gated; export-first) (mandatory)
 
-**TAX-1099-010 â€” Earnings statements (tenant-scoped; driver-scoped)**
+**TAX-1099-010 — Earnings statements (tenant-scoped; driver-scoped)**
 - System must compute per-driver annual earnings summaries per tenant from the ledger.
 - Must support exports per tenant:
   - per driver (PDF + CSV),
   - bulk export (ZIP of PDFs + summary CSV).
 - Output must be suitable for tax preparation, but must include disclaimer that tenant is responsible for review and submission.
 
-**TAX-1099-020 â€” 1099-style output (Mode 1: do not store full TIN/SSN)**
+**TAX-1099-020 — 1099-style output (Mode 1: do not store full TIN/SSN)**
 - Mode 1 (pinned): platform must not store full TIN/SSN in its primary DB.
 - Allowed storage:
   - last4 + masked display,
   - token/reference to a secure vault (PaySurity rail or equivalent) where full value is stored encrypted.
 - If vault is not available in MVP, then:
-  - collect TIN/SSN for a one-time â€œgenerateâ€ run,
+  - collect TIN/SSN for a one-time “generate” run,
   - generate output,
   - immediately purge the full value and keep only last4 + hash evidence of consent.
 - Provide 1099-style PDF output suitable for tenant filing workflows.
 - Include correction output support (amended statements).
 
-**TAX-1099-030 â€” Fee model + autopull**
+**TAX-1099-030 — Fee model + autopull**
 - Tax docs generation is a fee-gated feature controlled by platform Super Admin.
 - Fees must be invoiced and autopulled (see RIDE-PAY-030) before documents are released.
 
@@ -977,27 +977,27 @@ Tenant console must include modules (RBAC-gated) at minimum:
 
 ### 9.2B Tenant Policy Center (enable-only; no platform-enforced defaults) (authoritative)
 
-**TEN-POL-0001 â€” Policy Center philosophy (pinned)**
-- Rideoo provides tenants the ability to define and optionally automate their own tenantâ†”rider and tenantâ†”driver policies.
+**TEN-POL-0001 — Policy Center philosophy (pinned)**
+- Rideoo provides tenants the ability to define and optionally automate their own tenant↔rider and tenant↔driver policies.
 - Rideoo does not impose mandatory tenant business rules or defaults. Every policy is **OFF until tenant enables** it (or explicitly adopts a template).
-- Baseline platform behavior for tenantâ†”rider/driver is **non-penalizing** (no automatic fees/penalties/blocks) unless tenant enables `auto_apply` in the relevant policy block.
-- Templates are labeled as â€œstarting pointsâ€ with unmissable disclaimers; tenant must acknowledge and acceptance is logged.
+- Baseline platform behavior for tenant↔rider/driver is **non-penalizing** (no automatic fees/penalties/blocks) unless tenant enables `auto_apply` in the relevant policy block.
+- Templates are labeled as “starting points” with unmissable disclaimers; tenant must acknowledge and acceptance is logged.
 
-**TEN-POL-0002 â€” Policy object model (single source of truth)**
+**TEN-POL-0002 — Policy object model (single source of truth)**
 - Tenant policy config must be stored as a versioned object (`tenant_policy_config`) with:
   - `policy_version_id`, `schema_version`, `created_at_utc`, `created_by_user_id`,
   - a full JSON snapshot,
   - diff history for UI.
-- A policy change requires explicit â€œPublishâ€ action and emits audit events.
+- A policy change requires explicit “Publish” action and emits audit events.
 
-**TEN-POL-0003 â€” Policy activation modes**
+**TEN-POL-0003 — Policy activation modes**
 Each policy block must support:
-- `enabled` (bool) â€” OFF by default
+- `enabled` (bool) — OFF by default
 - `action_mode` (enum): `manual_only` | `auto_apply`
   - `manual_only`: Rideoo records policy, provides UI/reporting hooks; tenant staff enforces manually.
   - `auto_apply`: Rideoo executes configured actions (fees, holds, workflow steps) on behalf of tenant.
 
-**TEN-POL-0004 â€” Authoritative JSON schema (minimum)**
+**TEN-POL-0004 — Authoritative JSON schema (minimum)**
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -1126,7 +1126,7 @@ Each policy block must support:
 }
 ```
 
-**TEN-POL-0005 â€” Templates + disclaimers (mandatory)**
+**TEN-POL-0005 — Templates + disclaimers (mandatory)**
 - Jurisdiction templates (Chicago/IL, Indiana, etc.) may be shipped as optional starting points.
 - Each template must display unmissable disclaimer language:
   - tenant is responsible for ops/compliance/insurance,
@@ -1135,14 +1135,14 @@ Each policy block must support:
 - Tenant acknowledgment must be recorded (user, timestamp, template version hash).
 
 **DoD Evidence (Policy Center)**
-- UI: Draft â†’ validate â†’ publish â†’ rollback; preview disclosure; feature toggles.
+- UI: Draft → validate → publish → rollback; preview disclosure; feature toggles.
 - API: CRUD versioned policy objects; publish endpoint; diff endpoint.
 - Tests: schema validation + publish gating + audit emission.
 
 
 ### 9.2C Corporate / Business accounts (feature-gated) (tenant benefit module)
 
-**CORP-ACCT-010 â€” Corporate account entity**
+**CORP-ACCT-010 — Corporate account entity**
 - Tenant can create corporate accounts (companies) with:
   - billing profile (pay method, invoicing preference),
   - authorized riders list (employees/guests),
@@ -1150,7 +1150,7 @@ Each policy block must support:
   - spend limits (daily/weekly/monthly) (enable-only; OFF until tenant enables),
   - policy disclosure text (tenant-authored).
 
-**CORP-ACCT-020 â€” Booking controls**
+**CORP-ACCT-020 — Booking controls**
 - Tenant can enable controls such as:
   - allowed service classes,
   - pickup/dropoff geo constraints,
@@ -1158,7 +1158,7 @@ Each policy block must support:
   - approval flows (manager approval) (manual_only or auto_apply).
 - If not enabled, corporate riders behave as normal riders.
 
-**CORP-ACCT-030 â€” Billing + receipts**
+**CORP-ACCT-030 — Billing + receipts**
 - Corporate rides must be attributable to corporate account and cost center.
 - Support consolidated billing statements:
   - monthly invoice PDF + CSV exports,
@@ -1166,7 +1166,7 @@ Each policy block must support:
   - audit trail of adjustments/refunds.
 - Tenant can choose whether corporate account pays per trip (card on file) or via monthly invoice (if enabled).
 
-**CORP-ACCT-040 â€” Admin UX**
+**CORP-ACCT-040 — Admin UX**
 - Tenant admin can:
   - invite/remove corporate riders,
   - set limits,
@@ -1188,7 +1188,7 @@ Each policy block must support:
 
 ---
 
-## 10. Public-facing website (platform marketing) â€” tenant acquisition
+## 10. Public-facing website (platform marketing) — tenant acquisition
 
 Purpose: attract passenger fleet owners and dispatch companies to become tenants.
 
@@ -1204,7 +1204,7 @@ Minimum pages (placeholders allowed but must be wired):
 - Terms/Privacy
 
 Lead capture:
-- â€œBecome a Tenantâ€ form collects: company name, fleet size, service area, contact, desired launch date.
+- “Become a Tenant” form collects: company name, fleet size, service area, contact, desired launch date.
 - Leads enter platform pipeline (Customer Relationship Management (CRM) stub acceptable but must store in DB and notify platform team).
 
 ### 10.A Tenant microsites (white-label) (mandatory)
@@ -1215,7 +1215,7 @@ Lead capture:
 - All alias domains MUST 301-redirect to the primary domain.
 - If an alias cannot 301 (rare), the microsite MUST emit `<link rel="canonical" href="https://PRIMARY/...">` on every page.
 - `robots.txt` and `sitemap.xml` MUST be generated per primary domain and kept consistent across aliases.
-- The microsite build pipeline MUST validate there is no â€œsplit-canonicalâ€ (two pages claiming each other as canonical).
+- The microsite build pipeline MUST validate there is no “split-canonical” (two pages claiming each other as canonical).
 
 **DoD gates:** UI (tenant domain manager) + API + automated tests (redirect/canonical) + deployment smoke test.
 
@@ -1227,7 +1227,7 @@ Lead capture:
   - The widget submits/reads data from the tenant-scoped Rideoo Rider Web App backend and creates bookings for that tenant.
   - Rider experience must feel like dealing with the tenant; Rideoo remains the underlying software.
 - Booking widget must support: pickup/dropoff, time, vehicle class, passenger/luggage, notes, quote preview, and submit booking.
-- Tenant can choose to allow â€œinstant bookâ€ vs â€œrequest quote / call-backâ€ modes (widget mode is tenant-configurable).
+- Tenant can choose to allow “instant book” vs “request quote / call-back” modes (widget mode is tenant-configurable).
 
 
 ---
@@ -1258,7 +1258,7 @@ and validate recovery within the GO / NO-GO gates.
 - Results must be exported to `out/k6.json` (or equivalent) for gate evaluation.
 
 ### 11.4 GO / NO-GO integration (mandatory)
-- Observability outputs must feed the GO / NO-GO evaluator (see Â§1.4).
+- Observability outputs must feed the GO / NO-GO evaluator (see §1.4).
 
 
 - Health and metrics endpoints: `/health`, `/metrics`.
@@ -1288,8 +1288,8 @@ Minimum entities include:
 ## 13. State machines, timers, and contracts (authoritative)
 
 - Trip state machine with allowed transitions and actor permissions.
-- Offer state machine: Created â†’ Ringing â†’ Accepted | Expired â†’ Hopped â†’ Claimed â†’ Assigned â†’ Cancelled.
-- Airport queue token state machine: Prequeue â†’ Active â†’ Paused â†’ Removed/Expired.
+- Offer state machine: Created → Ringing → Accepted | Expired → Hopped → Claimed → Assigned → Cancelled.
+- Airport queue token state machine: Prequeue → Active → Paused → Removed/Expired.
 - Timer registry in `timers.json` used by code and versioned.
 
 ---
@@ -1328,8 +1328,8 @@ Additional mandatory test classes:
 Additional release gate acceptance tests (minimum):
 - GO / NO-GO gates evaluate from `out/k6.json`, `out/chaos.json`, `out/dlq.json` and produce `out/go-no-go.md`.
 - k6 failure rate < 0.5% and k6 p95 < 300 ms.
-- Chaos recovery â‰¤ 5 seconds.
-- DLQ projected replay success â‰¥ 70%.
+- Chaos recovery ≤ 5 seconds.
+- DLQ projected replay success ≥ 70%.
 - Zero double assignments and zero invalid queue states under dispatch storm.
 
 - If tenant enables compliance gating, go-online/accepting is blocked; D-14 and D-1 notifications delivered and logged.
@@ -1355,7 +1355,7 @@ Additional release gate acceptance tests (minimum):
 
 - Backups and disaster recovery:
   - Automated PostgreSQL backups with point-in-time recovery (PITR) (Point-In-Time Recovery).
-  - Recovery Point Objective (RPO): â‰¤ 15 minutes. Recovery Time Objective (RTO): â‰¤ 4 hours (configurable; stricter targets allowed for premium tiers).
+  - Recovery Point Objective (RPO): ≤ 15 minutes. Recovery Time Objective (RTO): ≤ 4 hours (configurable; stricter targets allowed for premium tiers).
   - Quarterly restore drills and documented runbooks; failures trigger alerts.
 
 ---
@@ -1395,8 +1395,8 @@ If a missing timer/state transition/policy precedence is discovered during build
 ## 23. Provenance appendix (non-authoritative)
 This section is **non-authoritative** and exists only to show source traceability for the semantic merge.
 
-- Source A (target authority): `CANONICAL_v6_1.md`
+- Source A (target authority): `BlackRavenia_RideShare_Canonical_Requirements_v6_1.md`
 - Source B (merged): `RideShare-chat1-requirements.txt`
 - Source C (merged context): `rideshare context.txt`
 
-All requirements in Sources B and C have been incorporated into the authoritative sections above. If an omission is discovered, the omission must be added above (not here) per Â§20 Hard anti-drift rule.
+All requirements in Sources B and C have been incorporated into the authoritative sections above. If an omission is discovered, the omission must be added above (not here) per §20 Hard anti-drift rule.

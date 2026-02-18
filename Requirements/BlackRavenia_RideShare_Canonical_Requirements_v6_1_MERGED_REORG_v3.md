@@ -926,11 +926,12 @@ If a missing timer/state transition/policy precedence is discovered during build
 ## 23. Provenance appendix (non-authoritative)
 This section is **non-authoritative** and exists only to show source traceability for the semantic merge.
 
-- Source A (target authority): `BlackRavenia_RideShare_Canonical_Requirements_v6_1.md`
+- Source A (target authority): `CANONICAL_v6_1.md`
 - Source B (merged): `RideShare-chat1-requirements.txt`
 - Source C (merged context): `rideshare context.txt`
 
 All requirements in Sources B and C have been incorporated into the authoritative sections above. If an omission is discovered, the omission must be added above (not here) per §20 Hard anti-drift rule.
+
 
 
 

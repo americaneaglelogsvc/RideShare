@@ -1,6 +1,6 @@
-﻿# Rideoo-RideShare Platform â€” Canonical Requirements (v6.1, rev v10)
+﻿# Rideoo-RideShare Platform â€” Canonical Requirements (v6.1, rev v6)
 
-**Timestamp (America/Chicago): 2026-02-17 21:45**  
+**Timestamp (America/Chicago): 2026-02-16 13:32**  
 
 **Repo:** `PaySurity-Biz/RideShare` (https://github.com/PaySurity-Biz/RideShare)
 **Canonical location in repo:** `Requirements/Rideoo_RideShare_Canonical_Requirements.md` (copy also at repo root for tooling)
@@ -812,11 +812,6 @@ The platform must implement a **Policy Center** as the authoritative system for 
   - disputes/chargebacks/adjustments,
   - tenant-configured reserves/holdbacks (if tenant enables),
   - platform-configured fees (if applicable).
-- If tenant enables cash-out controls, system enforces tenant-configurable limits at request time (default OFF):
-  - max cash-outs per day/week,
-  - max instant amount per interval,
-  - minimum time between cash-outs,
-  - minimum reserve/holdback (percent or fixed).
 - If eligible amount is zero, driver UI must show â€œNot eligible yetâ€ with reasons (e.g., pending settlement).
 
 **RIDE-PAYOUT-103 â€” Fee model (platform-controlled; tenant-visible)**
@@ -844,49 +839,14 @@ The platform must implement a **Policy Center** as the authoritative system for 
 - Recovery requires explicit consent capture (versioned, logged) and platform-configurable caps (per event, per day/week).
 - Tenants must be able to view recovery events affecting their drivers; drivers must see recovery notices and receipts in tenant context.
 
-**RIDE-PAYOUT-106 â€” Ledger linkage + reconciliation**
-- Every payout/cash-out must create linked ledger entries for:
-  - gross amount, fees, net payout, reserves/holdbacks (if enabled),
-  - source earnings ids (trip + adjustment),
-  - payout execution ids.
-- Reconciliation must detect mismatches between ledger totals and PaySurity rail records and create exceptions visible to tenant admins and platform ops.
-
-**RIDE-PAYOUT-108 â€” Regular payout schedule (tenant-configurable)**
-- Tenant may configure payout cadence (daily/weekly/biweekly/monthly) and cutoff window.
-- When enabled, scheduled payouts include all eligible balances not already paid/cashed-out, respecting settlement gating and reserves/holdbacks (if enabled).
-
-**RIDE-PAYOUT-110 â€” â€œPaid by tenantâ€ presentation + receipt truth**
-- Driver-facing payout artifacts must include:
-  - `Paid by: {TenantName}`
-  - `Processed via: Rideoo`
-- Support/internal view must retain:
-  - `Funded by: Rideoo (PaySurity rail)`
-  - pointer to the captured tenant consent for PAY-FLOW-0100 (version + timestamp + actor).
-
-### 8.3B Bulk payout runs (enable-only; tenant + platform roles)
-
-**RIDE-PAYOUT-111 â€” Bulk payout preview + edit + confirm**
-- Authorized tenant roles and/or platform roles can create a Bulk Payout Run scoped to tenant, date range, and eligibility filters.
-- Bulk Payout Run must support:
-  1) Preview (line-item breakdown + totals),
-  2) Edit (amounts/line-items with required reason codes),
-  3) Confirm (actor + timestamp + checksum of totals).
-
-**RIDE-PAYOUT-112 â€” Bulk payout execution + audit**
-- Execution must be idempotent and emit per-item statuses: `queued` â†’ `processing` â†’ `paid` OR `failed`.
-- Retries must reuse the same idempotency key; partial failures must produce an exception list; no silent drops.
-- Full audit trail required for create/edit/confirm/execute actions, including reasons and checksums.
-
 **DoD Evidence (payouts)**
 - Automated tests cover:
   - bank_settled gating for platform-triggered payouts,
-  - pending vs eligible calculations (incl. tenant controls when enabled),
+  - pending vs eligible calculations,
   - adjustment + recovery ledger correctness,
-  - ledger linkage + reconciliation exception creation,
-  - scheduled payout window behavior when enabled,
-  - bulk payout preview/edit/confirm + checksum + idempotent execution when enabled,
   - receipt strings (Paid by Tenant / Processed via Rideoo),
-  - audit log emission for payout + recovery + bulk payout actions.
+  - audit log emission for payout + recovery actions.
+
 <!-- EBT_PATCH:PAYOUTS_V2_END -->
 
 
@@ -1208,17 +1168,6 @@ Lead capture:
 - Leads enter platform pipeline (Customer Relationship Management (CRM) stub acceptable but must store in DB and notify platform team).
 
 ### 10.A Tenant microsites (white-label) (mandatory)
-
-#### 10.A.1 Microsite domains + SEO canonicalization (pinned)
-
-- Each tenant microsite MUST have exactly one **primary domain**.
-- All alias domains MUST 301-redirect to the primary domain.
-- If an alias cannot 301 (rare), the microsite MUST emit `<link rel="canonical" href="https://PRIMARY/...">` on every page.
-- `robots.txt` and `sitemap.xml` MUST be generated per primary domain and kept consistent across aliases.
-- The microsite build pipeline MUST validate there is no â€œsplit-canonicalâ€ (two pages claiming each other as canonical).
-
-**DoD gates:** UI (tenant domain manager) + API + automated tests (redirect/canonical) + deployment smoke test.
-
 - Each tenant must have an auto-provisioned public microsite, hosted by Rideoo on GCP (static-first + CDN).
 - Microsite must support tenant-owned domains (primary domain + optional alias domains with 301 redirects or canonical tags).
 - Microsite must support theme tokens (logo, colors, typography), page blocks, and SEO metadata (title/description/OG/Twitter cards).
@@ -1400,3 +1349,4 @@ This section is **non-authoritative** and exists only to show source traceabilit
 - Source C (merged context): `rideshare context.txt`
 
 All requirements in Sources B and C have been incorporated into the authoritative sections above. If an omission is discovered, the omission must be added above (not here) per Â§20 Hard anti-drift rule.
+
