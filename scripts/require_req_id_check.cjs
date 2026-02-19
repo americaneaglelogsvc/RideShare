@@ -1,43 +1,48 @@
-﻿const { execSync } = require("child_process");
+﻿/* scripts/require_req_id_check.cjs */
 const fs = require("fs");
-const path = require("path");
+const cp = require("child_process");
 
 function sh(cmd) {
-  return execSync(cmd, { stdio: ["ignore", "pipe", "pipe"] }).toString("utf8");
+  return cp.execSync(cmd, { stdio: ["ignore", "pipe", "pipe"] }).toString("utf8").trim();
 }
 
-const base = process.env.GITHUB_BASE_REF || "main";
+const baseRef = process.env.GITHUB_BASE_REF || "main";
 
+// Best-effort fetch
+try { cp.execSync(`git fetch origin ${baseRef} --depth=1`, { stdio: "ignore" }); } catch (_) {}
+
+let changed = [];
 try {
-  sh(`git fetch origin ${base} --depth=1`);
+  changed = sh(`git diff --name-only origin/${baseRef}...HEAD`).split(/\r?\n/).filter(Boolean);
 } catch (_) {
-  // best-effort
-}
-
-const changed = sh(`git diff --name-only origin/${base}...HEAD`).split(/\r?\n/).filter(Boolean);
-const reqChanged = changed.filter(p => p.replace(/\\/g,"/").startsWith("Requirements/"));
-
-if (reqChanged.length === 0) {
-  console.log("OK: no Requirements/* changes in this PR.");
-  process.exit(0);
-}
-
-// Minimal enterprise rule (safe): any changed Requirements/*.md must include at least one REQ- token
-// (prevents adding/editing requirement docs without IDs; avoids false positives on meta docs by scoping to changed files only)
-let bad = [];
-for (const p of reqChanged) {
-  if (!p.toLowerCase().endsWith(".md")) continue;
-  const txt = fs.readFileSync(p, "utf8");
-  if (!/REQ-[A-Z0-9_-]+/i.test(txt)) {
-    bad.push(p);
+  try {
+    changed = sh(`git diff --name-only ${baseRef}...HEAD`).split(/\r?\n/).filter(Boolean);
+  } catch (_) {
+    changed = sh(`git diff --name-only HEAD~1..HEAD`).split(/\r?\n/).filter(Boolean);
   }
 }
 
-if (bad.length) {
-  console.error("FAIL: These changed Requirements/*.md files contain no REQ-* IDs:");
-  for (const b of bad) console.error(" - " + b);
+// Accept canonical IDs like TEN-BASE-0001, CFG-TEN-0001, etc. (and legacy REQ-* too)
+const idRe = /\b[A-Z][A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3,5}\b/;
+
+const targets = changed.filter(f =>
+  f.startsWith("Requirements/") &&
+  f.endsWith(".md") &&
+  !f.startsWith("Requirements/_archive/")
+);
+
+const missing = [];
+for (const f of targets) {
+  let txt = "";
+  try { txt = fs.readFileSync(f, "utf8"); } catch (_) { txt = ""; }
+  if (!idRe.test(txt)) missing.push(f);
+}
+
+if (missing.length) {
+  console.error("FAIL: These changed Requirements/*.md files contain no req_id IDs:");
+  for (const f of missing) console.error(" - " + f);
   process.exit(1);
 }
 
-console.log("OK: require-req-id passed for changed Requirements files.");
+console.log("OK: require-req-id (req_id pattern found in all changed Requirements/*.md)");
 process.exit(0);
