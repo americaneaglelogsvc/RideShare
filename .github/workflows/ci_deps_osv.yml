@@ -10,8 +10,10 @@ permissions:
 jobs:
   osv:
     uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.3.3"
-    with:       upload-sarif: false
+    with:
+      upload-sarif: false
     permissions:
       actions: read
       security-events: write
       contents: read
+
