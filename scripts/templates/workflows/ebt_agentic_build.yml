@@ -19,8 +19,8 @@ permissions:
   pull-requests: write
 
 env:
-  REQUIREMENTS_MD: Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md
-  CANON_JSON: Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.json
+  REQUIREMENTS_MD: Requirements/CANONICAL_v6_1_MERGED_REORG_v3.md
+  CANON_JSON: Requirements/CANONICAL_v6_1_MERGED_REORG_v3.json
   CANON_JSONL: Requirements/requirements.jsonl
   LEDGER: Artifacts/openai_usage_ledger.jsonl
 
@@ -99,5 +99,6 @@ jobs:
             Artifacts/**
             Requirements/**
           if-no-files-found: warn
+
 
 

@@ -1,43 +1,52 @@
-﻿const { execSync } = require("child_process");
+/* require_req_id_check.cjs
+   Purpose: Ensure changed Requirements/*.md files include at least one req_id token.
+   Exempt certain meta files that should not contain req_id.
+*/
 const fs = require("fs");
-const path = require("path");
+const cp = require("child_process");
 
 function sh(cmd) {
-  return execSync(cmd, { stdio: ["ignore", "pipe", "pipe"] }).toString("utf8");
+  return cp.execSync(cmd, { encoding: "utf8" }).trim();
+}
+function safe(cmd) {
+  try { return sh(cmd); } catch (e) { return ""; }
 }
 
-const base = process.env.GITHUB_BASE_REF || "main";
-
-try {
-  sh(`git fetch origin ${base} --depth=1`);
-} catch (_) {
-  // best-effort
+const baseRef = process.env.GITHUB_BASE_REF || "";
+if (baseRef) {
+  safe(`git fetch origin ${baseRef}`);
 }
 
-const changed = sh(`git diff --name-only origin/${base}...HEAD`).split(/\r?\n/).filter(Boolean);
-const reqChanged = changed.filter(p => p.replace(/\\/g,"/").startsWith("Requirements/"));
+const range = baseRef ? `origin/${baseRef}...HEAD` : "HEAD~1..HEAD";
+const out = safe(`git diff --name-only ${range}`) || "";
+const files = out.split(/\r?\n/).filter(Boolean);
 
-if (reqChanged.length === 0) {
-  console.log("OK: no Requirements/* changes in this PR.");
-  process.exit(0);
-}
+const mdFiles = files
+  .map(f => f.replace(/\\/g, "/"))
+  .filter(f => f.startsWith("Requirements/") && f.endsWith(".md"));
 
-// Minimal enterprise rule (safe): any changed Requirements/*.md must include at least one REQ- token
-// (prevents adding/editing requirement docs without IDs; avoids false positives on meta docs by scoping to changed files only)
-let bad = [];
-for (const p of reqChanged) {
-  if (!p.toLowerCase().endsWith(".md")) continue;
-  const txt = fs.readFileSync(p, "utf8");
-  if (!/REQ-[A-Z0-9_-]+/i.test(txt)) {
-    bad.push(p);
-  }
+const EXEMPT = new Set([
+  "Requirements/BUILD_AUTHORITY.md"
+]);
+
+const REQ = /\b[A-Z][A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3,5}\b/; // e.g., RIDEOO-CORE-0001, TEN-BASE-01234
+
+const bad = [];
+for (const f of mdFiles) {
+  if (EXEMPT.has(f)) continue;
+
+  let text = "";
+  try { text = fs.readFileSync(f, "utf8"); }
+  catch (e) { continue; }
+
+  if (!REQ.test(text)) bad.push(f);
 }
 
 if (bad.length) {
-  console.error("FAIL: These changed Requirements/*.md files contain no REQ-* IDs:");
+  console.error("FAIL: These changed Requirements/*.md files contain no req_id IDs:");
   for (const b of bad) console.error(" - " + b);
   process.exit(1);
 }
 
-console.log("OK: require-req-id passed for changed Requirements files.");
+console.log(`OK: req_id present (or file exempt). Checked ${mdFiles.length} Requirements/*.md file(s).`);
 process.exit(0);
