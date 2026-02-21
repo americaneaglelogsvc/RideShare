@@ -1,4 +1,4 @@
-﻿# Build Authority (STRICT)
+# Build Authority (STRICT)
 
 The ONLY requirements source-of-truth is:
 - CANONICAL_v6_1.md
@@ -20,4 +20,8 @@ If a capability is missing, update ONLY the canonical requirements document.
 
 <!-- END: PAYMENTS_PROVIDER_BOUNDARY -->
 
+---
 
+## Guardrail (Authority)
+ONLY build authority is: Requirements/CANONICAL.md
+BlackRavenia_* documents and Requirements/_archive/** are reference-only and MUST NOT drive implementation.
