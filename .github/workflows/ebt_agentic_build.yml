@@ -1,4 +1,4 @@
-﻿# reindex: 20260216-010523
+# reindex: 20260216-010523
 ï»¿name: EBT Agentic Build (RideShare)
 
 on:
@@ -108,7 +108,17 @@ env:
             Artifacts/**
             Requirements/**
           if-no-files-found: warn
-
-
-
-
+  gap_artifact:
+    name: EBT Gap Artifact
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate gap report
+        shell: pwsh
+        run: |
+          ./scripts/generate_gap_report.ps1 -InputJsonl "Requirements/requirements.jsonl" -OutputPath "_ebt_gap_report/gap_report.json"
+      - name: Upload gap report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ebt_gap_report
+          path: _ebt_gap_report/gap_report.json
