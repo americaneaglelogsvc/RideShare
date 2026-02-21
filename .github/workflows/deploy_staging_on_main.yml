@@ -1,0 +1,62 @@
+name: deploy-staging-on-main
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: ${{ vars.GCP_REGION }}
+  SERVICE: rideoo-api-staging
+  IMAGE: us-central1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/rideoo-repo/api-staging
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Auth (OIDC/WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_SA_EMAIL }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Configure Docker auth (Artifact Registry)
+        run: |
+          gcloud --quiet auth configure-docker "${REGION}-docker.pkg.dev"
+
+      - name: Build + push image (Docker)
+        run: |
+          docker build -t "${IMAGE}" .
+          docker push "${IMAGE}"
+
+      - name: Deploy to Cloud Run (staging)
+        run: |
+          gcloud --quiet run deploy "${SERVICE}" \
+            --image "${IMAGE}" \
+            --region "${REGION}" \
+            --platform managed \
+            --no-allow-unauthenticated \
+            --port 8080 \
+            --set-env-vars "PORT=8080"
+
+      - name: Show service URL (job summary)
+        run: |
+          URL="$(gcloud run services describe "${SERVICE}" --region "${REGION}" --format="value(status.url)")"
+          echo "### Staging URL" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "$URL" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Service: ${SERVICE}" >> $GITHUB_STEP_SUMMARY
