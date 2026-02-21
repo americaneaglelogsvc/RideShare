@@ -1,6 +1,5 @@
 # reindex: 20260216-010523
 Ã¯Â»Â¿name: EBT Agentic Build (RideShare)
-
 on:
   workflow_dispatch:
     inputs:
@@ -14,6 +13,8 @@ on:
         description: "plan|build"
         required: false
         default: "build"
+  pull_request:
+  merge_group:
 
 permissions:
   contents: write
