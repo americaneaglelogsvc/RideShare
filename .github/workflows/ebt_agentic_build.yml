@@ -1,5 +1,5 @@
 # reindex: 20260216-010523
-ï»¿name: EBT Agentic Build (RideShare)
+Ã¯Â»Â¿name: EBT Agentic Build (RideShare)
 
 on:
   workflow_dispatch:
@@ -47,7 +47,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade "openai<2"
 
-      - name: Sync MD â†’ JSON/JSONL
+      - name: Sync MD Ã¢â€ â€™ JSON/JSONL
         shell: bash
         run: |
           test -f scripts/sync_requirements_from_md.py
@@ -74,7 +74,7 @@ env:
         run: |
           python scripts/backfill_requirements_from_implemented.py "${REQUIREMENTS_MD}" "AgentOutput/implemented_not_documented.md"
 
-      - name: Re-sync MD â†’ JSON/JSONL
+      - name: Re-sync MD Ã¢â€ â€™ JSON/JSONL
         shell: bash
         run: |
           python scripts/sync_requirements_from_md.py --md "${REQUIREMENTS_MD}" --json "${CANON_JSON}" --jsonl "${CANON_JSONL}"
