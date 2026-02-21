@@ -1,5 +1,5 @@
 # reindex: 20260216-010523
-Ã¯Â»Â¿name: EBT Agentic Build (RideShare)
+name: EBT Agentic Build (RideShare)
 on:
   workflow_dispatch:
     inputs:
