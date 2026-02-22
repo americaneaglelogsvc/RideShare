@@ -15,23 +15,36 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run gap report generator
+      - name: Debug file list (helps find script + outputs)
         shell: pwsh
         run: |
-          if (Test-Path "scripts/generate_gap_report.ps1") {
-            pwsh -File "scripts/generate_gap_report.ps1"
-          } else {
-            Write-Error "scripts/generate_gap_report.ps1 not found"
+          $ErrorActionPreference = 'Continue'
+          Get-ChildItem -Recurse -File | Select-Object FullName | Out-File -FilePath gap_dispatch_filelist.txt -Encoding utf8
+          if (Test-Path scripts) { Get-ChildItem -Recurse -File scripts | Select-Object FullName | Out-File -FilePath gap_dispatch_scripts.txt -Encoding utf8 }
+
+      - name: Run gap report generator (case-insensitive find)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $script = Get-ChildItem -Recurse -File | Where-Object { $_.Name -ieq 'generate_gap_report.ps1' } | Select-Object -First 1
+          if (-not $script) {
+            Write-Error "generate_gap_report.ps1 not found anywhere in repo. Check gap_dispatch_filelist.txt"
             exit 1
           }
+          Write-Host "Using script: $($script.FullName)"
+          pwsh -NoProfile -File $script.FullName
 
-      - name: Upload gap artifact
+      - name: Upload gap artifact + debug (ALWAYS)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ebt_gap_report
           path: |
+            gap_dispatch_filelist.txt
+            gap_dispatch_scripts.txt
             Artifacts/**
             artifacts/**
-            _ebt_gap_report*
-            *_gap_report*
+            AgentOutput/**
+            out/**
+            **/*gap*report*
           if-no-files-found: warn
