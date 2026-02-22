@@ -1,5 +1,6 @@
 # reindex: 20260216-010523
-Ã¯Â»Â¿name: EBT Agentic Build (RideShare)
+name: EBT Agentic Build (RideShare)
+
 on:
   workflow_dispatch:
     inputs:
@@ -103,14 +104,12 @@ env:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ebt-agentic-build-${{ github.run_id }}
           path: |
             AgentOutput/**
             Artifacts/**
             Requirements/**
           if-no-files-found: warn
   gap_artifact:
-    name: EBT Gap Artifact
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -121,5 +120,5 @@ env:
       - name: Upload gap report
         uses: actions/upload-artifact@v4
         with:
-          name: ebt_gap_report
           path: _ebt_gap_report/gap_report.json
+
