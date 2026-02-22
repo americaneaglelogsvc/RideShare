@@ -1,4 +1,4 @@
-﻿# Rideoo-RideShare Platform â€” Canonical Requirements (v6.1, rev v10)
+# Rideoo-RideShare Platform â€” Canonical Requirements (v6.1, rev v10)
 
 **Timestamp (America/Chicago): 2026-02-17 21:45**  
 
