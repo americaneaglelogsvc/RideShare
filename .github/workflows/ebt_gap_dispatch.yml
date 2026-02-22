@@ -34,33 +34,26 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          if (-not (Test-Path "Requirements/CANONICAL.md")) { throw "Missing Requirements/CANONICAL.md" }
+          $in  = "Requirements/CANONICAL.md"
+          $out = "Requirements/requirements.jsonl"
+          if (-not (Test-Path $in))  { throw "Missing $in" }
           if (-not (Test-Path "scripts/extract_requirements_jsonl.ps1")) { throw "Missing scripts/extract_requirements_jsonl.ps1" }
-          pwsh -NoProfile -File "scripts/extract_requirements_jsonl.ps1"
-          if (-not (Test-Path "Requirements/requirements.jsonl")) { throw "requirements.jsonl was not created" }
 
-      - name: Debug env + file list
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Continue'
-          python --version 2>&1 | Out-File -FilePath gap_dispatch_env.txt -Encoding utf8
-          pwsh --version | Out-File -FilePath gap_dispatch_env.txt -Append -Encoding utf8
-          Get-Location | Out-File -FilePath gap_dispatch_env.txt -Append -Encoding utf8
-          Get-ChildItem -Recurse -File | Select-Object FullName | Out-File -FilePath gap_dispatch_filelist.txt -Encoding utf8
-          if (Test-Path Requirements) { Get-ChildItem -Recurse -File Requirements | Select-Object FullName | Out-File -FilePath gap_dispatch_requirements.txt -Encoding utf8 }
-          if (Test-Path scripts) { Get-ChildItem -Recurse -File scripts | Select-Object FullName | Out-File -FilePath gap_dispatch_scripts.txt -Encoding utf8 }
+          pwsh -NoProfile -File "scripts/extract_requirements_jsonl.ps1" -InputMd $in -OutputJsonl $out
+
+          if (-not (Test-Path $out)) { throw "requirements.jsonl was not created at $out" }
 
       - name: Run gap report generator (capture log)
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Continue'
-          $script = Get-ChildItem -Recurse -File | Where-Object { $_.Name -ieq 'generate_gap_report.ps1' } | Select-Object -First 1
-          if (-not $script) {
-            "generate_gap_report.ps1 not found" | Tee-Object -FilePath gap_dispatch_generator.log
+          $script = "scripts/generate_gap_report.ps1"
+          if (-not (Test-Path $script)) {
+            "Missing $script" | Tee-Object -FilePath gap_dispatch_generator.log
             exit 1
           }
-          "Using script: $($script.FullName)" | Tee-Object -FilePath gap_dispatch_generator.log
-          & pwsh -NoProfile -File $script.FullName *>&1 | Tee-Object -FilePath gap_dispatch_generator.log -Append
+          "Using script: $script" | Tee-Object -FilePath gap_dispatch_generator.log
+          & pwsh -NoProfile -File $script *>&1 | Tee-Object -FilePath gap_dispatch_generator.log -Append
           $code = $LASTEXITCODE
           "EXITCODE=$code" | Tee-Object -FilePath gap_dispatch_generator.log -Append
           exit $code
@@ -71,10 +64,6 @@ jobs:
         with:
           name: ebt_gap_report
           path: |
-            gap_dispatch_env.txt
-            gap_dispatch_filelist.txt
-            gap_dispatch_requirements.txt
-            gap_dispatch_scripts.txt
             gap_dispatch_generator.log
             Requirements/requirements.jsonl
             AgentOutput/**
