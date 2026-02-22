@@ -30,6 +30,15 @@ jobs:
             echo "requirements.txt not found; skipping pip install"
           fi
 
+      - name: Build Requirements/requirements.jsonl from CANONICAL.md
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path "Requirements/CANONICAL.md")) { throw "Missing Requirements/CANONICAL.md" }
+          if (-not (Test-Path "scripts/extract_requirements_jsonl.ps1")) { throw "Missing scripts/extract_requirements_jsonl.ps1" }
+          pwsh -NoProfile -File "scripts/extract_requirements_jsonl.ps1"
+          if (-not (Test-Path "Requirements/requirements.jsonl")) { throw "requirements.jsonl was not created" }
+
       - name: Debug env + file list
         shell: pwsh
         run: |
@@ -38,6 +47,7 @@ jobs:
           pwsh --version | Out-File -FilePath gap_dispatch_env.txt -Append -Encoding utf8
           Get-Location | Out-File -FilePath gap_dispatch_env.txt -Append -Encoding utf8
           Get-ChildItem -Recurse -File | Select-Object FullName | Out-File -FilePath gap_dispatch_filelist.txt -Encoding utf8
+          if (Test-Path Requirements) { Get-ChildItem -Recurse -File Requirements | Select-Object FullName | Out-File -FilePath gap_dispatch_requirements.txt -Encoding utf8 }
           if (Test-Path scripts) { Get-ChildItem -Recurse -File scripts | Select-Object FullName | Out-File -FilePath gap_dispatch_scripts.txt -Encoding utf8 }
 
       - name: Run gap report generator (capture log)
@@ -63,8 +73,10 @@ jobs:
           path: |
             gap_dispatch_env.txt
             gap_dispatch_filelist.txt
+            gap_dispatch_requirements.txt
             gap_dispatch_scripts.txt
             gap_dispatch_generator.log
+            Requirements/requirements.jsonl
             AgentOutput/**
             Artifacts/**
             out/**
