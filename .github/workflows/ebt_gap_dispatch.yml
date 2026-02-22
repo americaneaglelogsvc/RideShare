@@ -15,24 +15,45 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Debug file list (helps find script + outputs)
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install python deps (if requirements.txt exists)
+        shell: bash
+        run: |
+          if [ -f requirements.txt ]; then
+            python -m pip install --upgrade pip
+            python -m pip install -r requirements.txt
+          else
+            echo "requirements.txt not found; skipping pip install"
+          fi
+
+      - name: Debug env + file list
         shell: pwsh
         run: |
-          $ErrorActionPreference = 'Continue'
+          Stop = 'Continue'
+          python --version 2>&1 | Out-File -FilePath gap_dispatch_env.txt -Encoding utf8
+          pwsh --version | Out-File -FilePath gap_dispatch_env.txt -Append -Encoding utf8
+          Get-Location | Out-File -FilePath gap_dispatch_env.txt -Append -Encoding utf8
           Get-ChildItem -Recurse -File | Select-Object FullName | Out-File -FilePath gap_dispatch_filelist.txt -Encoding utf8
           if (Test-Path scripts) { Get-ChildItem -Recurse -File scripts | Select-Object FullName | Out-File -FilePath gap_dispatch_scripts.txt -Encoding utf8 }
 
-      - name: Run gap report generator (case-insensitive find)
+      - name: Run gap report generator (capture log)
         shell: pwsh
         run: |
-          $ErrorActionPreference = 'Stop'
-          $script = Get-ChildItem -Recurse -File | Where-Object { $_.Name -ieq 'generate_gap_report.ps1' } | Select-Object -First 1
-          if (-not $script) {
-            Write-Error "generate_gap_report.ps1 not found anywhere in repo. Check gap_dispatch_filelist.txt"
+          Stop = 'Continue'
+           = Get-ChildItem -Recurse -File | Where-Object { .Name -ieq 'generate_gap_report.ps1' } | Select-Object -First 1
+          if (-not ) {
+            "generate_gap_report.ps1 not found" | Tee-Object -FilePath gap_dispatch_generator.log
             exit 1
           }
-          Write-Host "Using script: $($script.FullName)"
-          pwsh -NoProfile -File $script.FullName
+          "Using script: " | Tee-Object -FilePath gap_dispatch_generator.log
+          & pwsh -NoProfile -File .FullName *>&1 | Tee-Object -FilePath gap_dispatch_generator.log -Append
+           = 0
+          "EXITCODE=" | Tee-Object -FilePath gap_dispatch_generator.log -Append
+          exit 
 
       - name: Upload gap artifact + debug (ALWAYS)
         if: always()
@@ -40,8 +61,10 @@ jobs:
         with:
           name: ebt_gap_report
           path: |
+            gap_dispatch_env.txt
             gap_dispatch_filelist.txt
             gap_dispatch_scripts.txt
+            gap_dispatch_generator.log
             Artifacts/**
             artifacts/**
             AgentOutput/**
