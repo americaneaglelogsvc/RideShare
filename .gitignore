@@ -71,3 +71,6 @@ _agent_artifacts_*
 _ebt_log_*.txt
 _scan_failed_*.txt
 _scan_fail_log_*.txt
+_windsurf/
+_ebt_gap_report_*
+*_log_*.txt
