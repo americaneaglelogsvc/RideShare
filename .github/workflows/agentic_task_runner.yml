@@ -1,0 +1,111 @@
+﻿name: agentic-task-runner (codex)
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        required: true
+        type: string
+      allowed_paths:
+        required: false
+        default: "Requirements/,scripts/,config/,locales/,.github/"
+        type: string
+      pr_title:
+        required: false
+        default: "agentic: task-runner change"
+        type: string
+
+jobs:
+
+concurrency:
+  group: agentic-task-runner
+  cancel-in-progress: false
+
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build runtime prompt
+        env:
+          TASK: ${{ github.event.inputs.task }}
+          ALLOWED_PATHS: ${{ github.event.inputs.allowed_paths }}
+        run: |
+          python - << 'PY'
+          import os
+          from pathlib import Path
+          tpl = Path(".github/codex/prompts/task_runner.md").read_text(encoding="utf-8")
+          out = tpl.replace("{{TASK}}", os.environ["TASK"]).replace("{{ALLOWED_PATHS}}", os.environ["ALLOWED_PATHS"])
+          Path(".github/codex/prompts/_task_runtime.md").write_text(out, encoding="utf-8")
+          PY
+
+      - name: Run Codex (workspace-write)
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: .github/codex/prompts/_task_runtime.md
+          output-file: codex-output.md
+          sandbox: workspace-write
+          safety-strategy: drop-sudo
+
+      - name: Validate
+        run: |
+          npm run test:requirements
+          npm run test:foundation
+
+      - name: Create PR
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.BOT_GH_TOKEN }}
+          branch: agentic/${{ github.run_id }}
+          delete-branch: true
+          title: ${{ github.event.inputs.pr_title }}
+          commit-message: "agentic: ${{ github.event.inputs.pr_title }}"
+          body: |
+            Task:
+            - ${{ github.event.inputs.task }}
+
+            Allowed paths:
+            - ${{ github.event.inputs.allowed_paths }}
+
+            Gates:
+            - npm run test:requirements
+            - npm run test:foundation
+          labels: agentic
+
+      - name: Approve PR (if BOT_GH_TOKEN is set)
+        if: ${{ steps.cpr.outputs.pull-request-number != '' && secrets.BOT_GH_TOKEN != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.BOT_GH_TOKEN }}
+        run: |
+          gh pr review ${{ steps.cpr.outputs.pull-request-number }} --approve --repo ${{ github.repository }}
+
+      - name: Enable auto-merge (squash)
+        if: ${{ steps.cpr.outputs.pull-request-number != '' }}
+        env:
+          GH_token: ${{ secrets.BOT_GH_TOKEN }}
+        run: |
+          gh pr merge ${{ steps.cpr.outputs.pull-request-number }} \
+            --auto --squash --delete-branch \
+            --repo ${{ github.repository }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: codex-output
+          path: codex-output.md
