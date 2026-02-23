@@ -1,0 +1,13 @@
+{
+    "generated_at":  "20260222_164001",
+    "roles":  [
+                  "PLATFORM_SUPER_ADMIN",
+                  "PLATFORM_SUB_SUPER_ADMIN",
+                  "TENANT_OWNER",
+                  "TENANT_OPS_ADMIN",
+                  "TENANT_CSR",
+                  "FLEET_OWNER",
+                  "DRIVER",
+                  "RIDER"
+              ]
+}
