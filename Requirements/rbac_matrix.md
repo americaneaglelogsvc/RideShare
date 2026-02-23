@@ -14,3 +14,4 @@
 ## Notes
 - Platform roles can access cross-tenant (audited).
 - Tenant roles limited to tenant_id scope.
+

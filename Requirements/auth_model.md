@@ -9,3 +9,4 @@
 - RBAC with least privilege.
 - Platform roles can operate cross-tenant (audited).
 - Tenant roles are tenant-scoped via tenant_id.
+
