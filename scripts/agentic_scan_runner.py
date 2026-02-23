@@ -1,4 +1,5 @@
-﻿#!/usr/bin/env python3
+import re
+#!/usr/bin/env python3
 import argparse, os, re, json, sys
 from pathlib import Path
 from datetime import datetime, timezone
@@ -255,6 +256,33 @@ def main():
     mx = 9999
   if mx > 0:
     reqs = reqs[:mx]
+    # --- C2-A: include CANONICAL MACHINE_READABLE_JSONL req_ids (non-BRRS too) ---
+    canon_md = Path("Requirements/CANONICAL.md")
+    if canon_md.exists():
+        try:
+            md = canon_md.read_text(encoding="utf-8", errors="ignore")
+            m = re.search(r"MACHINE_READABLE_JSONL(.*?)END_MACHINE_READABLE_JSONL", md, re.S)
+            if m:
+                block = m.group(1)
+                canon_items = []
+                for ln in block.splitlines():
+                    s = ln.strip()
+                    if not s:
+                        continue
+                    try:
+                        o = json.loads(s)
+                    except Exception:
+                        continue
+                    rid = (o.get("req_id") or o.get("requirement_id") or "").strip()
+                    title = str(o.get("title") or "")[:180]
+                    if rid:
+                        canon_items.append((rid, title))
+                existing = {str(r.get("requirement_id","")).strip() for r in reqs}
+                for rid, title in canon_items:
+                    if rid and rid not in existing:
+                        reqs.append({"requirement_id": rid, "title": title, "milestone": "Core/Other"})
+        except Exception:
+            pass
 
   req_ids = [r["requirement_id"] for r in reqs]
   req_set = set(req_ids)
