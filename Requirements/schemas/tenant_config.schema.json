@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rideshare.blackravenia/requirements/schemas/tenant_config.schema.json",
+  "title": "tenant_config (CFG-TEN-0001, CFG-JSON-0001, CFG-JSON-0002)",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "branding",
+    "microsite",
+    "dispatch",
+    "airports",
+    "pricing",
+    "policy_center"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "branding": { "type": "object" },
+    "microsite": { "type": "object" },
+    "dispatch": { "type": "object" },
+    "airports": { "type": "object" },
+    "pricing": { "type": "object" },
+    "policy_center": { "type": "object" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,8 @@
+{
+  "events": [
+    {
+      "type": "config.change",
+      "description": "Platform or tenant config changed"
+    }
+  ]
+}
