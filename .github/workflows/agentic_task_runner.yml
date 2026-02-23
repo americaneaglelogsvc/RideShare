@@ -1,4 +1,4 @@
-name: agentic-task-runner (codex)
+﻿name: agentic-task-runner (codex)
 
 on:
   workflow_dispatch:
@@ -16,6 +16,11 @@ on:
         type: string
 
 jobs:
+
+concurrency:
+  group: agentic-task-runner
+  cancel-in-progress: false
+
   run:
     runs-on: ubuntu-latest
     permissions:
@@ -67,7 +72,7 @@ jobs:
         id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.BOT_GH_TOKEN || github.token }}
+          token: ${{ secrets.BOT_GH_TOKEN }}
           branch: agentic/${{ github.run_id }}
           delete-branch: true
           title: ${{ github.event.inputs.pr_title }}
@@ -94,7 +99,7 @@ jobs:
       - name: Enable auto-merge (squash)
         if: ${{ steps.cpr.outputs.pull-request-number != '' }}
         env:
-          GH_TOKEN: ${{ secrets.BOT_GH_TOKEN || github.token }}
+          GH_token: ${{ secrets.BOT_GH_TOKEN }}
         run: |
           gh pr merge ${{ steps.cpr.outputs.pull-request-number }} \
             --auto --squash --delete-branch \
