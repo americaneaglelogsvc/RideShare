@@ -1,5 +1,5 @@
-﻿req_id: BRRS-2.4
 # RBAC Matrix (FOUNDATION)
+req_id: TEN-BASE-0002
 
 ## Canonical roles
 - PLATFORM_SUPER_ADMIN
@@ -14,4 +14,3 @@
 ## Notes
 - Platform roles can access cross-tenant (audited).
 - Tenant roles limited to tenant_id scope.
-

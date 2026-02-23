@@ -1,5 +1,5 @@
-﻿req_id: BRRS-3.1
 # Auth Model (FOUNDATION)
+req_id: TEN-BASE-0002
 
 ## Sessions
 - JWT sessions.
@@ -9,4 +9,3 @@
 - RBAC with least privilege.
 - Platform roles can operate cross-tenant (audited).
 - Tenant roles are tenant-scoped via tenant_id.
-

@@ -1,5 +1,5 @@
-﻿req_id: BRRS-2.2
 # Tenancy & Data Isolation (FOUNDATION)
+req_id: TEN-BASE-0001
 
 ## Purpose
 Defines tenant boundary rules and evidence gates for tenant isolation.
@@ -13,4 +13,3 @@ Defines tenant boundary rules and evidence gates for tenant isolation.
 - Given Tenant A and Tenant B exist,
   when Tenant A user queries trips,
   then only Tenant A trips are returned.
-
