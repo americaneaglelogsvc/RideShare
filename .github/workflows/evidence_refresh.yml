@@ -1,0 +1,25 @@
+name: evidence-refresh (AgentOutput)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Generate AgentOutput
+        run: |
+          rm -rf AgentOutput
+          python scripts/agentic_scan_runner.py --requirements-json Requirements/CANONICAL.json --mode full --max-requirements 9999 --out-dir AgentOutput
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AgentOutput
+          path: AgentOutput/**
