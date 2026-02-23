@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rideshare.blackravenia/requirements/schemas/platform_config.schema.json",
+  "title": "platform_config (CFG-PLAT-0001, CFG-JSON-0001, CFG-JSON-0002)",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "plans",
+    "fee_catalog",
+    "billing_policy",
+    "caps",
+    "feature_flags",
+    "required_disclosures"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "plans": { "type": "array" },
+    "fee_catalog": { "type": "array" },
+    "billing_policy": {
+      "type": "object",
+      "properties": {
+        "autopull": { "type": "object" },
+        "dunning": { "type": "object" }
+      },
+      "required": ["autopull", "dunning"]
+    },
+    "caps": { "type": "object" },
+    "feature_flags": { "type": "object" },
+    "required_disclosures": { "type": "object" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "branding": {},
+  "microsite": {
+    "template_id": "",
+    "domains": { "primary": "" },
+    "booking_widget": { "enabled": true }
+  },
+  "dispatch": {},
+  "airports": {},
+  "pricing": {},
+  "policy_center": { "active_policy_version_id": "" }
+}
