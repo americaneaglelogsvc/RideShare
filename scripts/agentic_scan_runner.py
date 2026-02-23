@@ -261,29 +261,35 @@ def main():
     if canon_md.exists():
         try:
             md = canon_md.read_text(encoding="utf-8", errors="ignore")
-            m = re.search(r"MACHINE_READABLE_JSONL(.*?)END_MACHINE_READABLE_JSONL", md, re.S)
-            if m:
-                block = m.group(1)
-                canon_items = []
+            matches = list(re.finditer(r"MACHINE_READABLE_JSONL(.*?)END_MACHINE_READABLE_JSONL", md, re.S))
+            best_items = []
+            for mm in matches:
+                block = mm.group(1)
+                items = []
                 for ln in block.splitlines():
-                    s = ln.strip()
+                    s = (ln or '').strip()
                     if not s:
+                        continue
+                    s = s.lstrip('\ufeff')
+                    if not s.startswith('{'):
                         continue
                     try:
                         o = json.loads(s)
                     except Exception:
                         continue
-                    rid = (o.get("req_id") or o.get("requirement_id") or "").strip()
-                    title = str(o.get("title") or "")[:180]
+                    rid = (o.get('req_id') or o.get('requirement_id') or '').strip()
+                    title = str(o.get('title') or '')[:180]
                     if rid:
-                        canon_items.append((rid, title))
-                existing = {str(r.get("requirement_id","")).strip() for r in reqs}
-                for rid, title in canon_items:
-                    if rid and rid not in existing:
-                        reqs.append({"requirement_id": rid, "title": title, "milestone": "Core/Other"})
+                        items.append((rid, title))
+                if len(items) > len(best_items):
+                    best_items = items
+            existing = {str(r.get('requirement_id','')).strip() for r in reqs}
+            for rid, title in best_items:
+                if rid and rid not in existing:
+                    reqs.append({'requirement_id': rid, 'title': title, 'milestone': 'Core/Other'})
         except Exception:
             pass
-
+    
   req_ids = [r["requirement_id"] for r in reqs]
   req_set = set(req_ids)
 
