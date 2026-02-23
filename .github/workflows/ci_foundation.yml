@@ -1,0 +1,39 @@
+name: ci (foundation)
+
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  foundation_ci:
+    name: foundation/ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install
+        shell: bash
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Validators (requirements)
+        run: npm run test:requirements --if-present
+
+      - name: Validators (foundation)
+        run: npm run test:foundation --if-present
