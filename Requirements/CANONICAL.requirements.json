@@ -1,0 +1,6 @@
+﻿{
+  "purpose": "compat",
+  "canonical_md": "Requirements/CANONICAL.md",
+  "canonical_json": "Requirements/CANONICAL.json",
+  "note": "Compatibility artifact only. Use Requirements/CANONICAL.md as the sole build authority."
+}
