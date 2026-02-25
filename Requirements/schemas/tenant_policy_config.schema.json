@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rideshare.blackravenia/requirements/schemas/tenant_policy_config.schema.json",
+  "title": "tenant_policy_config (CFG-JSON-0001, CFG-JSON-0002)",
+  "type": "object",
+  "properties": {
+    "schema_version": { "type": "string" },
+    "policies": { "type": "array" }
+  },
+  "additionalProperties": true
+}

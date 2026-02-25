@@ -1,0 +1,136 @@
+name: agentic-task-runner (codex)
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Task for Codex to implement"
+        required: true
+        type: string
+      allowed_paths:
+        description: "Comma-separated allowed path prefixes"
+        required: false
+        default: "Requirements/,scripts/,config/,locales/,.github/"
+        type: string
+      pr_title:
+        description: "PR title"
+        required: false
+        default: "agentic: task"
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: agentic-task-runner
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Require OPENAI_API_KEY
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          test -n "$OPENAI_API_KEY" || (echo "Missing OPENAI_API_KEY secret" && exit 1)
+
+      - name: Build prompt
+        run: |
+          cat > .github/codex_task.md << 'EOF'
+          Single authority: Requirements/CANONICAL.md ONLY.
+          Do not use any other requirements docs as authority.
+
+          Allowed paths (prefixes):
+          ${{ github.event.inputs.allowed_paths }}
+
+          Task:
+          ${{ github.event.inputs.task }}
+          EOF
+
+      - name: Run Codex (workspace-write)
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: .github/codex_task.md
+          output-file: codex-output.md
+          sandbox: workspace-write
+          safety-strategy: drop-sudo
+
+      - name: Enforce allowed paths
+        env:
+          ALLOWED_PATHS: ${{ github.event.inputs.allowed_paths }}
+        run: |
+          python - << 'PY'
+          import os, subprocess, sys
+          allowed = [p.strip() for p in os.environ.get("ALLOWED_PATHS","").split(",") if p.strip()]
+          def ok(path):
+            path = path.replace("\\","/")
+            return any(path.startswith(a) for a in allowed)
+          diff = subprocess.check_output(["git","diff","--name-only"]).decode().splitlines()
+          bad = [p for p in diff if p and not ok(p)]
+          if bad:
+            print("ERROR: Changes outside allowed paths:")
+            for b in bad: print(" -", b)
+            sys.exit(1)
+          print("OK: all changes within allowed paths")
+          PY
+
+      - name: Validate
+        run: |
+          npm run test:requirements
+          npm run test:foundation
+
+      - name: Create PR
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.BOT_GH_TOKEN }}
+          branch: agentic/${{ github.run_id }}
+          delete-branch: true
+          title: ${{ github.event.inputs.pr_title }}
+          commit-message: "agentic: ${{ github.event.inputs.pr_title }}"
+          body: |
+            Task:
+            - ${{ github.event.inputs.task }}
+
+            Allowed paths:
+            - ${{ github.event.inputs.allowed_paths }}
+
+            Gates:
+            - npm run test:requirements
+            - npm run test:foundation
+          labels: agentic
+
+      - name: Approve PR
+        if: ${{ steps.cpr.outputs.pull-request-number != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.BOT_GH_TOKEN }}
+        run: |
+          gh pr review ${{ steps.cpr.outputs.pull-request-number }} --approve --repo ${{ github.repository }}
+
+      - name: Enable auto-merge (squash)
+        if: ${{ steps.cpr.outputs.pull-request-number != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.BOT_GH_TOKEN }}
+        run: |
+          gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --auto --squash --delete-branch --repo ${{ github.repository }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: codex-output
+          path: codex-output.md
