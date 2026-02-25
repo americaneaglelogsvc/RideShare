@@ -1,45 +1,62 @@
-﻿param()
-$ErrorActionPreference = "Stop"
+﻿[CmdletBinding()]
+param(
+  [string]$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path,
+  [string]$OutDir = "AgentInput"
+)
+
 Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
 
-$canonical = ".\Requirements\CANONICAL_v6_1.md"
-$outJsonl  = ".\Requirements\requirements.jsonl"
-$outJson   = ".\Requirements\requirements.json"
+$reqDir = Join-Path $RepoRoot "Requirements"
+if (!(Test-Path -LiteralPath $reqDir)) { throw ("Missing Requirements folder: " + $reqDir) }
 
-if (-not (Test-Path $canonical)) { throw "Canonical requirements file not found: $canonical" }
-New-Item -ItemType Directory -Force -Path ".\AgentInput"  | Out-Null
-New-Item -ItemType Directory -Force -Path ".\AgentOutput" | Out-Null
+$canonicalMd = Join-Path $reqDir "CANONICAL.md"
+if (!(Test-Path -LiteralPath $canonicalMd)) { throw ("Missing build authority: " + $canonicalMd) }
 
-$lines = Get-Content -Encoding UTF8 $canonical
-$startIdx = -1
-for ($i=0; $i -lt $lines.Count; $i++) { if ($lines[$i] -match "(?i)\bMACHINE_READABLE_JSONL\b") { $startIdx = $i; break } }
-if ($startIdx -lt 0) { throw "Could not find MACHINE_READABLE_JSONL marker in: $canonical" }
+$canonicalJson = Join-Path $reqDir "CANONICAL.json"
+if (!(Test-Path -LiteralPath $canonicalJson)) {
+  $candidates = Get-ChildItem -LiteralPath $reqDir -File -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -like "*Canonical*Requirements*.json" } |
+    Sort-Object LastWriteTime -Descending
 
-$out = New-Object System.Collections.Generic.List[string]
-for ($j=$startIdx+1; $j -lt $lines.Count; $j++) {
-  $t = $lines[$j].Trim()
-  if ($t -match "^(?i)(A\)|B\)|HUMAN_READABLE_TXT|MACHINE_READABLE_JSONL)\b" -and $j -gt ($startIdx+1)) { break }
-  if ($t.Length -eq 0) { continue }
-  if ($t.StartsWith("```")) { continue }
-  if ($t.StartsWith("{") -and $t.EndsWith("}")) { $out.Add($lines[$j]) }
+  if ($null -ne $candidates -and $candidates.Count -gt 0) {
+    Copy-Item -Force -LiteralPath $candidates[0].FullName -Destination $canonicalJson
+    Write-Host ("Created CANONICAL.json from: " + $candidates[0].Name) -ForegroundColor Yellow
+  }
 }
 
-if ($out.Count -eq 0) { throw "Found marker but extracted 0 JSONL lines. Ensure MACHINE_READABLE_JSONL contains single-line { ... } records." }
+if (!(Test-Path -LiteralPath $canonicalJson)) { throw ("Missing: " + $canonicalJson) }
 
-# Validate JSON (JavaScript Object Notation (JSON)) on every line
-$bad = New-Object System.Collections.Generic.List[string]
-foreach ($l in $out) { try { $null = $l | ConvertFrom-Json } catch { $bad.Add($l) } }
-if ($bad.Count -gt 0) { throw ("Invalid JSONL line found. First bad line: " + $bad[0]) }
+$jsonlPath = Join-Path $reqDir "requirements.jsonl"
+if (!(Test-Path -LiteralPath $jsonlPath)) {
+  $raw = (Get-Content -LiteralPath $canonicalJson -Raw)
+  $t = $raw.Trim()
+  if ($t.Length -lt 2 -or (("{" -ne $t.Substring(0,1)) -and ("[" -ne $t.Substring(0,1)))) {
+    throw "CANONICAL.json does not look like JSON (expected '{' or '[' at start)."
+  }
 
-# Write outputs
-$out | Set-Content -Encoding UTF8 $outJsonl
-$arr = foreach ($l in $out) { $l | ConvertFrom-Json }
-($arr | ConvertTo-Json -Depth 25) | Set-Content -Encoding UTF8 $outJson
+  $obj = $t | ConvertFrom-Json
 
-Copy-Item -Force $outJsonl ".\AgentInput\requirements.jsonl"
-Copy-Item -Force $outJson  ".\AgentInput\requirements.json"
+  # Accept either { requirements: [...] } or a bare [ ... ]
+  $items = $null
+  if ($null -ne $obj.PSObject.Properties["requirements"]) { $items = $obj.requirements } else { $items = $obj }
 
-Write-Host ("Wrote: " + $outJsonl) -ForegroundColor Green
-Write-Host ("Wrote: " + $outJson)  -ForegroundColor Green
-Write-Host "DONE." -ForegroundColor Green
+  if ($null -eq $items) { throw "No requirements found in CANONICAL.json." }
 
+  $lines = New-Object System.Collections.Generic.List[string]
+  foreach ($r in $items) {
+    $lines.Add(($r | ConvertTo-Json -Compress -Depth 64))
+  }
+
+  $lines | Set-Content -LiteralPath $jsonlPath -Encoding UTF8
+  Write-Host ("Generated: " + $jsonlPath) -ForegroundColor Yellow
+}
+
+$outDirPath = Join-Path $RepoRoot $OutDir
+New-Item -ItemType Directory -Force -Path $outDirPath | Out-Null
+
+Copy-Item -Force -LiteralPath $canonicalMd   -Destination (Join-Path $outDirPath "CANONICAL.md")
+Copy-Item -Force -LiteralPath $canonicalJson -Destination (Join-Path $outDirPath "CANONICAL.json")
+Copy-Item -Force -LiteralPath $jsonlPath     -Destination (Join-Path $outDirPath "requirements.jsonl")
+
+Write-Host ("DONE. AgentInput prepared at: " + $outDirPath) -ForegroundColor Green
