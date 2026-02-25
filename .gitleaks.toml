@@ -1,0 +1,12 @@
+﻿title = "RideShare gitleaks config (extends default)"
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Ignore lockfiles (hash/integrity strings cause false positives)"
+paths = [
+  '''(^|/|\\)package-lock\.json$''',
+  '''(^|/|\\)npm-shrinkwrap\.json$''',
+  '''(^|/|\\)yarn\.lock$''',
+  '''(^|/|\\)pnpm-lock\.yaml$'''
+]
