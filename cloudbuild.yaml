@@ -1,0 +1,12 @@
+steps:
+  # Step 1: Echo status
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args: ['-c', 'echo "?? UrwayDispatch Build Triggered Successfully!"']
+
+  # Step 2: Sync to AI Brain
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args: ['-m', 'rsync', '-r', '-x', 'node_modules|git', '.', 'gs://rideoo-agentic-brain/source/']
+
+options:
+  logging: CLOUD_LOGGING_ONLY
