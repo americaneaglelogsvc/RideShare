@@ -1,0 +1,19 @@
+{
+  "offer_ring_seconds": 5,
+  "offer_hop_cooldown_seconds": 10,
+  "eta_refresh_seconds": 60,
+  "arrival_detection": {
+    "within_feet": 50,
+    "stationary_seconds": 60
+  },
+  "policy_propagation_seconds": 60,
+  "compliance_notifications": {
+    "days_before_expiry_first": 14,
+    "days_before_expiry_second": 1
+  },
+  "scheduled_ride_confirmation": {
+    "confirm_window_minutes_default": 60,
+    "reoffer_after_minutes_default": 10
+  },
+  "message_retention_days_default": 180
+}

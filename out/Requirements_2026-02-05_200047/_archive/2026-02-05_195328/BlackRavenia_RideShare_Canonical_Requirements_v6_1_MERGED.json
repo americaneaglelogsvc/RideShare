@@ -1,0 +1,695 @@
+{
+  "metadata": {
+    "name": "BlackRavenia UrwayDispatch Platform Canonical Requirements",
+    "version": "6.1-merged",
+    "timestamp_america_chicago": "2026-02-05 18:30:41",
+    "brand": "blackravenia.com",
+    "scope": "Passenger rides first; multi-tenant, white-label SaaS with tenant-branded microsites and per-tenant feature gating",
+    "sources_semantic_merge": [
+      "BlackRavenia_UrwayDispatch_Canonical_Requirements_v6_1.md",
+      "UrwayDispatch-chat1-requirements.txt",
+      "UrwayDispatch context.txt"
+    ],
+    "canonical_authority": true,
+    "anti_drift_rule": "If a missing timer/state transition/policy precedence is discovered during build, it must be added to this document before implementation proceeds."
+  },
+  "principles": {
+    "evidence_based": true,
+    "no_silent_defaults": true,
+    "canonical_datastore": "PostgreSQL",
+    "no_supabase": true,
+    "policy_driven": true,
+    "multi_tenant_isolation": "tenant_id on all rows + API enforcement",
+    "definition_of_done": {
+      "Designed": "Screens + flows exist in screen_index.md; state machines/timers specified",
+      "Implemented": "UI -> API -> DB -> side effects completed",
+      "Tested": "Automated tests for happy + key negative paths pass in CI",
+      "Shippable": "Staging deployment + smoke tests + observability visible",
+      "LaunchReady": "Shippable + runbooks + onboarding + compliance workflows + incident response"
+    },
+    "release_gates": {
+      "go_no_go_required": true,
+      "hard_gates": [
+        {
+          "id": "GATE-K6-FAIL",
+          "name": "k6 failure rate",
+          "threshold": "<0.5%"
+        },
+        {
+          "id": "GATE-K6-P95",
+          "name": "k6 p95 latency",
+          "threshold": "<300ms"
+        },
+        {
+          "id": "GATE-ASSIGN",
+          "name": "double assignments",
+          "threshold": "0"
+        },
+        {
+          "id": "GATE-QUEUE",
+          "name": "invalid queue states",
+          "threshold": "0"
+        },
+        {
+          "id": "GATE-CHAOS",
+          "name": "chaos recovery",
+          "threshold": "<=5s"
+        },
+        {
+          "id": "GATE-DLQ",
+          "name": "DLQ projected replay success",
+          "threshold": ">=70%"
+        }
+      ],
+      "artifacts": [
+        "out/k6.json",
+        "out/chaos.json",
+        "out/dlq.json",
+        "out/go-no-go.md"
+      ]
+    }
+  },
+  "roles": [
+    {
+      "key": "PLATFORM_SUPER_ADMIN",
+      "scope": "platform"
+    },
+    {
+      "key": "PLATFORM_SUB_SUPER_ADMIN",
+      "scope": "platform"
+    },
+    {
+      "key": "TENANT_OWNER",
+      "scope": "tenant"
+    },
+    {
+      "key": "TENANT_OPS_ADMIN",
+      "scope": "tenant"
+    },
+    {
+      "key": "TENANT_CSR",
+      "scope": "tenant"
+    },
+    {
+      "key": "FLEET_OWNER",
+      "scope": "tenant"
+    },
+    {
+      "key": "DRIVER",
+      "scope": "tenant"
+    },
+    {
+      "key": "RIDER",
+      "scope": "tenant"
+    }
+  ],
+  "modules": [
+    {
+      "name": "Governance & Evidence",
+      "description": "Canonical build authority, Definition of Done (DoD), evidence gates, as-is scan, coverage and progress reporting, anti-drift.",
+      "apis": [],
+      "screens": [],
+      "user_stories": [],
+      "requirements": [
+        "Maintain as_is_scan.md, requirements_status.md, progress_report.md, implemented_not_documented.md",
+        "Maintain AS-IS-REPORT.md, COVERAGE-TABLE.md, coverage.json, GAPS-TODO.md, PLAN-TO-100.md",
+        "No capability marked Implemented/Tested/Shippable without evidence links"
+      ],
+      "dependencies": [
+        "GitHub Actions (CI/CD)",
+        "Markdown toolchain",
+        "Repository conventions"
+      ]
+    },
+    {
+      "name": "Release Gates & Safe Deployment",
+      "description": "GO/NO-GO gate evaluator, k6 load tests, chaos tests, DLQ analysis, canary rollout with automatic rollback.",
+      "apis": [],
+      "screens": [],
+      "user_stories": [],
+      "requirements": [
+        "scripts/go-no-go-gates.js reads out/k6.json,out/chaos.json,out/dlq.json; writes out/go-no-go.md; exits 0/1",
+        "Hard gates: k6 failure<0.5%; p95<300ms; zero double assignment; zero invalid queue states; chaos recovery<=5s; DLQ replay success>=70%",
+        "Canary 25->50->100 with rollback on gate failure; release tagging + config snapshot"
+      ],
+      "dependencies": [
+        "k6",
+        "Chaos harness",
+        "DLQ tooling",
+        "CI artifact retention"
+      ]
+    },
+    {
+      "name": "Identity & Security",
+      "description": "JWT auth, RBAC, audit logs, rate limiting, PII minimization, masked comms, retention policies, kill switches.",
+      "apis": [
+        "/auth/*",
+        "/admin/rbac/*",
+        "/audit/*"
+      ],
+      "screens": [],
+      "user_stories": [],
+      "requirements": [
+        "JWT sessions; RBAC enforced at API and UI",
+        "Audit logs for admin/policy/financial actions (who/what/when/where)",
+        "Masked rider/driver contact info; in-app messaging required",
+        "Kill switches for tenant/driver/vehicle within 60 seconds"
+      ],
+      "dependencies": [
+        "PostgreSQL",
+        "WAF/rate limiting",
+        "Logging/metrics stack"
+      ]
+    },
+    {
+      "name": "Policy Center",
+      "description": "Versioned, auditable policies with precedence driver>region>tenant>global; draft/validate/publish/rollback; caching.",
+      "apis": [
+        "GET /policy-center/types",
+        "GET /policy-center/:type/effective",
+        "POST /policy-center/:type/drafts",
+        "POST /policy-center/:type/validate",
+        "POST /policy-center/:type/publish",
+        "DELETE /policy-center/:type/drafts/:id"
+      ],
+      "screens": [
+        "Policy Center: Types",
+        "Policy Draft Editor",
+        "Policy Validate",
+        "Policy Publish",
+        "Policy Diff/History",
+        "Policy Rollback"
+      ],
+      "user_stories": [
+        "As a tenant owner, I can change surge caps for my tenant within platform limits and publish a new policy version.",
+        "As platform staff, I can roll back an unsafe policy version and audit who changed it."
+      ],
+      "requirements": [],
+      "dependencies": [
+        "JSON Schema validation (Ajv)",
+        "Audit logging",
+        "ETag caching"
+      ]
+    },
+    {
+      "name": "Rider App",
+      "description": "Web-first rider experience: account, booking (now/scheduled/hourly), upfront pricing, live tracking, messaging, ratings, receipts; consent gates.",
+      "apis": [],
+      "screens": [
+        "Rider: Sign up/in",
+        "Rider: Profile",
+        "Rider: Book",
+        "Rider: Quote",
+        "Rider: Confirm",
+        "Rider: Tracking",
+        "Rider: Messaging",
+        "Rider: Trip Complete",
+        "Rider: Rate & Comment",
+        "Rider: Receipts/History",
+        "Rider: Support Case"
+      ],
+      "user_stories": [
+        "As a rider, I can book now or schedule a ride and see the upfront price before confirming.",
+        "As a rider, I can see driver ETA and live location updates at least every 60 seconds after assignment.",
+        "As a rider, I must provide tracking/cookie consent where required before proceeding."
+      ],
+      "requirements": [
+        "Multi-stop, split-pay, gratuity presets, luggage/passenger fit warnings, cancellation/no-show disclosures",
+        "Mutual rating required; comment required if tenant policy says so",
+        "In-app messaging with retention policy"
+      ],
+      "dependencies": [
+        "Google Maps Platform",
+        "Payments integration",
+        "FCM push notifications"
+      ]
+    },
+    {
+      "name": "Driver App",
+      "description": "Onboarding/compliance with OCR; go online; offer ring/hop/grabboard; navigation; arrival/wait timer; trip completion; earnings/payouts; fleet/lease workflows; optional voice.",
+      "apis": [],
+      "screens": [
+        "Driver: Sign up/in",
+        "Driver: Onboarding",
+        "Driver: Document Capture (OCR)",
+        "Driver: Vehicle Management",
+        "Driver: Compliance Status",
+        "Driver: Go Online",
+        "Driver: Offer Ring",
+        "Driver: GrabBoard",
+        "Driver: Navigation",
+        "Driver: Arrived/Wait",
+        "Driver: In Trip",
+        "Driver: Complete Trip",
+        "Driver: Earnings",
+        "Driver: Payouts",
+        "Driver: Early Payout Request",
+        "Driver: Vehicle Lease Request",
+        "Driver: Co-driving Proposal",
+        "Driver: Shift Exchange",
+        "Driver: Voice (Push-to-talk)"
+      ],
+      "user_stories": [
+        "As a driver, I cannot go online if my license/insurance/registration is expired.",
+        "As a driver, I can request early payout with fees that depend on timing.",
+        "As a leased vehicle driver, I can submit lease docs and request vehicle access."
+      ],
+      "requirements": [
+        "OCR auto-populates docs; driver confirms; tenant approves",
+        "Destination Mode and Airport Queue features are policy-driven with precedence rules",
+        "Service standards violations can reduce priority or block going online (policy-controlled)"
+      ],
+      "dependencies": [
+        "OCR provider",
+        "Google Maps Platform",
+        "FCM",
+        "Policy Center"
+      ]
+    },
+    {
+      "name": "Dispatch & Matching",
+      "description": "ETA-aware ring/hop; grabboard; airport queue; destination bias; preferred tiering; blacklists; scheduled confirmation; atomic assignment guarantees.",
+      "apis": [
+        "/dispatch/*",
+        "/offers/*",
+        "/airport-queue/*"
+      ],
+      "screens": [],
+      "user_stories": [],
+      "requirements": [
+        "Atomic locking ensures no double assignments; return 409 on conflicts",
+        "Airport queue: prequeue + activation; anti-abuse heuristics; remote join policy",
+        "Preferred tiering and branded QR priority boosts are bounded by fairness and ETA thresholds"
+      ],
+      "dependencies": [
+        "PostgreSQL locking or Redis+Lua optional",
+        "Real-time updates (WebSocket/SSE)"
+      ]
+    },
+    {
+      "name": "Pricing & Payments",
+      "description": "Pricing rules, surge, cancellation/no-show/wait fees, bonuses, split-pay; PaySurity orchestration to gateways; double-entry ledger; reconciliation.",
+      "apis": [
+        "/quotes/*",
+        "/payments/*",
+        "/ledger/*",
+        "/payouts/*"
+      ],
+      "screens": [],
+      "user_stories": [],
+      "requirements": [
+        "Upfront quotes; zone/time/vehicle rules; surge multipliers policy-driven",
+        "Split-pay settlement and proportional refunds",
+        "Double-entry ledger; daily reconciliation with alerts",
+        "QR bonuses and incentives create auditable ledger entries"
+      ],
+      "dependencies": [
+        "PaySurity",
+        "Fluidpay",
+        "PostgreSQL",
+        "Reconciliation jobs"
+      ]
+    },
+    {
+      "name": "Consoles (Tenant & Platform)",
+      "description": "Tenant dispatcher map, driver/vehicle CRUD, compliance approvals, disputes; owner settings and branding; platform tenant management, feature gates, tests, system health.",
+      "apis": [],
+      "screens": [
+        "Tenant Ops: Live Map",
+        "Tenant Ops: Trip Detail",
+        "Tenant Ops: Assign/Reassign",
+        "Tenant Ops: Driver Compliance Review",
+        "Tenant CSR: Support Queue",
+        "Tenant Owner: Settings/Branding",
+        "Tenant Owner: Policies",
+        "Platform Admin: Tenant CRUD",
+        "Platform Admin: Feature Gates",
+        "Platform Admin: Kill Switch",
+        "Platform Admin: Test Runner",
+        "Platform Admin: Health"
+      ],
+      "user_stories": [],
+      "requirements": [
+        "Platform console can trigger and view automated tests and store results",
+        "All admin actions audited; tenant isolation enforced for tenant roles"
+      ],
+      "dependencies": [
+        "Maps UI",
+        "Observability stack",
+        "RBAC"
+      ]
+    },
+    {
+      "name": "Observability & Reliability",
+      "description": "Metrics/logs/alerts, SLOs, DLQ with replay, load and chaos tests feeding GO/NO-GO.",
+      "apis": [
+        "/health",
+        "/metrics"
+      ],
+      "screens": [],
+      "user_stories": [],
+      "requirements": [
+        "Centralized logs with correlation identifiers; audit viewer in platform console",
+        "DLQ classification + replay tooling with idempotency and audit logs",
+        "k6 and chaos results exported for gate evaluator"
+      ],
+      "dependencies": [
+        "OpenTelemetry (recommended)",
+        "Metrics backend",
+        "Log aggregation"
+      ]
+    },
+    {
+      "name": "Marketing & SEO",
+      "description": "Platform marketing website and tenant microsites, lead capture, SEO metadata, schema.org, sitemap/robots, consent where required.",
+      "apis": [],
+      "screens": [
+        "Public: Home",
+        "Public: Features",
+        "Public: Pricing",
+        "Public: Industries/Regions",
+        "Public: Case Studies",
+        "Public: Contact/Demo",
+        "Public: Security & Compliance",
+        "Public: Terms/Privacy"
+      ],
+      "user_stories": [],
+      "requirements": [
+        "Lead forms store in DB and notify platform team",
+        "Tenant microsites branded per tenant with SEO metadata"
+      ],
+      "dependencies": [
+        "Google Analytics (GA)",
+        "Email notifications",
+        "SEO tooling"
+      ]
+    },
+    {
+      "name": "Marketplace & Ads",
+      "description": "Feature-gated marketplace for paid placements with admin approval, disclosures, reporting.",
+      "apis": [],
+      "screens": [],
+      "user_stories": [],
+      "requirements": [
+        "Admin approval workflow; scheduling; disclosures; impression/click reporting"
+      ],
+      "dependencies": [
+        "RBAC",
+        "Analytics"
+      ]
+    },
+    {
+      "name": "Events Engine (Chicagoland)",
+      "description": "Feature-gated event ingestion and normalization for demand forecasting.",
+      "apis": [],
+      "screens": [],
+      "user_stories": [],
+      "requirements": [
+        "Weekly ingestion; normalized event fields; legally compliant scraping; used only for forecasting"
+      ],
+      "dependencies": [
+        "Scheduler",
+        "Ingestion connectors"
+      ]
+    }
+  ],
+  "flows": {
+    "user_flows": [
+      {
+        "name": "Rider Book Now",
+        "steps": [
+          "Open app",
+          "Consent (if required)",
+          "Set pickup/destination",
+          "Select product/vehicle",
+          "See quote",
+          "Confirm payment",
+          "Wait for match",
+          "Track driver",
+          "Trip",
+          "Rate & comment",
+          "Receipt"
+        ]
+      },
+      {
+        "name": "Rider Scheduled Ride",
+        "steps": [
+          "Schedule date/time",
+          "See quote",
+          "Confirm",
+          "Receive reminders",
+          "Driver confirms",
+          "Track driver",
+          "Trip",
+          "Rate",
+          "Receipt"
+        ]
+      },
+      {
+        "name": "Driver Onboarding",
+        "steps": [
+          "Create account",
+          "Fill profile",
+          "Add vehicle or request leased vehicle",
+          "Capture docs (OCR)",
+          "Submit",
+          "Tenant approval",
+          "Go online enabled"
+        ]
+      },
+      {
+        "name": "Driver Complete Trip",
+        "steps": [
+          "Go online",
+          "Receive offer",
+          "Accept/claim",
+          "Navigate",
+          "Arrive (wait timer)",
+          "Start trip",
+          "End trip",
+          "Earnings updated",
+          "Payout scheduled or early payout requested"
+        ]
+      },
+      {
+        "name": "Tenant Ops Intervention",
+        "steps": [
+          "View live map",
+          "Open trip detail",
+          "Reassign driver",
+          "Issue refund/adjustment",
+          "Log incident/support case",
+          "Audit trail recorded"
+        ]
+      },
+      {
+        "name": "Policy Change",
+        "steps": [
+          "Create draft",
+          "Validate schema",
+          "Publish",
+          "Propagation within 60s",
+          "Effective policy visible in apps",
+          "Audit log + diff stored"
+        ]
+      }
+    ],
+    "screen_flows": [
+      {
+        "persona": "Rider",
+        "flow": "Booking",
+        "screens": [
+          "Book",
+          "Quote",
+          "Confirm",
+          "Matching",
+          "Tracking",
+          "Complete",
+          "Rating",
+          "Receipt"
+        ]
+      },
+      {
+        "persona": "Driver",
+        "flow": "Dispatch",
+        "screens": [
+          "Online",
+          "Offer Ring/GrabBoard",
+          "Navigation",
+          "Arrived",
+          "In Trip",
+          "Complete",
+          "Earnings/Payouts"
+        ]
+      },
+      {
+        "persona": "Tenant Ops",
+        "flow": "Dispatch Oversight",
+        "screens": [
+          "Live Map",
+          "Queue View",
+          "Trip Detail",
+          "Assign/Reassign",
+          "Compliance Review",
+          "Support/Refunds"
+        ]
+      },
+      {
+        "persona": "Platform Admin",
+        "flow": "Release & Safety",
+        "screens": [
+          "Test Runner",
+          "GO/NO-GO Report",
+          "Canary Control",
+          "Rollback",
+          "Audit Viewer"
+        ]
+      }
+    ],
+    "data_flows": [
+      {
+        "name": "Quote to Ledger",
+        "from": "Rider booking confirmation",
+        "to": "payment_intent + transaction + ledger_entry",
+        "notes": "Quote stored; capture on completion; ledger reconciled daily"
+      },
+      {
+        "name": "Dispatch Assignment",
+        "from": "offer acceptance",
+        "to": "trip assignment + offer_state_transition",
+        "notes": "Atomic lock prevents double assignment; 409 on conflicts"
+      },
+      {
+        "name": "OCR Document Capture",
+        "from": "driver_document upload",
+        "to": "ocr_extraction + driver_confirmation + tenant_approval",
+        "notes": "Edits audited; expiry timers created"
+      },
+      {
+        "name": "DLQ Replay",
+        "from": "job failure",
+        "to": "dlq_job + replay_run + side effect re-execution",
+        "notes": "Idempotency required; replay audited"
+      }
+    ],
+    "integration_flows": [
+      {
+        "name": "Maps",
+        "steps": [
+          "Geocode addresses",
+          "Compute ETAs",
+          "Deep-link navigation",
+          "Live tracking map rendering"
+        ]
+      },
+      {
+        "name": "Payments",
+        "steps": [
+          "Tokenize",
+          "Authorize",
+          "Capture",
+          "Refund/Void",
+          "Ledger entry",
+          "Reconciliation alerting"
+        ]
+      },
+      {
+        "name": "Push Notifications",
+        "steps": [
+          "Offer ring",
+          "Arrival/updates",
+          "Compliance expiry reminders",
+          "Support updates"
+        ]
+      },
+      {
+        "name": "Analytics",
+        "steps": [
+          "Public site events",
+          "Microsite conversions",
+          "App funnel events (policy-controlled)"
+        ]
+      }
+    ]
+  },
+  "entities_minimum": [
+    "tenant",
+    "tenant_features",
+    "user",
+    "user_role",
+    "rider_profile",
+    "payment_method",
+    "driver_profile",
+    "driver_document",
+    "driver_background_check",
+    "driver_credential",
+    "vehicle",
+    "vehicle_document",
+    "vehicle_classification",
+    "vehicle_lease_listing",
+    "vehicle_access_grant",
+    "trip",
+    "trip_stop",
+    "trip_event",
+    "trip_state_transition",
+    "offer",
+    "offer_state_transition",
+    "grabboard_claim",
+    "policy_version",
+    "policy_draft",
+    "policy_audit_log",
+    "airport_queue_token",
+    "airport_queue_event",
+    "trip_message",
+    "trip_rating",
+    "payment_intent",
+    "transaction",
+    "refund",
+    "ledger_entry",
+    "payout",
+    "payout_request",
+    "support_case",
+    "incident",
+    "dlq_job",
+    "dlq_replay_run",
+    "event_listing"
+  ],
+  "integrations": [
+    {
+      "name": "Google Maps Platform",
+      "type": "maps_routing_geocoding"
+    },
+    {
+      "name": "Firebase Cloud Messaging (FCM)",
+      "type": "push_notifications"
+    },
+    {
+      "name": "Google Analytics (GA)",
+      "type": "analytics"
+    },
+    {
+      "name": "PaySurity",
+      "type": "payments_orchestration",
+      "notes": "Routes to Fluidpay or Argyle Payments; gateways are black boxes to tenants/drivers"
+    },
+    {
+      "name": "Fluidpay",
+      "type": "payment_gateway",
+      "notes": "Default gateway in merged requirements"
+    },
+    {
+      "name": "Argyle Payments",
+      "type": "payment_gateway",
+      "notes": "Optional black-box gateway"
+    },
+    {
+      "name": "Background check provider",
+      "type": "pluggable",
+      "notes": "Motor Vehicle Record (MVR) + screening"
+    },
+    {
+      "name": "Optical Character Recognition (OCR) provider",
+      "type": "pluggable"
+    }
+  ]
+}

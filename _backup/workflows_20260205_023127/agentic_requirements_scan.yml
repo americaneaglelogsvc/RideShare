@@ -1,0 +1,897 @@
+name: Agentic Requirements Scan
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_mode:
+        description: "test = first 5 requirements; full = all requirements"
+        required: true
+        default: "test"
+        type: choice
+        options: [test, full]
+      model:
+        description: "OpenAI model ID (must exist in your account)"
+        required: true
+        default: "gpt-5.2"
+      batch_size:
+        description: "Batch size for full runs"
+        required: true
+        default: "10"
+      max_requirements:
+        description: "Safety cap for full runs"
+        required: true
+        default: "200"
+      max_snippets:
+        description: "Max evidence snippets included in prompt"
+        required: true
+        default: "120"
+      snippet_lines:
+        description: "Lines per snippet (context window)"
+        required: true
+        default: "10"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: agentic-requirements-scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python (Python)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "openai>=2.16.0" "pydantic>=2.12.5"
+
+      - name: Run agentic scan (OpenAI Application Programming Interface (API))
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ github.event.inputs.model }}
+          RUN_MODE: ${{ github.event.inputs.run_mode }}
+          BATCH_SIZE: ${{ github.event.inputs.batch_size }}
+          MAX_REQUIREMENTS: ${{ github.event.inputs.max_requirements }}
+          MAX_SNIPPETS: ${{ github.event.inputs.max_snippets }}
+          SNIPPET_LINES: ${{ github.event.inputs.snippet_lines }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+        run: |
+          python - <<'PY'
+          import os, json, re, hashlib
+          from pathlib import Path
+          from datetime import datetime
+          from openai import OpenAI
+
+          ROOT = Path.cwd()
+          REQ_DIR = ROOT / "Requirements"
+          AGENT_INPUT = ROOT / "AgentInput"
+          AGENT_OUTPUT = ROOT / "AgentOutput"
+
+          AGENT_INPUT.mkdir(parents=True, exist_ok=True)
+          AGENT_OUTPUT.mkdir(parents=True, exist_ok=True)
+
+          # ---------------- helpers ----------------
+          def read_text(p: Path) -> str:
+            try:
+              return p.read_text(encoding="utf-8", errors="replace") if p.exists() else ""
+            except Exception:
+              return ""
+
+          def write_text(p: Path, s: str) -> None:
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(s, encoding="utf-8")
+
+          def write_json(p: Path, obj) -> None:
+            write_text(p, json.dumps(obj, indent=2, ensure_ascii=False) + "\n")
+
+          def sha1(s: str) -> str:
+            return hashlib.sha1(s.encode("utf-8", errors="ignore")).hexdigest()
+
+          def clamp(s: str, n: int) -> str:
+            if s is None: return ""
+            return s if len(s) <= n else s[:n] + "\n[TRUNCATED]\n"
+
+          def relpath(p: Path) -> str:
+            return str(p.relative_to(ROOT)).replace("\\","/")
+
+          # ---------------- locate canonical requirements ----------------
+          canonical = REQ_DIR / "BlackRavenia_UrwayDispatch_Canonical_Requirements_v6_1.md"
+          if not canonical.exists():
+            cands = sorted(REQ_DIR.glob("*Canonical_Requirements*.md"), key=lambda p: p.stat().st_mtime, reverse=True)
+            if not cands:
+              raise SystemExit("Could not find canonical requirements markdown under Requirements/ (expected *Canonical_Requirements*.md).")
+            canonical = cands[0]
+
+          md = read_text(canonical)
+
+          # ---------------- parse requirements from ### headings ----------------
+          heading_re = re.compile(r"^###\s+(.+?)\s*$", re.M)
+          hits = list(heading_re.finditer(md))
+          if not hits:
+            raise SystemExit("Parsed 0 requirements: expected '### ' headings in canonical requirements markdown.")
+
+          def extract_numbered_prefix(title: str):
+            m = re.match(r"^(\d+(?:\.\d+)+)\s+(.*)$", title.strip())
+            return (m.group(1), m.group(2).strip()) if m else (None, title.strip())
+
+          def extract_acceptance(body: str):
+            lines = [ln.rstrip() for ln in body.splitlines()]
+            acc = []
+            acc_idx = None
+            for i, ln in enumerate(lines):
+              if re.search(r"\bAcceptance\b\s*:", ln, flags=re.I):
+                acc_idx = i
+                break
+            if acc_idx is not None:
+              for j in range(acc_idx+1, len(lines)):
+                t = lines[j].strip()
+                if not t:
+                  if acc: break
+                  continue
+                if re.match(r"^\*\*.+\*\*\s*:?\s*$", t): break
+                if t.startswith("- ") or t.startswith("* "):
+                  acc.append(t[2:].strip())
+                elif re.match(r"^(Given|When|Then)\b", t, flags=re.I):
+                  acc.append(t)
+              if acc: return acc
+            for ln in lines:
+              t = ln.strip()
+              if re.match(r"^(Given|When|Then)\b", t, flags=re.I):
+                acc.append(t)
+            return acc
+
+          reqs = []
+          for idx, m in enumerate(hits):
+            title_raw = m.group(1).strip()
+            start = m.end()
+            end = hits[idx+1].start() if idx+1 < len(hits) else len(md)
+            body = md[start:end].strip()
+
+            sec_num, clean_title = extract_numbered_prefix(title_raw)
+            rid = f"BRRS-{sec_num}" if sec_num else f"BRRS-{idx+1:04d}"
+
+            desc = re.sub(r"\n{3,}", "\n\n", body).strip()
+            desc = clamp(desc, 6000)
+
+            acc = extract_acceptance(body)
+            reqs.append({
+              "requirement_id": rid,
+              "section_number": sec_num,
+              "title": clean_title,
+              "description": desc,
+              "acceptance_criteria": acc,
+              "source_file": str(canonical).replace("\\", "/"),
+            })
+
+          # AgentInput requirements
+          write_text(AGENT_INPUT / "requirements.jsonl", "\n".join(json.dumps(r, ensure_ascii=False) for r in reqs) + "\n")
+          write_json(AGENT_INPUT / "requirements.json", reqs)
+
+          # ---------------- evidence scan config ----------------
+          SKIP_DIRS = {
+            ".git","node_modules",".next","dist","build","out",".venv","venv","__pycache__",
+            "coverage",".pytest_cache","AgentInput","AgentOutput"
+          }
+          TEXT_EXTS = {".ts",".tsx",".js",".jsx",".py",".sql",".md",".yml",".yaml",".json"}
+          MAX_FILE_BYTES = 900_000  # avoid huge blobs
+
+          max_snippets = int(os.getenv("MAX_SNIPPETS","120"))
+          snippet_lines = int(os.getenv("SNIPPET_LINES","10"))
+
+          # ---------------- collect snippets ----------------
+          snippets = []  # {kind, ref, file, line_start, line_end, snippet}
+          def add_snippet(kind: str, file_rel: str, lines, i: int, note: str = ""):
+            # window around i
+            a = max(0, i - (snippet_lines//2))
+            b = min(len(lines), a + snippet_lines)
+            a = max(0, b - snippet_lines)
+            chunk = "\n".join(lines[a:b]).rstrip()
+            ref = f"{file_rel}#L{a+1}-L{b}"
+            payload = {
+              "kind": kind,
+              "ref": ref,
+              "file": file_rel,
+              "line_start": a+1,
+              "line_end": b,
+              "note": note,
+              "snippet": chunk
+            }
+            snippets.append(payload)
+
+          # ---------------- 1) Supabase migrations: tables/columns/RLS/policies ----------------
+          schema = {
+            "tables": {},  # table -> {columns:set, sources:set, rls_enabled:bool, policies:list}
+            "alter_add_columns": [],
+            "rls_statements": [],
+            "policy_statements": [],
+          }
+
+          def norm_ident(s: str) -> str:
+            s = s.strip().strip('"').strip()
+            return s
+
+          def ensure_table(t: str):
+            if t not in schema["tables"]:
+              schema["tables"][t] = {"columns": set(), "sources": set(), "rls_enabled": False, "policies": []}
+
+          mig_dir = ROOT / "supabase" / "migrations"
+          mig_files = sorted(mig_dir.glob("*.sql")) if mig_dir.exists() else []
+
+          create_table_re = re.compile(r"^\s*create\s+table\b", re.I)
+          alter_add_col_re = re.compile(r"alter\s+table\s+([^\s]+)\s+add\s+column\s+([^\s(]+)", re.I)
+          rls_re = re.compile(r"alter\s+table\s+([^\s]+)\s+enable\s+row\s+level\s+security", re.I)
+          policy_re = re.compile(r"create\s+policy\s+(.+?)\s+on\s+([^\s]+)", re.I)
+
+          for mf in mig_files:
+            txt = read_text(mf)
+            if not txt: 
+              continue
+            lines = txt.splitlines()
+            file_rel = relpath(mf)
+
+            # CREATE TABLE blocks (simple line-scanner: from "create table" until line containing ");")
+            i = 0
+            while i < len(lines):
+              ln = lines[i]
+              if create_table_re.search(ln):
+                # table name: try capture after "create table" (+ optional "if not exists")
+                m = re.search(r"create\s+table\s+(if\s+not\s+exists\s+)?([^\s(]+)", ln, re.I)
+                table = norm_ident(m.group(2)) if m else "unknown_table"
+                ensure_table(table)
+                schema["tables"][table]["sources"].add(file_rel)
+
+                # collect until end of block
+                block = [ln]
+                j = i + 1
+                while j < len(lines):
+                  block.append(lines[j])
+                  if re.search(r"\)\s*;\s*$", lines[j]):
+                    break
+                  j += 1
+
+                # crude column parse from block interior
+                for bline in block[1:]:
+                  t = bline.strip().rstrip(",")
+                  if not t or t.startswith("--") or t.startswith("/*"):
+                    continue
+                  # stop at constraints
+                  if re.match(r"^(constraint|primary|foreign|unique|check)\b", t, re.I):
+                    continue
+                  # column: name type ...
+                  cm = re.match(r'^"?(?P<col>[A-Za-z_][A-Za-z0-9_]*)"?\s+(?P<type>[A-Za-z0-9_\[\]\(\),\s]+)', t)
+                  if cm:
+                    col = cm.group("col")
+                    schema["tables"][table]["columns"].add(col)
+
+                # capture snippet at create table start
+                add_snippet("sql:create_table", file_rel, lines, i, note=f"table={table}")
+                i = j + 1
+                continue
+              i += 1
+
+            # ALTER TABLE ADD COLUMN
+            for idx, ln in enumerate(lines):
+              m = alter_add_col_re.search(ln)
+              if m:
+                table = norm_ident(m.group(1))
+                col = norm_ident(m.group(2))
+                ensure_table(table)
+                schema["tables"][table]["columns"].add(col)
+                schema["tables"][table]["sources"].add(file_rel)
+                schema["alter_add_columns"].append({"table": table, "column": col, "source": file_rel})
+                add_snippet("sql:alter_add_column", file_rel, lines, idx, note=f"table={table} col={col}")
+
+              m2 = rls_re.search(ln)
+              if m2:
+                table = norm_ident(m2.group(1))
+                ensure_table(table)
+                schema["tables"][table]["rls_enabled"] = True
+                schema["tables"][table]["sources"].add(file_rel)
+                schema["rls_statements"].append({"table": table, "source": file_rel})
+                add_snippet("sql:rls_enable", file_rel, lines, idx, note=f"table={table}")
+
+              m3 = policy_re.search(ln)
+              if m3:
+                pol = m3.group(1).strip()
+                table = norm_ident(m3.group(2))
+                ensure_table(table)
+                schema["tables"][table]["policies"].append(pol)
+                schema["tables"][table]["sources"].add(file_rel)
+                schema["policy_statements"].append({"table": table, "policy": pol, "source": file_rel})
+                add_snippet("sql:policy", file_rel, lines, idx, note=f"table={table} policy={pol}")
+
+          # finalize sets -> lists
+          for t in list(schema["tables"].keys()):
+            schema["tables"][t]["columns"] = sorted(schema["tables"][t]["columns"])
+            schema["tables"][t]["sources"] = sorted(schema["tables"][t]["sources"])
+
+          # ---------------- 2) API routes/endpoints ----------------
+          endpoints = []  # {method, path, file, ref, kind}
+          def add_endpoint(method: str, path: str, file_rel: str, ref: str, kind: str):
+            endpoints.append({"method": method.upper(), "path": path, "file": file_rel, "ref": ref, "kind": kind})
+
+          # Next.js App Router API routes: app/api/**/route.(ts|js)
+          for p in ROOT.rglob("route.ts"):
+            if any(part in SKIP_DIRS for part in p.parts): 
+              continue
+            rp = relpath(p)
+            # only app/api paths
+            if "/app/api/" not in rp.replace("\\","/"): 
+              continue
+            txt = read_text(p)
+            lines = txt.splitlines()
+            # derive /api path
+            parts = rp.split("/app/api/")[1].split("/")
+            # remove trailing route.ts
+            if parts and parts[-1] == "route.ts":
+              parts = parts[:-1]
+            api_path = "/api/" + "/".join(parts) if parts else "/api"
+            # detect exported methods
+            for i, ln in enumerate(lines):
+              mm = re.search(r"export\s+async\s+function\s+(GET|POST|PUT|PATCH|DELETE)\b", ln, re.I)
+              if mm:
+                mth = mm.group(1).upper()
+                add_snippet("api:next_route_handler", rp, lines, i, note=f"{mth} {api_path}")
+                ref = f"{rp}#L{i+1}-L{i+1+min(8,len(lines)-i-1)}"
+                add_endpoint(mth, api_path, rp, ref, "nextjs-app-router")
+
+          # Generic route patterns for Express/Fastify + Python web frameworks
+          route_regexes = [
+            ("express", re.compile(r"\b(app|router)\.(get|post|put|patch|delete)\s*\(\s*(['\"`])([^'\"`]+)\3", re.I)),
+            ("fastify", re.compile(r"\bfastify\.(get|post|put|patch|delete)\s*\(\s*(['\"`])([^'\"`]+)\2", re.I)),
+            ("nestjs_controller", re.compile(r"@Controller\(\s*(['\"`])([^'\"`]+)\1\s*\)", re.I)),
+            ("nestjs_method", re.compile(r"@(Get|Post|Put|Patch|Delete)\(\s*(['\"`])?([^'\"`\)]*)\2?\s*\)", re.I)),
+            ("fastapi", re.compile(r"\brouter\.(get|post|put|patch|delete)\(\s*(['\"`])([^'\"`]+)\2", re.I)),
+            ("flask", re.compile(r"@app\.route\(\s*(['\"`])([^'\"`]+)\1", re.I)),
+          ]
+
+          # We'll also store NestJS (Nest JavaScript) base controllers per file to combine with methods
+          nest_base = {}
+
+          for p in ROOT.rglob("*"):
+            if any(part in SKIP_DIRS for part in p.parts):
+              continue
+            if not p.is_file():
+              continue
+            if p.suffix.lower() not in TEXT_EXTS:
+              continue
+            try:
+              if p.stat().st_size > MAX_FILE_BYTES:
+                continue
+            except Exception:
+              continue
+
+            rp = relpath(p)
+            txt = read_text(p)
+            if not txt:
+              continue
+            lines = txt.splitlines()
+
+            # NestJS base controller
+            for i, ln in enumerate(lines):
+              m = route_regexes[2][1].search(ln)
+              if m:
+                nest_base[rp] = m.group(2).strip().strip("/")
+                add_snippet("api:nest_controller", rp, lines, i, note=f"base=/{nest_base[rp]}")
+
+            # Match routes
+            for i, ln in enumerate(lines):
+              # Express
+              m = route_regexes[0][1].search(ln)
+              if m:
+                mth = m.group(2).upper()
+                path = m.group(4)
+                add_snippet("api:express_route", rp, lines, i, note=f"{mth} {path}")
+                add_endpoint(mth, path, rp, f"{rp}#L{i+1}-L{i+1}", "express")
+
+              # Fastify
+              m = route_regexes[1][1].search(ln)
+              if m:
+                mth = m.group(1).upper()
+                path = m.group(3)
+                add_snippet("api:fastify_route", rp, lines, i, note=f"{mth} {path}")
+                add_endpoint(mth, path, rp, f"{rp}#L{i+1}-L{i+1}", "fastify")
+
+              # NestJS method
+              m = route_regexes[3][1].search(ln)
+              if m:
+                mth = m.group(1).upper()
+                sub = (m.group(3) or "").strip()
+                base = nest_base.get(rp, "")
+                full = "/" + "/".join([x.strip("/") for x in [base, sub] if x.strip("/")])
+                add_snippet("api:nest_method", rp, lines, i, note=f"{mth} {full}")
+                add_endpoint(mth, full, rp, f"{rp}#L{i+1}-L{i+1}", "nestjs")
+
+              # FastAPI (Python)
+              m = route_regexes[4][1].search(ln)
+              if m:
+                mth = m.group(1).upper()
+                path = m.group(3)
+                add_snippet("api:fastapi_route", rp, lines, i, note=f"{mth} {path}")
+                add_endpoint(mth, path, rp, f"{rp}#L{i+1}-L{i+1}", "fastapi")
+
+              # Flask base route (methods may be in args; we still capture path)
+              m = route_regexes[5][1].search(ln)
+              if m:
+                path = m.group(2)
+                add_snippet("api:flask_route", rp, lines, i, note=f"ROUTE {path}")
+                add_endpoint("ROUTE", path, rp, f"{rp}#L{i+1}-L{i+1}", "flask")
+
+          # de-dup endpoints
+          seen_ep = set()
+          deduped = []
+          for ep in endpoints:
+            k = (ep["method"], ep["path"], ep["file"])
+            if k in seen_ep: 
+              continue
+            seen_ep.add(k)
+            deduped.append(ep)
+          endpoints = deduped
+
+          # ---------------- 3) tests discovery ----------------
+          tests = []  # {file, kind, ref}
+          def detect_test_kind(path: str) -> str:
+            p = path.lower()
+            if "playwright" in p: return "playwright"
+            if "cypress" in p: return "cypress"
+            if p.endswith(".spec.ts") or p.endswith(".spec.js") or ".spec." in p: return "spec"
+            if p.endswith(".test.ts") or p.endswith(".test.js") or ".test." in p: return "test"
+            if "pytest" in p or p.endswith("_test.py") or p.startswith("test_"): return "pytest"
+            return "test"
+
+          test_file_match = re.compile(r"(\.test\.|\.spec\.|__tests__|/tests?/|cypress/|playwright/)", re.I)
+          test_line_match = re.compile(r"\b(describe|it|test)\s*\(", re.I)
+
+          for p in ROOT.rglob("*"):
+            if any(part in SKIP_DIRS for part in p.parts):
+              continue
+            if not p.is_file():
+              continue
+            rp = relpath(p)
+            if not test_file_match.search(rp.replace("\\","/")):
+              continue
+            if p.suffix.lower() not in TEXT_EXTS and p.suffix.lower() not in {".mjs",".cjs"}:
+              continue
+            try:
+              if p.stat().st_size > MAX_FILE_BYTES:
+                continue
+            except Exception:
+              continue
+            txt = read_text(p)
+            if not txt:
+              continue
+            lines = txt.splitlines()
+            kind = detect_test_kind(rp)
+            # find first test line for snippet
+            for i, ln in enumerate(lines):
+              if test_line_match.search(ln):
+                add_snippet("test:file", rp, lines, i, note=kind)
+                tests.append({"file": rp, "kind": kind, "ref": f"{rp}#L{i+1}-L{i+1}"})
+                break
+            if not any(t["file"] == rp for t in tests):
+              tests.append({"file": rp, "kind": kind, "ref": f"{rp}#L1-L1"})
+
+          # ---------------- 4) security / auth / ops keyword hits (extra evidence) ----------------
+          keywords = [
+            ("security:jwt", re.compile(r"\b(jwt|jsonwebtoken)\b", re.I)),
+            ("security:rbac", re.compile(r"\b(rbac|role[-_ ]based)\b", re.I)),
+            ("security:rate_limit", re.compile(r"\b(rate[-_ ]limit|throttl|waf)\b", re.I)),
+            ("ops:audit_log", re.compile(r"\b(audit|activity[-_ ]log)\b", re.I)),
+            ("ops:metrics", re.compile(r"\b(prometheus|grafana|opentelemetry|otel|metrics)\b", re.I)),
+          ]
+
+          keyword_hits = []
+          for p in ROOT.rglob("*"):
+            if any(part in SKIP_DIRS for part in p.parts):
+              continue
+            if not p.is_file():
+              continue
+            if p.suffix.lower() not in TEXT_EXTS:
+              continue
+            try:
+              if p.stat().st_size > MAX_FILE_BYTES:
+                continue
+            except Exception:
+              continue
+            rp = relpath(p)
+            txt = read_text(p)
+            if not txt:
+              continue
+            lines = txt.splitlines()
+            for i, ln in enumerate(lines):
+              for kind, rx in keywords:
+                if rx.search(ln):
+                  add_snippet(kind, rp, lines, i, note="keyword_hit")
+                  keyword_hits.append({"kind": kind, "file": rp, "ref": f"{rp}#L{i+1}-L{i+1}"})
+                  break
+
+          # ---------------- limit snippets for prompt ----------------
+          # keep most valuable kinds first
+          kind_priority = {
+            "sql:create_table": 1,
+            "sql:alter_add_column": 2,
+            "sql:rls_enable": 3,
+            "sql:policy": 4,
+            "api:next_route_handler": 5,
+            "api:express_route": 6,
+            "api:fastify_route": 7,
+            "api:nest_controller": 8,
+            "api:nest_method": 9,
+            "api:fastapi_route": 10,
+            "api:flask_route": 11,
+            "test:file": 12,
+            "security:jwt": 13,
+            "security:rbac": 14,
+            "security:rate_limit": 15,
+            "ops:audit_log": 16,
+            "ops:metrics": 17,
+          }
+
+          snippets.sort(key=lambda s: (kind_priority.get(s["kind"], 99), s["file"], s["line_start"]))
+          snippets = snippets[:max_snippets]
+
+          # ---------------- As-Is output (deterministic) ----------------
+          exts_count = {}
+          files_scanned = 0
+          for p in ROOT.rglob("*"):
+            if any(part in SKIP_DIRS for part in p.parts):
+              continue
+            if p.is_file():
+              files_scanned += 1
+              ext = p.suffix.lower() or "(no_ext)"
+              exts_count[ext] = exts_count.get(ext, 0) + 1
+
+          # quick schema stats
+          tables = schema["tables"]
+          tables_with_tenant = [t for t,v in tables.items() if "tenant_id" in set([c.lower() for c in v["columns"]])]
+          tables_with_rls = [t for t,v in tables.items() if v.get("rls_enabled")]
+
+          as_is = {
+            "repo_root": str(ROOT),
+            "canonical_requirements": str(canonical).replace("\\","/"),
+            "generated_at_utc": datetime.utcnow().isoformat() + "Z",
+            "files_scanned": files_scanned,
+            "file_extensions": dict(sorted(exts_count.items(), key=lambda kv: (-kv[1], kv[0]))),
+            "supabase": {
+              "migrations_count": len(mig_files),
+              "tables_count": len(tables),
+              "tables_with_tenant_id": tables_with_tenant[:200],
+              "tables_with_rls": tables_with_rls[:200],
+            },
+            "endpoints_count": len(endpoints),
+            "tests_count": len(tests),
+            "snippets_count": len(snippets),
+          }
+
+          write_json(AGENT_INPUT / "as_is_scan.json", as_is)
+
+          # write catalogs for deterministic consumption
+          write_json(AGENT_INPUT / "schema_catalog.json", schema)
+          write_json(AGENT_INPUT / "endpoints_catalog.json", endpoints)
+          write_json(AGENT_INPUT / "tests_catalog.json", tests)
+          write_json(AGENT_INPUT / "evidence_snippets.json", snippets)
+
+          # build a rich As-Is markdown
+          as_is_md = []
+          as_is_md.append("# As-Is Scan (deterministic + evidence snippets)")
+          as_is_md.append(f"- Canonical requirements: `{as_is['canonical_requirements']}`")
+          as_is_md.append(f"- Generated: `{as_is['generated_at_utc']}`")
+          as_is_md.append(f"- Files scanned: `{files_scanned}`")
+          as_is_md.append("")
+          as_is_md.append("## Supabase (Supabase) schema signals")
+          as_is_md.append(f"- Migrations: `{len(mig_files)}`")
+          as_is_md.append(f"- Tables discovered: `{len(tables)}`")
+          as_is_md.append(f"- Tables with `tenant_id`: `{len(tables_with_tenant)}`")
+          as_is_md.append(f"- Tables with RLS (Row Level Security (RLS)) enabled: `{len(tables_with_rls)}`")
+          if tables:
+            as_is_md.append("")
+            as_is_md.append("### Sample tables (name → columns)")
+            for t in sorted(list(tables.keys()))[:25]:
+              cols = tables[t]["columns"][:25]
+              as_is_md.append(f"- `{t}` → {', '.join('`'+c+'`' for c in cols)}" + (" …" if len(tables[t]["columns"]) > 25 else ""))
+
+          as_is_md.append("")
+          as_is_md.append("## API (Application Programming Interface (API)) endpoints (discovered)")
+          for ep in endpoints[:60]:
+            as_is_md.append(f"- `{ep['method']}` `{ep['path']}` — `{ep['file']}` ({ep['kind']})")
+
+          as_is_md.append("")
+          as_is_md.append("## Tests (discovered)")
+          for t in tests[:60]:
+            as_is_md.append(f"- `{t['file']}` ({t['kind']})")
+
+          as_is_md.append("")
+          as_is_md.append("## Evidence snippets (line-referenced)")
+          for s in snippets:
+            as_is_md.append(f"### {s['kind']} — `{s['ref']}`")
+            if s.get("note"):
+              as_is_md.append(f"- Note: {s['note']}")
+            as_is_md.append("```")
+            as_is_md.append(s["snippet"])
+            as_is_md.append("```")
+            as_is_md.append("")
+
+          write_text(AGENT_INPUT / "as_is_scan.md", "\n".join(as_is_md).strip() + "\n")
+
+          # seed status (all Not Started until evaluated)
+          seed = []
+          for r in reqs:
+            seed.append({
+              "requirement_id": r["requirement_id"],
+              "title": r["title"],
+              "status": "Not Started",
+              "evidence": [],
+              "gaps": ["Not yet evaluated by agentic Artificial Intelligence (AI)."],
+              "notes": "",
+            })
+          write_text(AGENT_INPUT / "requirements_status_seed.jsonl", "\n".join(json.dumps(x, ensure_ascii=False) for x in seed) + "\n")
+
+          # richer candidates for implemented-not-documented
+          cand_md = ["# Implemented-Not-Documented Candidates (auto-collected)", ""]
+          cand_md.append("## Schema / migrations")
+          for mf in mig_files[:50]:
+            cand_md.append(f"- `{relpath(mf)}`")
+          cand_md.append("")
+          cand_md.append("## API (Application Programming Interface (API)) endpoints")
+          for ep in endpoints[:80]:
+            cand_md.append(f"- `{ep['method']}` `{ep['path']}` — `{ep['file']}`")
+          cand_md.append("")
+          cand_md.append("## Tests")
+          for t in tests[:80]:
+            cand_md.append(f"- `{t['file']}` ({t['kind']})")
+          write_text(AGENT_INPUT / "implemented_not_documented_candidates.md", "\n".join(cand_md).strip() + "\n")
+
+          # ---------------- OpenAI call (batch) ----------------
+          run_mode = os.getenv("RUN_MODE","test").strip().lower()
+          batch_size = int(os.getenv("BATCH_SIZE","10"))
+          max_requirements = int(os.getenv("MAX_REQUIREMENTS","200"))
+          model = os.getenv("OPENAI_MODEL","gpt-5.2")
+
+          target = reqs[:max_requirements]
+          if run_mode == "test":
+            target = target[:5]
+
+          status_by_id = {s["requirement_id"]: s for s in seed}
+
+          # Full requirements index (prevents false "not documented" within only a batch)
+          req_index = [{"requirement_id": r["requirement_id"], "title": r["title"]} for r in reqs]
+
+          schema_json = clamp(read_text(AGENT_INPUT / "schema_catalog.json"), 14000)
+          endpoints_json = clamp(read_text(AGENT_INPUT / "endpoints_catalog.json"), 14000)
+          tests_json = clamp(read_text(AGENT_INPUT / "tests_catalog.json"), 9000)
+          snippets_json = clamp(read_text(AGENT_INPUT / "evidence_snippets.json"), 14000)
+
+          schema = {
+            "name": "agent_result",
+            "strict": True,
+            "schema": {
+              "type": "object",
+              "additionalProperties": False,
+              "required": ["updated_statuses", "implemented_not_documented"],
+              "properties": {
+                "updated_statuses": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["requirement_id", "status", "evidence", "gaps", "notes"],
+                    "properties": {
+                      "requirement_id": {"type": "string"},
+                      "status": {"type": "string", "enum": ["Not Started","In Progress","Implemented","Tested","Blocked"]},
+                      "evidence": {"type": "array", "items": {"type": "string"}},
+                      "gaps": {"type": "array", "items": {"type": "string"}},
+                      "notes": {"type": "string"},
+                    }
+                  }
+                },
+                "implemented_not_documented": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["title", "evidence", "why_not_in_requirements"],
+                    "properties": {
+                      "title": {"type": "string"},
+                      "evidence": {"type": "array", "items": {"type": "string"}},
+                      "why_not_in_requirements": {"type": "string"},
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          client = OpenAI()
+          implemented_not_documented_all = []
+
+          def call_batch(batch, include_undoc: bool):
+            batch_slim = []
+            for r in batch:
+              batch_slim.append({
+                "requirement_id": r["requirement_id"],
+                "title": r["title"],
+                "acceptance_criteria": r.get("acceptance_criteria", []),
+                "description": r.get("description","")[:2500],
+              })
+
+            rules = (
+              "STRICT EVIDENCE RULES:\n"
+              "- Be conservative. If you cannot cite explicit evidence (file#Lx-Ly refs, endpoints, migrations, tests) from the provided catalogs/snippets, do NOT mark Implemented/Tested.\n"
+              "- If evidence is ambiguous, set status to Not Started or Blocked and explain gaps.\n"
+              "- Evidence MUST use concrete references like `supabase/migrations/...sql#L10-L24` or `services/.../routes.ts#L88-L110`.\n"
+              "- Only update requirement_id values in THIS batch.\n"
+            )
+
+            undoc_rule = (
+              "Also identify implemented features NOT covered by the requirements document. You MUST compare against ALL_REQUIREMENTS_INDEX (not just this batch). Use ONLY provided evidence refs.\n"
+              if include_undoc else
+              "implemented_not_documented MUST be an empty array for this call.\n"
+            )
+
+            user_prompt = (
+              f"{rules}\n\n"
+              "ALL_REQUIREMENTS_INDEX:\n"
+              f"{json.dumps(req_index, ensure_ascii=False)[:12000]}\n\n"
+              "SCHEMA_CATALOG_JSON:\n"
+              f"{schema_json}\n\n"
+              "ENDPOINTS_CATALOG_JSON:\n"
+              f"{endpoints_json}\n\n"
+              "TESTS_CATALOG_JSON:\n"
+              f"{tests_json}\n\n"
+              "EVIDENCE_SNIPPETS_JSON (line-referenced):\n"
+              f"{snippets_json}\n\n"
+              "REQUIREMENTS_BATCH:\n"
+              f"{json.dumps(batch_slim, ensure_ascii=False, indent=2)}\n\n"
+              f"{undoc_rule}"
+            )
+
+            resp = client.chat.completions.create(
+              model=model,
+              messages=[
+                {"role":"system","content":"You are an agentic Artificial Intelligence (AI) doing evidence-based codebase-to-requirements mapping for a software repository."},
+                {"role":"user","content": user_prompt},
+              ],
+              response_format={"type":"json_schema","json_schema": schema},
+            )
+            content = resp.choices[0].message.content
+            return json.loads(content)
+
+          for i in range(0, len(target), batch_size):
+            batch = target[i:i+batch_size]
+            include_undoc = (i == 0)
+            out = call_batch(batch, include_undoc=include_undoc)
+
+            for u in out["updated_statuses"]:
+              rid = u["requirement_id"]
+              if rid in status_by_id:
+                # enforce conservative rule: no evidence => can't be Implemented/Tested
+                if u["status"] in {"Implemented","Tested"} and not u.get("evidence"):
+                  u["status"] = "Blocked"
+                  u["gaps"] = (u.get("gaps") or []) + ["No concrete evidence provided; cannot mark Implemented/Tested."]
+                status_by_id[rid]["status"] = u["status"]
+                status_by_id[rid]["evidence"] = u.get("evidence", [])
+                status_by_id[rid]["gaps"] = u.get("gaps", [])
+                status_by_id[rid]["notes"] = u.get("notes", "")
+
+            if include_undoc:
+              implemented_not_documented_all = out.get("implemented_not_documented", [])
+
+          # ---------------- write AgentOutput ----------------
+          status_rows = []
+          for r in reqs:
+            s = status_by_id.get(r["requirement_id"], {})
+            status_rows.append({
+              "requirement_id": r["requirement_id"],
+              "title": r["title"],
+              "status": s.get("status","Not Started"),
+              "evidence": s.get("evidence",[]),
+              "gaps": s.get("gaps",[]),
+              "notes": s.get("notes",""),
+            })
+
+          write_text(AGENT_OUTPUT / "requirements_status.jsonl", "\n".join(json.dumps(x, ensure_ascii=False) for x in status_rows) + "\n")
+
+          md_lines = []
+          md_lines.append("# Requirements Status (evidence-based)")
+          md_lines.append(f"- Generated: {datetime.utcnow().isoformat()}Z")
+          md_lines.append(f"- Run mode: `{run_mode}` | Model: `{model}` | Batch size: `{batch_size}`")
+          md_lines.append(f"- Canonical requirements: `{str(canonical).replace('\\','/')}`")
+          md_lines.append("")
+          md_lines.append("| Requirement ID | Status | Title | Evidence (count) |")
+          md_lines.append("|---|---|---|---:|")
+          for x in status_rows:
+            md_lines.append(f"| `{x['requirement_id']}` | **{x['status']}** | {x['title'].replace('|','\\|')} | {len(x['evidence'])} |")
+          md_lines.append("")
+          md_lines.append("## Details (items with evidence/gaps/notes)")
+          for x in status_rows:
+            if x["evidence"] or x["gaps"] or x["notes"]:
+              md_lines.append(f"### {x['requirement_id']} — {x['title']}")
+              if x["evidence"]:
+                md_lines.append("**Evidence:**")
+                md_lines += [f"- {e}" for e in x["evidence"]]
+              if x["gaps"]:
+                md_lines.append("**Gaps:**")
+                md_lines += [f"- {g}" for g in x["gaps"]]
+              if x["notes"]:
+                md_lines.append("**Notes:**")
+                md_lines.append(x["notes"])
+              md_lines.append("")
+          write_text(AGENT_OUTPUT / "requirements_status.md", "\n".join(md_lines).strip() + "\n")
+
+          undoc_md = ["# Implemented but Not Documented", ""]
+          if implemented_not_documented_all:
+            for item in implemented_not_documented_all:
+              undoc_md.append(f"## {item.get('title','(untitled)')}")
+              undoc_md.append("")
+              undoc_md.append("**Evidence:**")
+              for e in item.get("evidence", []):
+                undoc_md.append(f"- {e}")
+              undoc_md.append("")
+              undoc_md.append("**Why not in requirements:**")
+              undoc_md.append(item.get("why_not_in_requirements",""))
+              undoc_md.append("")
+          else:
+            undoc_md.append("_None identified from current evidence catalogs/snippets._")
+          write_text(AGENT_OUTPUT / "implemented_not_documented.md", "\n".join(undoc_md).strip() + "\n")
+
+          # Run metadata (helps you confirm which run produced which outputs)
+          run_url = f"{os.getenv('GITHUB_SERVER_URL')}/{os.getenv('GITHUB_REPOSITORY')}/actions/runs/{os.getenv('GITHUB_RUN_ID')}"
+          meta = {
+            "generated_at_utc": datetime.utcnow().isoformat() + "Z",
+            "run_url": run_url,
+            "github_sha": os.getenv("GITHUB_SHA"),
+            "run_number": os.getenv("GITHUB_RUN_NUMBER"),
+            "run_mode": run_mode,
+            "model": model,
+            "batch_size": batch_size,
+            "max_requirements": max_requirements,
+            "canonical_requirements": str(canonical).replace("\\","/"),
+            "requirements_count": len(reqs),
+            "evaluated_count": len(target),
+            "endpoints_count": len(endpoints),
+            "tables_count": len(schema["tables"]),
+            "tests_count": len(tests),
+            "snippets_in_prompt": len(snippets),
+          }
+          write_json(AGENT_OUTPUT / "run_metadata.json", meta)
+
+          print("Wrote: AgentOutput/requirements_status.jsonl")
+          print("Wrote: AgentOutput/requirements_status.md")
+          print("Wrote: AgentOutput/implemented_not_documented.md")
+          print("Wrote: AgentOutput/run_metadata.json")
+          PY
+
+      - name: Commit AgentOutput to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add AgentOutput || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: update agentic scan outputs"
+          git push
+
+      - name: Upload AgentOutput as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-output
+          path: AgentOutput

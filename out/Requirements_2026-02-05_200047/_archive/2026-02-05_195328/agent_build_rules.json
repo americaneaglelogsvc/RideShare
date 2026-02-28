@@ -1,0 +1,42 @@
+{
+  "canonical_requirements_path": "BlackRavenia_UrwayDispatch_Canonical_Requirements_v6_1.md",
+  "semantic_matching_rule": "Match requirements by meaning, headings, and described behaviors \u2014 NOT by Requirement Identifier (REQ ID) strings.",
+  "required_artifacts": [
+    "as_is_scan.md",
+    "requirements_status.md",
+    "progress_report.md",
+    "implemented_not_documented.md"
+  ],
+  "evidence_gate_rules": {
+    "Implemented_requires": [
+      "file_paths",
+      "api_endpoints",
+      "db_migrations_or_queries"
+    ],
+    "Tested_requires": [
+      "automated_tests",
+      "ci_proof"
+    ],
+    "Shippable_requires": [
+      "staging_deploy_reference",
+      "smoke_test_reference",
+      "observability_reference"
+    ]
+  },
+  "ignore_paths": [
+    "Requirements/Archive/**",
+    "**/*.bak",
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**"
+  ],
+  "scan_requirements": {
+    "stack_detection": true,
+    "services_and_apps_inventory": true,
+    "routes_and_endpoints_discovery": true,
+    "db_migrations_discovery": true,
+    "tests_discovery": true,
+    "ci_workflows_discovery": true,
+    "docker_and_deploy_files_discovery": true
+  }
+}

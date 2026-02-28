@@ -1,0 +1,8 @@
+﻿gh : failed to get run: HTTP 404: Not Found (https://api.github.com/repos/PaySurity-Biz/RideShare/actions/runs/21980780124%2021980613033%2021980408533%2021980218669%2021980049405%2021979640015%2021979210093%2021973673028?exclude_pull_requests=true)
+At line:46 char:10
++   $log = gh run view $runId --repo $repoFull --log-failed 2>&1 | Out- ...
++          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (failed to get r..._requests=true):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+

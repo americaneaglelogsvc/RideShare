@@ -1,0 +1,140 @@
+[
+    {
+        "path":  "_archive\\2026-02-05_195328\\agent_build_rules.json",
+        "sha256":  "5A2B816E8A8011710B1B9FFC4E652CBA91E2DEFA36C2BFEC8F75838FE83F09E8",
+        "lastWriteTime":  "2026-02-04T05:28:50.4668219Z",
+        "sizeBytes":  1162
+    },
+    {
+        "path":  "_archive\\2026-02-05_195328\\BlackRavenia_UrwayDispatch_Canonical_Requirements_v6_1.md",
+        "sha256":  "EF10B659E9C51031CCE9CA7A057A94063EA11DDACF41A50A3692F09F964EC36F",
+        "lastWriteTime":  "2026-02-04T05:28:32.1157104Z",
+        "sizeBytes":  21086
+    },
+    {
+        "path":  "_archive\\2026-02-05_195328\\BlackRavenia_UrwayDispatch_Canonical_Requirements_v6_1_MERGED.json",
+        "sha256":  "BF12082C6CB729D11D0025B6FFC7C405D1208BBBE6A34EE9F43235608243C25D",
+        "lastWriteTime":  "2026-02-06T00:32:34.3699640Z",
+        "sizeBytes":  20866
+    },
+    {
+        "path":  "_archive\\2026-02-05_195328\\BlackRavenia_UrwayDispatch_Canonical_Requirements_v6_1_MERGED.md",
+        "sha256":  "8468729F306BDB8BF38E372CB63C4BF1C3B5F990475AE2DF141F6387C1C6E3D3",
+        "lastWriteTime":  "2026-02-06T00:54:46.8220460Z",
+        "sizeBytes":  34921
+    },
+    {
+        "path":  "_archive\\2026-02-05_195328\\BUILD_AUTHORITY.md",
+        "sha256":  "B85BAE4B19F81085D03B659D2AD6C84D4033D15A035438B972A8A93C5DE10850",
+        "lastWriteTime":  "2026-02-04T05:28:46.3131856Z",
+        "sizeBytes":  320
+    },
+    {
+        "path":  "_archive\\2026-02-05_195328\\design_tokens_placeholder.json",
+        "sha256":  "557F02B862057B6B2B1F930E9893352F2EA8FB18B49B18D7596961762A33E64D",
+        "lastWriteTime":  "2026-02-04T05:29:09.9078638Z",
+        "sizeBytes":  734
+    },
+    {
+        "path":  "_archive\\2026-02-05_195328\\public_site_cta_placeholders.md",
+        "sha256":  "13666E79897378BC1A728D73BD02C985374D9AE8C96376DDCC5A37571CE23C1B",
+        "lastWriteTime":  "2026-02-04T05:29:15.3295239Z",
+        "sizeBytes":  764
+    },
+    {
+        "path":  "_archive\\2026-02-05_195328\\READ_FIRST_AGENT_BlackRavenia_UrwayDispatch.md",
+        "sha256":  "7149D9EA627DB92AE8DC21A1614C68880257C582DAEA4082DC72C9DB3AD961BC",
+        "lastWriteTime":  "2026-02-04T05:28:39.2728943Z",
+        "sizeBytes":  1536
+    },
+    {
+        "path":  "_archive\\2026-02-05_195328\\requirements.json",
+        "sha256":  "F720B9771FD230E5B3226BAB4F5C4888E4B36199DA7450F0E41B05529FB74113",
+        "lastWriteTime":  "2026-02-05T08:43:43.0314660Z",
+        "sizeBytes":  27198
+    },
+    {
+        "path":  "_archive\\2026-02-05_195328\\REQUIREMENTS.md",
+        "sha256":  "C0A89978A1A963150741CECF5189CFE849608759F41F7148EFB549F960B7C29B",
+        "lastWriteTime":  "2026-02-04T19:17:02.1924866Z",
+        "sizeBytes":  17956
+    },
+    {
+        "path":  "_archive\\2026-02-05_195328\\UrwayDispatch_Implemented_Not_Documented_Template_v5_4.md",
+        "sha256":  "F43D473FECA302953BDA23A8FA42037B783D1221152A5881AF77F680C1F4F965",
+        "lastWriteTime":  "2026-02-04T16:21:03.2012254Z",
+        "sizeBytes":  15667
+    },
+    {
+        "path":  "_archive\\2026-02-05_195328\\screen_index.md",
+        "sha256":  "35D34347D44189CC504F0BB9BF27B35BD0E2A50E68264BEBE33493FD41EA9C33",
+        "lastWriteTime":  "2026-02-04T05:28:59.0224634Z",
+        "sizeBytes":  2347
+    },
+    {
+        "path":  "_archive\\2026-02-05_195328\\status_taxonomy.json",
+        "sha256":  "EAEB51D51675CBA25049E03EE17D5A9859D0564640E1EECAD5B320D71DED6D47",
+        "lastWriteTime":  "2026-02-05T08:43:43.0334608Z",
+        "sizeBytes":  389
+    },
+    {
+        "path":  "_archive\\2026-02-05_195328\\system_map.md",
+        "sha256":  "9A50621E2474CC202BC53C864D70A4D2D7ECEC47466D3B1D0F8A2DC29F46846A",
+        "lastWriteTime":  "2026-02-04T05:28:55.3482522Z",
+        "sizeBytes":  1717
+    },
+    {
+        "path":  "_archive\\2026-02-05_195328\\timers.json",
+        "sha256":  "72C7C7CCD596447C0646929C1614896D54772B23C8967E94B05AB1BFAA576702",
+        "lastWriteTime":  "2026-02-04T05:29:04.7502055Z",
+        "sizeBytes":  483
+    },
+    {
+        "path":  "BlackRavenia_UrwayDispatch_Canonical_Requirements_v6_1_MERGED_REORG_v3.json",
+        "sha256":  "F011E6CDDDEC17F7872E0D13EE4EE69E7A2EEAC4208F79A1A8E1DC70DC3A915B",
+        "lastWriteTime":  "2026-02-06T01:18:15.8963405Z",
+        "sizeBytes":  60808
+    },
+    {
+        "path":  "BlackRavenia_UrwayDispatch_Canonical_Requirements_v6_1_MERGED_REORG_v3.md",
+        "sha256":  "3519AF6AF9FC6E86CDBD3F6DA62EE2B24B00AC2DB8FD46F1E690072D2779EB06",
+        "lastWriteTime":  "2026-02-06T01:18:09.5903048Z",
+        "sizeBytes":  38504
+    },
+    {
+        "path":  "CANONICAL.json",
+        "sha256":  "F011E6CDDDEC17F7872E0D13EE4EE69E7A2EEAC4208F79A1A8E1DC70DC3A915B",
+        "lastWriteTime":  "2026-02-06T01:18:15.8963405Z",
+        "sizeBytes":  60808
+    },
+    {
+        "path":  "CANONICAL.md",
+        "sha256":  "3519AF6AF9FC6E86CDBD3F6DA62EE2B24B00AC2DB8FD46F1E690072D2779EB06",
+        "lastWriteTime":  "2026-02-06T01:18:09.5903048Z",
+        "sizeBytes":  38504
+    },
+    {
+        "path":  "README.md",
+        "sha256":  "CA0C46EAD1916FA11F6C3C8C7ABDE13D360BEFF268CC8D2AE0BB1A455D6615B3",
+        "lastWriteTime":  "2026-02-06T01:53:29.5994376Z",
+        "sizeBytes":  526
+    },
+    {
+        "path":  "requirements.jsonl",
+        "sha256":  "E6DC2FDCC14E6A61143B1CDCE266169918FC96684076858212F8178A11907731",
+        "lastWriteTime":  "2026-02-05T08:43:43.0324633Z",
+        "sizeBytes":  25223
+    },
+    {
+        "path":  "sources\\UrwayDispatch context.txt",
+        "sha256":  "D870E4E3B9297D582CE1C5FD9709002ADABF1EF808558FB5C044DE08A2A526FF",
+        "lastWriteTime":  "2026-02-05T11:26:34.3539051Z",
+        "sizeBytes":  6733
+    },
+    {
+        "path":  "sources\\UrwayDispatch-chat1-requirements.txt",
+        "sha256":  "A4D810D1900D3DEB6FF02B3C1E658506F82A5040D90F82F1E6DCBC3FF9CA3E59",
+        "lastWriteTime":  "2026-02-05T11:13:13.8750128Z",
+        "sizeBytes":  5700
+    }
+]

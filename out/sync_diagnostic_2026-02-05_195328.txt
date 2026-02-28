@@ -1,0 +1,47 @@
+=== REPO DIAGNOSTIC (2026-02-05_195328) ===
+
+C:/Users/Detaimfc/Downloads/RideShare
+origin	https://github.com/rwbgoachic/RideShare.git (fetch)
+origin	https://github.com/rwbgoachic/RideShare.git (push)
+## main...origin/main
+A  .gitattributes
+AD AGENT_RUNBOOK.md
+ D AgentOutput/implemented_not_documented.md
+ D AgentOutput/requirements_status.jsonl
+ D AgentOutput/requirements_status.md
+ D REQUIREMENTS.md
+A  Requirements/status_taxonomy.json
+A  "assets/brand/BLACKRAVENIA LOGO Feb 5, 2026, 03_21_09 AM.png"
+A  "assets/brand/ChatGPT Image Feb 5, 2026, 03_43_37 AM.png"
+A  "assets/brand/ChatGPT Image Feb 5, 2026, 04_43_31 AM.png"
+A  scripts/as_is_scan.py
+A  scripts/extract_requirements.py
+A  scripts/extract_requirements_jsonl.ps1
+A  scripts/generate_requirements_from_md.py
+A  scripts/implemented_not_documented_candidates.py
+A  scripts/inventory.ps1
+A  scripts/prep_agent_inputs.ps1
+A  scripts/requirements_quality_report.py
+A  scripts/run_audit.ps1
+A  scripts/seed_status.py
+A  scripts/validate_agent_output.py
+?? "Agentic AI Work/"
+?? Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED.json
+?? Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED.md
+?? Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.json
+?? Requirements/BlackRavenia_RideShare_Canonical_Requirements_v6_1_MERGED_REORG_v3.md
+?? Requirements/REQUIREMENTS.md
+?? Requirements/RideShare-chat1-requirements.txt
+?? "Requirements/rideshare context.txt"
+?? out/
+
+
+Current branch: main
+Origin default branch: main
+
+* main cf2277a [origin/main] chore: richer as-is scan (db/routes/tests/snippets) + milestone rollups
+
+Ahead/Behind vs origin/main => Ahead=0 Behind=0
+
+Diff summary (name-status) vs origin/main:
+

@@ -1,0 +1,8 @@
+{
+  "time_utc": "2026-02-15T23:17:20Z",
+  "repo_root": "/home/runner/work/UrwayDispatch/UrwayDispatch",
+  "requirements_dir_exists": true,
+  "requirements_file_count": 27,
+  "openai_api_key_present": true,
+  "note": "Minimal scan runner (unblocks CI). Replace with full scan implementation when ready."
+}

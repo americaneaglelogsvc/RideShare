@@ -1,0 +1,27 @@
+{
+  "notes": "Placeholders only. Replace with your brand palette and tenant theming strategy.",
+  "platform_brand": "blackravenia.com",
+  "tokens": {
+    "font_family_primary": "Inter",
+    "radius_base_px": 12,
+    "spacing_unit_px": 4,
+    "colors": {
+      "primary": "#111827",
+      "secondary": "#4B5563",
+      "accent": "#2563EB",
+      "background": "#FFFFFF",
+      "surface": "#F9FAFB",
+      "success": "#16A34A",
+      "warning": "#F59E0B",
+      "danger": "#DC2626"
+    }
+  },
+  "asset_slots": {
+    "platform_logo": "PLACEHOLDER",
+    "tenant_logo": "PLACEHOLDER_PER_TENANT",
+    "hero_image": "PLACEHOLDER",
+    "app_store_badges": "PLACEHOLDER",
+    "testimonials": "PLACEHOLDER",
+    "icons_set": "PLACEHOLDER"
+  }
+}

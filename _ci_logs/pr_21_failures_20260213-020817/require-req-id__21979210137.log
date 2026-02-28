@@ -1,0 +1,18 @@
+﻿check	require-req-id	∩╗┐2026-02-13T07:59:56.6070409Z ##[group]Run node scripts/require_req_id_check.js
+check	require-req-id	2026-02-13T07:59:56.6071977Z [36;1mnode scripts/require_req_id_check.js[0m
+check	require-req-id	2026-02-13T07:59:56.6126791Z shell: /usr/bin/bash -e {0}
+check	require-req-id	2026-02-13T07:59:56.6127928Z ##[endgroup]
+check	require-req-id	2026-02-13T07:59:59.0794493Z file:///home/runner/work/RideShare/RideShare/scripts/require_req_id_check.js:1
+check	require-req-id	2026-02-13T07:59:59.0796163Z const { execSync } = require("child_process");
+check	require-req-id	2026-02-13T07:59:59.0796871Z                      ^
+check	require-req-id	2026-02-13T07:59:59.0797255Z 
+check	require-req-id	2026-02-13T07:59:59.0797751Z ReferenceError: require is not defined in ES module scope, you can use import instead
+check	require-req-id	2026-02-13T07:59:59.0799253Z This file is being treated as an ES module because it has a '.js' file extension and '/home/runner/work/RideShare/RideShare/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.
+check	require-req-id	2026-02-13T07:59:59.0801232Z     at file:///home/runner/work/RideShare/RideShare/scripts/require_req_id_check.js:1:22
+check	require-req-id	2026-02-13T07:59:59.0802339Z     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+check	require-req-id	2026-02-13T07:59:59.0802902Z     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+check	require-req-id	2026-02-13T07:59:59.0803544Z     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+check	require-req-id	2026-02-13T07:59:59.0803951Z 
+check	require-req-id	2026-02-13T07:59:59.0804078Z Node.js v20.20.0
+check	require-req-id	2026-02-13T07:59:59.0843361Z ##[error]Process completed with exit code 1.
+

@@ -1,0 +1,289 @@
+# BlackRavenia RideShare — Canonical Requirements (Human Readable)
+
+Version: 1.0
+Scope: Passenger rides only
+Datastore: PostgreSQL (pg, $PG_CONN only)
+Payments: FluidPay
+Policy Engine: Policy Center (versioned, auditable)
+Deployment: GitHub-driven, agentic AI compatible
+
+---
+
+## 0. GLOBAL PRINCIPLES
+
+- Every requirement MUST be:
+  - Implemented
+  - Tested
+  - Observable
+  - Auditable
+- No feature is “done” unless evidence exists.
+- No silent defaults. All behavior is policy-driven.
+- PostgreSQL only. No Supabase.
+- Multi-tenant, white-label by default.
+
+---
+
+## 1. ACTORS & ROLES
+
+### 1.1 Roles
+- SUPER_ADMIN
+- OPS_ADMIN
+- CSR
+- TENANT_OWNER
+- FLEET_OWNER
+- DRIVER
+- RIDER
+
+RBAC enforced everywhere (API + UI).
+
+---
+
+## 2. TENANCY & WHITE-LABELING
+
+- Each tenant has:
+  - Brand (logo, colors, domain)
+  - Regional configs
+  - SEO metadata (schema.org, sitemap, robots)
+- Per-tenant microsite auto-generated.
+- Tenant isolation enforced at DB + API.
+
+---
+
+## 3. POLICY CENTER (CORE SYSTEM)
+
+### 3.1 Capabilities
+- Central policy authority for:
+  - Destination Mode
+  - Airport Queue
+  - Surge
+  - Driver Tiering
+  - QR Bonuses
+  - Voice
+- Precedence: driver > region > tenant > global
+- Versioned, draft → publish workflow
+- Full audit log (who, when, diff)
+
+### 3.2 APIs
+- GET /policy-center/types
+- GET /policy-center/:type/effective
+- POST /policy-center/:type/drafts
+- POST /policy-center/:type/publish
+- POST /policy-center/:type/validate
+- DELETE /policy-center/:type/drafts/:id
+
+### 3.3 Validation
+- JSON Schema (AJV)
+- CI must fail if invalid
+- Policies cached with ETag support
+
+---
+
+## 4. DRIVER MODELS
+
+### 4.1 Driver Types
+1. Owner-Operator
+2. Leased Vehicle Driver (lease docs required)
+
+### 4.2 Fleet Owners
+- ≥2 vehicles = Fleet Owner
+- Can:
+  - Add/remove drivers per vehicle
+  - Disable a driver’s access to a vehicle instantly
+- Removal = immediate ride ineligibility
+
+---
+
+## 5. VEHICLES
+
+- Full vehicle registry:
+  - Ownership
+  - Lease status
+  - Photos
+  - Registration
+  - Insurance (BlackRavenia as additional insured)
+- Vehicles can be listed as:
+  - Available for lease
+- Drivers can:
+  - Request vehicles
+  - Propose co-driving
+  - Set shift-exchange locations
+
+---
+
+## 6. LUXURY & COMPLIANCE RULES (MANDATORY)
+
+- Driver agreements must enforce:
+  - Suit & tie
+  - Clean vehicle
+  - Water bottles always stocked
+- Compliance tracked
+- Violations affect tiering & dispatch priority
+
+---
+
+## 7. DRIVER TIERS & RATINGS
+
+- Tier assignment based on:
+  - Star rating
+  - Rider feedback
+  - Industry service standards
+- Tier affects:
+  - Dispatch priority
+  - Airport queue priority
+  - Surge eligibility
+
+---
+
+## 8. QR CODE & BRANDING PROGRAM
+
+- Each branded vehicle gets:
+  - Unique QR code
+  - Attribution tracking
+- Scan → ride → bonus workflow
+- Bonus configurable via Policy Center
+- Branded vehicles get dispatch priority
+
+---
+
+## 9. DISPATCH & DESTINATION MODE
+
+### 9.1 Destination Mode
+- No hard daily cap
+- Policy-controlled enable/disable
+- Per-driver overrides with TTL
+- Destination books default = 3 unless overridden
+- Effective policy surfaced to driver app
+
+### 9.2 Dispatch Guarantees
+- No double assignment
+- Atomic locking (DB + Redis/Lua)
+- 409 returned on stale attempts
+
+---
+
+## 10. AIRPORT QUEUE (DIFFERENTIATOR)
+
+- Remote join allowed based on policy:
+  - airport_queue.allow_enroute_join
+  - with_passenger_allowed
+- Prompt:
+  “Drop-off at {airport}. {X} miles away. Join queue now?”
+- Pre-token issued outside polygon
+- Activated on polygon entry
+- Anti-abuse:
+  - Heading checks
+  - Speed checks
+  - Cooldowns
+
+---
+
+## 11. SURGE PRICING
+
+- Tenant-level toggle:
+  - OFF → cap = 1.0
+  - ON → region caps apply
+- Supply/demand aware
+- Region-specific caps
+- Admin configurable via Policy Center
+
+---
+
+## 12. RIDER EXPERIENCE
+
+- Rider booking (immediate + scheduled)
+- Mutual rating required post-ride
+- Comment required (reasonable length)
+- Cookie consent required (hard gate)
+- Strong tracking consent (no bypass)
+
+---
+
+## 13. VOICE INTERFACE
+
+- Voice intents:
+  - Driver
+  - Rider
+  - Ops
+- Push-to-talk fallback
+- Transcripts logged
+- Retention controlled via policy
+
+---
+
+## 14. PAYMENTS (FLUIDPAY)
+
+- Charge / capture / refund APIs
+- Driver payouts
+- Double-entry ledger
+- Automated reconciliation
+- CI checks for balance integrity
+
+---
+
+## 15. MARKETPLACE & ADS
+
+- Ads section:
+  - Emergency recovery
+  - Marketing services
+- Paid placements
+- Admin approval flow
+
+---
+
+## 16. EVENTS ENGINE (CHICAGOLAND)
+
+- Weekly automated ingestion:
+  - Concerts
+  - Sports
+  - Cultural events
+- Scraped from web
+- Normalized fields:
+  - name, location, date, type
+- Drives demand forecasting
+
+---
+
+## 17. OBSERVABILITY & RELIABILITY
+
+- SLOs defined
+- DLQ with replay tooling
+- Chaos tested
+- Go/No-Go gates enforced
+- Canary deploy supported
+
+---
+
+## 18. SECURITY & DATA
+
+- PostgreSQL only
+- PII retention policies
+- Export & delete tooling
+- Full audit trail
+
+---
+
+## 19. DEFINITION OF DONE (GLOBAL)
+
+A requirement is DONE only if:
+- Code merged
+- Tests passing
+- Policy wired (if applicable)
+- UI present (if user-facing)
+- Metrics emitted
+- Logs searchable
+- Audit record created
+- Evidence linked in repo
+
+---
+
+## 20. PROGRESS REPORTING (AGENTIC AI)
+
+- Each iteration must report:
+  - Requirements touched
+  - % moved RED→YELLOW→GREEN
+  - Evidence links
+  - New risks
+- Output:
+  - coverage.json
+  - AS-IS-REPORT.md
+  - PLAN-TO-100.md

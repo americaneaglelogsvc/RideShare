@@ -1,0 +1,16 @@
+﻿schema	Run python scripts/validate_canonical_schema.py	∩╗┐2026-02-13T08:00:02.8952265Z ##[group]Run python scripts/validate_canonical_schema.py
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:00:02.8952864Z [36;1mpython scripts/validate_canonical_schema.py[0m
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:00:02.9002748Z shell: /usr/bin/bash -e {0}
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:00:02.9002998Z env:
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:00:02.9003250Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:00:02.9003684Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib/pkgconfig
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:00:02.9004111Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:00:02.9004474Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:00:02.9004878Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:00:02.9005241Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:00:02.9005573Z ##[endgroup]
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:00:02.9250173Z Missing required schema file(s):
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:00:02.9251148Z  - /home/runner/work/RideShare/RideShare/Requirements/CANONICAL.schema.json
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:00:02.9251838Z  - /home/runner/work/RideShare/RideShare/Requirements/PROJECT_PROFILE.schema.json
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:00:02.9293854Z ##[error]Process completed with exit code 2.
+

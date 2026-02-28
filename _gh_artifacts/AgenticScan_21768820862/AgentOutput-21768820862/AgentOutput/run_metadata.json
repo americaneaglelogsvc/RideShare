@@ -1,0 +1,18 @@
+{
+  "generated_at_utc": "2026-02-06T22:55:22.557467Z",
+  "run_mode": "test",
+  "model": "gpt-5.2",
+  "batch_size": 10,
+  "max_requirements": 9999,
+  "requirements_total": 61,
+  "requirements_evaluated_this_run": 5,
+  "status_counts": {
+    "Not Started": 61
+  },
+  "determinants_of_truth_counts": {
+    "file": 1
+  },
+  "git_sha": "b74707b6618c1749830d6a89b3dbc4e384eaa64b",
+  "workflow_run_url": "https://github.com/rwbgoachic/UrwayDispatch/actions/runs/21768820862",
+  "canonical_requirements": "/home/runner/work/UrwayDispatch/UrwayDispatch/Requirements/BlackRavenia_UrwayDispatch_Canonical_Requirements_v6_1_MERGED_REORG_v3.md"
+}

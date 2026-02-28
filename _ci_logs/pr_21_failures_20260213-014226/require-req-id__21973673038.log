@@ -1,0 +1,165 @@
+﻿check	UNKNOWN STEP	∩╗┐2026-02-13T03:36:48.3898246Z Current runner version: '2.331.0'
+check	UNKNOWN STEP	2026-02-13T03:36:48.3922356Z ##[group]Runner Image Provisioner
+check	UNKNOWN STEP	2026-02-13T03:36:48.3923446Z Hosted Compute Agent
+check	UNKNOWN STEP	2026-02-13T03:36:48.3924048Z Version: 20260123.484
+check	UNKNOWN STEP	2026-02-13T03:36:48.3924675Z Commit: 6bd6555ca37d84114959e1c76d2c01448ff61c5d
+check	UNKNOWN STEP	2026-02-13T03:36:48.3925497Z Build Date: 2026-01-23T19:41:17Z
+check	UNKNOWN STEP	2026-02-13T03:36:48.3926202Z Worker ID: {9fcbff91-cedd-47e2-a8e8-eb85d0fe008f}
+check	UNKNOWN STEP	2026-02-13T03:36:48.3926913Z Azure Region: westus
+check	UNKNOWN STEP	2026-02-13T03:36:48.3927419Z ##[endgroup]
+check	UNKNOWN STEP	2026-02-13T03:36:48.3928968Z ##[group]Operating System
+check	UNKNOWN STEP	2026-02-13T03:36:48.3929571Z Ubuntu
+check	UNKNOWN STEP	2026-02-13T03:36:48.3930128Z 24.04.3
+check	UNKNOWN STEP	2026-02-13T03:36:48.3930685Z LTS
+check	UNKNOWN STEP	2026-02-13T03:36:48.3931173Z ##[endgroup]
+check	UNKNOWN STEP	2026-02-13T03:36:48.3931667Z ##[group]Runner Image
+check	UNKNOWN STEP	2026-02-13T03:36:48.3932329Z Image: ubuntu-24.04
+check	UNKNOWN STEP	2026-02-13T03:36:48.3932892Z Version: 20260209.23.1
+check	UNKNOWN STEP	2026-02-13T03:36:48.3934669Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260209.23/images/ubuntu/Ubuntu2404-Readme.md
+check	UNKNOWN STEP	2026-02-13T03:36:48.3936174Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260209.23
+check	UNKNOWN STEP	2026-02-13T03:36:48.3937111Z ##[endgroup]
+check	UNKNOWN STEP	2026-02-13T03:36:48.3938272Z ##[group]GITHUB_TOKEN Permissions
+check	UNKNOWN STEP	2026-02-13T03:36:48.3940127Z Contents: read
+check	UNKNOWN STEP	2026-02-13T03:36:48.3940753Z Metadata: read
+check	UNKNOWN STEP	2026-02-13T03:36:48.3941334Z Packages: read
+check	UNKNOWN STEP	2026-02-13T03:36:48.3941883Z ##[endgroup]
+check	UNKNOWN STEP	2026-02-13T03:36:48.3944598Z Secret source: Actions
+check	UNKNOWN STEP	2026-02-13T03:36:48.3945500Z Prepare workflow directory
+check	UNKNOWN STEP	2026-02-13T03:36:48.4271035Z Prepare all required actions
+check	UNKNOWN STEP	2026-02-13T03:36:48.4309556Z Getting action download info
+check	UNKNOWN STEP	2026-02-13T03:36:48.9061395Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+check	UNKNOWN STEP	2026-02-13T03:36:49.0169556Z Download action repository 'actions/github-script@v7' (SHA:f28e40c7f34bde8b3046d885e986cb6290c5673b)
+check	UNKNOWN STEP	2026-02-13T03:36:50.0522575Z Complete job name: check
+check	UNKNOWN STEP	2026-02-13T03:36:50.1375169Z ##[group]Run actions/checkout@v4
+check	UNKNOWN STEP	2026-02-13T03:36:50.1376532Z with:
+check	UNKNOWN STEP	2026-02-13T03:36:50.1377372Z   repository: PaySurity-Biz/RideShare
+check	UNKNOWN STEP	2026-02-13T03:36:50.1378765Z   token: ***
+check	UNKNOWN STEP	2026-02-13T03:36:50.1379539Z   ssh-strict: true
+check	UNKNOWN STEP	2026-02-13T03:36:50.1380332Z   ssh-user: git
+check	UNKNOWN STEP	2026-02-13T03:36:50.1381168Z   persist-credentials: true
+check	UNKNOWN STEP	2026-02-13T03:36:50.1382079Z   clean: true
+check	UNKNOWN STEP	2026-02-13T03:36:50.1382913Z   sparse-checkout-cone-mode: true
+check	UNKNOWN STEP	2026-02-13T03:36:50.1384103Z   fetch-depth: 1
+check	UNKNOWN STEP	2026-02-13T03:36:50.1384892Z   fetch-tags: false
+check	UNKNOWN STEP	2026-02-13T03:36:50.1385724Z   show-progress: true
+check	UNKNOWN STEP	2026-02-13T03:36:50.1386560Z   lfs: false
+check	UNKNOWN STEP	2026-02-13T03:36:50.1387316Z   submodules: false
+check	UNKNOWN STEP	2026-02-13T03:36:50.1388144Z   set-safe-directory: true
+check	UNKNOWN STEP	2026-02-13T03:36:50.1389312Z ##[endgroup]
+check	UNKNOWN STEP	2026-02-13T03:36:50.2553655Z Syncing repository: PaySurity-Biz/RideShare
+check	UNKNOWN STEP	2026-02-13T03:36:50.2557618Z ##[group]Getting Git version info
+check	UNKNOWN STEP	2026-02-13T03:36:50.2559810Z Working directory is '/home/runner/work/RideShare/RideShare'
+check	UNKNOWN STEP	2026-02-13T03:36:50.2563818Z [command]/usr/bin/git version
+check	UNKNOWN STEP	2026-02-13T03:36:50.2565410Z git version 2.52.0
+check	UNKNOWN STEP	2026-02-13T03:36:50.2592544Z ##[endgroup]
+check	UNKNOWN STEP	2026-02-13T03:36:50.2607753Z Temporarily overriding HOME='/home/runner/work/_temp/42863b59-c72e-4e2b-bc22-7547f3a47e63' before making global git config changes
+check	UNKNOWN STEP	2026-02-13T03:36:50.2610639Z Adding repository directory to the temporary git global config as a safe directory
+check	UNKNOWN STEP	2026-02-13T03:36:50.2614257Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/RideShare/RideShare
+check	UNKNOWN STEP	2026-02-13T03:36:50.2657355Z Deleting the contents of '/home/runner/work/RideShare/RideShare'
+check	UNKNOWN STEP	2026-02-13T03:36:50.2660652Z ##[group]Initializing the repository
+check	UNKNOWN STEP	2026-02-13T03:36:50.2665565Z [command]/usr/bin/git init /home/runner/work/RideShare/RideShare
+check	UNKNOWN STEP	2026-02-13T03:36:50.2771373Z hint: Using 'master' as the name for the initial branch. This default branch name
+check	UNKNOWN STEP	2026-02-13T03:36:50.2773685Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+check	UNKNOWN STEP	2026-02-13T03:36:50.2776665Z hint: to use in all of your new repositories, which will suppress this warning,
+check	UNKNOWN STEP	2026-02-13T03:36:50.2779605Z hint: call:
+check	UNKNOWN STEP	2026-02-13T03:36:50.2780869Z hint:
+check	UNKNOWN STEP	2026-02-13T03:36:50.2782500Z hint: 	git config --global init.defaultBranch <name>
+check	UNKNOWN STEP	2026-02-13T03:36:50.2784806Z hint:
+check	UNKNOWN STEP	2026-02-13T03:36:50.2786635Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+check	UNKNOWN STEP	2026-02-13T03:36:50.2789899Z hint: 'development'. The just-created branch can be renamed via this command:
+check	UNKNOWN STEP	2026-02-13T03:36:50.2792459Z hint:
+check	UNKNOWN STEP	2026-02-13T03:36:50.2793877Z hint: 	git branch -m <name>
+check	UNKNOWN STEP	2026-02-13T03:36:50.2795312Z hint:
+check	UNKNOWN STEP	2026-02-13T03:36:50.2797291Z hint: Disable this message with "git config set advice.defaultBranchName false"
+check	UNKNOWN STEP	2026-02-13T03:36:50.2800048Z Initialized empty Git repository in /home/runner/work/RideShare/RideShare/.git/
+check	UNKNOWN STEP	2026-02-13T03:36:50.2803694Z [command]/usr/bin/git remote add origin https://github.com/PaySurity-Biz/RideShare
+check	UNKNOWN STEP	2026-02-13T03:36:50.2830651Z ##[endgroup]
+check	UNKNOWN STEP	2026-02-13T03:36:50.2833163Z ##[group]Disabling automatic garbage collection
+check	UNKNOWN STEP	2026-02-13T03:36:50.2835628Z [command]/usr/bin/git config --local gc.auto 0
+check	UNKNOWN STEP	2026-02-13T03:36:50.2867474Z ##[endgroup]
+check	UNKNOWN STEP	2026-02-13T03:36:50.2869760Z ##[group]Setting up auth
+check	UNKNOWN STEP	2026-02-13T03:36:50.2875786Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+check	UNKNOWN STEP	2026-02-13T03:36:50.2911805Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+check	UNKNOWN STEP	2026-02-13T03:36:50.3257188Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+check	UNKNOWN STEP	2026-02-13T03:36:50.3292309Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+check	UNKNOWN STEP	2026-02-13T03:36:50.3531411Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+check	UNKNOWN STEP	2026-02-13T03:36:50.3575561Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+check	UNKNOWN STEP	2026-02-13T03:36:50.3838336Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+check	UNKNOWN STEP	2026-02-13T03:36:50.3875554Z ##[endgroup]
+check	UNKNOWN STEP	2026-02-13T03:36:50.3876978Z ##[group]Fetching the repository
+check	UNKNOWN STEP	2026-02-13T03:36:50.3886407Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +bc4e06ccb5e5e6723a418e93250a83800ca29628:refs/remotes/pull/21/merge
+check	UNKNOWN STEP	2026-02-13T03:36:51.3322580Z From https://github.com/PaySurity-Biz/RideShare
+check	UNKNOWN STEP	2026-02-13T03:36:51.3325691Z  * [new ref]         bc4e06ccb5e5e6723a418e93250a83800ca29628 -> pull/21/merge
+check	UNKNOWN STEP	2026-02-13T03:36:51.3361769Z ##[endgroup]
+check	UNKNOWN STEP	2026-02-13T03:36:51.3363968Z ##[group]Determining the checkout info
+check	UNKNOWN STEP	2026-02-13T03:36:51.3366271Z ##[endgroup]
+check	UNKNOWN STEP	2026-02-13T03:36:51.3369388Z [command]/usr/bin/git sparse-checkout disable
+check	UNKNOWN STEP	2026-02-13T03:36:51.3415021Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+check	UNKNOWN STEP	2026-02-13T03:36:51.3447314Z ##[group]Checking out the ref
+check	UNKNOWN STEP	2026-02-13T03:36:51.3452324Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/21/merge
+check	UNKNOWN STEP	2026-02-13T03:36:51.3794954Z Note: switching to 'refs/remotes/pull/21/merge'.
+check	UNKNOWN STEP	2026-02-13T03:36:51.3795929Z 
+check	UNKNOWN STEP	2026-02-13T03:36:51.3799861Z You are in 'detached HEAD' state. You can look around, make experimental
+check	UNKNOWN STEP	2026-02-13T03:36:51.3800919Z changes and commit them, and you can discard any commits you make in this
+check	UNKNOWN STEP	2026-02-13T03:36:51.3815129Z state without impacting any branches by switching back to a branch.
+check	UNKNOWN STEP	2026-02-13T03:36:51.3815722Z 
+check	UNKNOWN STEP	2026-02-13T03:36:51.3816081Z If you want to create a new branch to retain commits you create, you may
+check	UNKNOWN STEP	2026-02-13T03:36:51.3816895Z do so (now or later) by using -c with the switch command. Example:
+check	UNKNOWN STEP	2026-02-13T03:36:51.3817395Z 
+check	UNKNOWN STEP	2026-02-13T03:36:51.3817587Z   git switch -c <new-branch-name>
+check	UNKNOWN STEP	2026-02-13T03:36:51.3817969Z 
+check	UNKNOWN STEP	2026-02-13T03:36:51.3818156Z Or undo this operation with:
+check	UNKNOWN STEP	2026-02-13T03:36:51.3818462Z 
+check	UNKNOWN STEP	2026-02-13T03:36:51.3819004Z   git switch -
+check	UNKNOWN STEP	2026-02-13T03:36:51.3820308Z 
+check	UNKNOWN STEP	2026-02-13T03:36:51.3820577Z Turn off this advice by setting config variable advice.detachedHead to false
+check	UNKNOWN STEP	2026-02-13T03:36:51.3820912Z 
+check	UNKNOWN STEP	2026-02-13T03:36:51.3821272Z HEAD is now at bc4e06c Merge 0443bc111c2535b7c75dd214c22ed5cab9a018a8 into acd8aa4ac629d71e3bcb810ba35ca06fc3d5d35d
+check	UNKNOWN STEP	2026-02-13T03:36:51.3822514Z ##[endgroup]
+check	UNKNOWN STEP	2026-02-13T03:36:51.3855232Z [command]/usr/bin/git log -1 --format=%H
+check	UNKNOWN STEP	2026-02-13T03:36:51.3879816Z bc4e06ccb5e5e6723a418e93250a83800ca29628
+check	UNKNOWN STEP	2026-02-13T03:36:51.4110479Z ##[group]Run actions/github-script@v7
+check	UNKNOWN STEP	2026-02-13T03:36:51.4110852Z with:
+check	UNKNOWN STEP	2026-02-13T03:36:51.4112588Z   script: const title = context.payload.pull_request.title || '';
+check	UNKNOWN STEP	const body  = context.payload.pull_request.body  || '';
+check	UNKNOWN STEP	const text  = ${title}\n;
+check	UNKNOWN STEP	const re = /\\b(GEN|SHARED|MS|PAY|DWL|POS-R|POS-G|POS-RET|LEGAL|LEGALEDGE|LEGDOC|SEC|COMP|COMPENG|COMPUI|APIGW|AFF|WEB|ECOM|MSC|OCR|REMOTE|DATA|ADMIN|REPORT|CONFIG|DRV|DWLAPI|DWLWEB|ERP|FILE|INFRA|K8S)-\\d{1,5}\\b/i;
+check	UNKNOWN STEP	if (!re.test(text)) {
+check	UNKNOWN STEP	  core.setFailed('PR must reference at least one requirement ID (e.g., MS-001, PAY-123, ECOM-045, COMPENG-010).');
+check	UNKNOWN STEP	}
+check	UNKNOWN STEP	
+check	UNKNOWN STEP	2026-02-13T03:36:51.4114896Z   github-token: ***
+check	UNKNOWN STEP	2026-02-13T03:36:51.4115159Z   debug: false
+check	UNKNOWN STEP	2026-02-13T03:36:51.4115415Z   user-agent: actions/github-script
+check	UNKNOWN STEP	2026-02-13T03:36:51.4115732Z   result-encoding: json
+check	UNKNOWN STEP	2026-02-13T03:36:51.4115996Z   retries: 0
+check	UNKNOWN STEP	2026-02-13T03:36:51.4116268Z   retry-exempt-status-codes: 400,401,403,404,422
+check	UNKNOWN STEP	2026-02-13T03:36:51.4116616Z ##[endgroup]
+check	UNKNOWN STEP	2026-02-13T03:36:51.5032852Z SyntaxError: Unexpected token '{'
+check	UNKNOWN STEP	2026-02-13T03:36:51.5033807Z     at new AsyncFunction (<anonymous>)
+check	UNKNOWN STEP	2026-02-13T03:36:51.5034884Z     at callAsyncFunction (/home/runner/work/_actions/actions/github-script/v7/dist/index.js:36187:16)
+check	UNKNOWN STEP	2026-02-13T03:36:51.5036244Z     at main (/home/runner/work/_actions/actions/github-script/v7/dist/index.js:36285:26)
+check	UNKNOWN STEP	2026-02-13T03:36:51.5037080Z     at /home/runner/work/_actions/actions/github-script/v7/dist/index.js:36260:1
+check	UNKNOWN STEP	2026-02-13T03:36:51.5037813Z     at /home/runner/work/_actions/actions/github-script/v7/dist/index.js:36317:3
+check	UNKNOWN STEP	2026-02-13T03:36:51.5038734Z     at Object.<anonymous> (/home/runner/work/_actions/actions/github-script/v7/dist/index.js:36320:12)
+check	UNKNOWN STEP	2026-02-13T03:36:51.5039827Z     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+check	UNKNOWN STEP	2026-02-13T03:36:51.5040456Z     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+check	UNKNOWN STEP	2026-02-13T03:36:51.5041070Z     at Module.load (node:internal/modules/cjs/loader:1266:32)
+check	UNKNOWN STEP	2026-02-13T03:36:51.5041631Z     at Module._load (node:internal/modules/cjs/loader:1091:12)
+check	UNKNOWN STEP	2026-02-13T03:36:51.5064236Z ##[error]Unhandled error: SyntaxError: Unexpected token '{'
+check	UNKNOWN STEP	2026-02-13T03:36:51.5204713Z Post job cleanup.
+check	UNKNOWN STEP	2026-02-13T03:36:51.6166299Z [command]/usr/bin/git version
+check	UNKNOWN STEP	2026-02-13T03:36:51.6204161Z git version 2.52.0
+check	UNKNOWN STEP	2026-02-13T03:36:51.6254703Z Temporarily overriding HOME='/home/runner/work/_temp/e95458e3-d71e-4729-8896-1fa0500ed855' before making global git config changes
+check	UNKNOWN STEP	2026-02-13T03:36:51.6255988Z Adding repository directory to the temporary git global config as a safe directory
+check	UNKNOWN STEP	2026-02-13T03:36:51.6260176Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/RideShare/RideShare
+check	UNKNOWN STEP	2026-02-13T03:36:51.6295878Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+check	UNKNOWN STEP	2026-02-13T03:36:51.6329161Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+check	UNKNOWN STEP	2026-02-13T03:36:51.6572642Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+check	UNKNOWN STEP	2026-02-13T03:36:51.6597202Z http.https://github.com/.extraheader
+check	UNKNOWN STEP	2026-02-13T03:36:51.6611020Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+check	UNKNOWN STEP	2026-02-13T03:36:51.6644296Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+check	UNKNOWN STEP	2026-02-13T03:36:51.6896361Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+check	UNKNOWN STEP	2026-02-13T03:36:51.6934470Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+check	UNKNOWN STEP	2026-02-13T03:36:51.7378989Z Cleaning up orphan processes
+

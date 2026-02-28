@@ -1,0 +1,14 @@
+﻿schema	Run python scripts/validate_canonical_schema.py	∩╗┐2026-02-13T08:31:11.9680389Z ##[group]Run python scripts/validate_canonical_schema.py
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:31:11.9681023Z [36;1mpython scripts/validate_canonical_schema.py[0m
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:31:11.9732789Z shell: /usr/bin/bash -e {0}
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:31:11.9733071Z env:
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:31:11.9733345Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:31:11.9733798Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib/pkgconfig
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:31:11.9734227Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:31:11.9734593Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:31:11.9735000Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:31:11.9735380Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:31:11.9735729Z ##[endgroup]
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:31:12.0030649Z Schema validation failed for /home/runner/work/RideShare/RideShare/Requirements/CANONICAL.schema.json: Unexpected UTF-8 BOM (decode using utf-8-sig): line 1 column 1 (char 0)
+schema	Run python scripts/validate_canonical_schema.py	2026-02-13T08:31:12.0084506Z ##[error]Process completed with exit code 2.
+

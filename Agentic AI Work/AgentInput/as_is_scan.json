@@ -1,0 +1,191 @@
+{
+  "root": "C:\\Users\\Detaimfc\\Downloads\\UrwayDispatch",
+  "git": {
+    "head": {
+      "cmd": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "rc": 0,
+      "out": "d52cdc214203858585b3ef2880acf53d0102eef5",
+      "err": ""
+    },
+    "branch": {
+      "cmd": [
+        "git",
+        "branch",
+        "--show-current"
+      ],
+      "rc": 0,
+      "out": "main",
+      "err": ""
+    },
+    "status": {
+      "cmd": [
+        "git",
+        "status",
+        "-sb"
+      ],
+      "rc": 0,
+      "out": "## main...origin/main\n?? AGENT_RUNBOOK.md\n?? AgentInput/\n?? Requirements/requirements.json\n?? Requirements/requirements.jsonl\n?? Requirements/status_taxonomy.json\n?? scripts/",
+      "err": ""
+    },
+    "remotes": {
+      "cmd": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "rc": 0,
+      "out": "origin\thttps://github.com/rwbgoachic/UrwayDispatch.git (fetch)\norigin\thttps://github.com/rwbgoachic/UrwayDispatch.git (push)",
+      "err": ""
+    }
+  },
+  "lockfiles": [
+    "package-lock.json"
+  ],
+  "packages": [
+    {
+      "path": "package.json",
+      "name": "luxury-ride-platform",
+      "private": true,
+      "scripts": [
+        "dev",
+        "build",
+        "preview"
+      ],
+      "dependencies": [
+        "@supabase/supabase-js",
+        "dotenv",
+        "lucide-react",
+        "react",
+        "react-dom",
+        "uuid"
+      ],
+      "devDependencies": [
+        "@types/react",
+        "@types/react-dom",
+        "@vitejs/plugin-react",
+        "autoprefixer",
+        "postcss",
+        "tailwindcss",
+        "typescript",
+        "vite"
+      ]
+    },
+    {
+      "path": "services/enterprise-service/package.json",
+      "name": "enterprise-service",
+      "private": true,
+      "scripts": [
+        "build",
+        "format",
+        "start",
+        "start:dev",
+        "start:debug",
+        "start:prod",
+        "lint",
+        "test",
+        "test:watch",
+        "test:cov",
+        "test:debug",
+        "test:e2e"
+      ],
+      "dependencies": [
+        "@nestjs/common",
+        "@nestjs/core",
+        "@nestjs/platform-express",
+        "@nestjs/typeorm",
+        "reflect-metadata",
+        "rxjs",
+        "typeorm"
+      ],
+      "devDependencies": [
+        "@nestjs/cli",
+        "@nestjs/schematics",
+        "@nestjs/testing",
+        "@types/express",
+        "@types/jest",
+        "@types/node",
+        "@types/supertest",
+        "@typescript-eslint/eslint-plugin",
+        "@typescript-eslint/parser",
+        "eslint",
+        "eslint-config-prettier",
+        "eslint-plugin-prettier",
+        "jest",
+        "prettier",
+        "source-map-support",
+        "supertest",
+        "ts-jest",
+        "ts-loader",
+        "ts-node",
+        "tsconfig-paths",
+        "typescript"
+      ]
+    },
+    {
+      "path": "apps/admin-portal/package.json",
+      "name": "admin-portal",
+      "private": true,
+      "scripts": [
+        "dev",
+        "build",
+        "start",
+        "lint"
+      ],
+      "dependencies": [
+        "next",
+        "react",
+        "react-dom"
+      ],
+      "devDependencies": [
+        "@types/node",
+        "@types/react",
+        "@types/react-dom",
+        "eslint",
+        "eslint-config-next",
+        "postcss",
+        "tailwindcss",
+        "typescript"
+      ]
+    },
+    {
+      "path": "apps/driver-app/package.json",
+      "name": "driver-app",
+      "private": true,
+      "scripts": [
+        "dev",
+        "build",
+        "preview",
+        "test",
+        "lint"
+      ],
+      "dependencies": [
+        "lucide-react",
+        "react",
+        "react-dom",
+        "react-router-dom"
+      ],
+      "devDependencies": [
+        "@types/react",
+        "@types/react-dom",
+        "@vitejs/plugin-react",
+        "autoprefixer",
+        "postcss",
+        "tailwindcss",
+        "typescript",
+        "vite"
+      ]
+    }
+  ],
+  "workflows": [],
+  "migrations": [
+    "supabase/migrations/20250902065233_jade_sea.sql",
+    "supabase/migrations/20250902144451_solitary_voice.sql",
+    "supabase/migrations/20250902150446_violet_waterfall.sql"
+  ],
+  "tests": [],
+  "endpoints": []
+}

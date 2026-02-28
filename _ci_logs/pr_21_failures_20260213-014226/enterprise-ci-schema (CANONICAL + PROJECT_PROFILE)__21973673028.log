@@ -1,0 +1,192 @@
+﻿schema	UNKNOWN STEP	∩╗┐2026-02-13T03:36:47.4725440Z Current runner version: '2.331.0'
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4758751Z ##[group]Runner Image Provisioner
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4760064Z Hosted Compute Agent
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4760964Z Version: 20260123.484
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4762086Z Commit: 6bd6555ca37d84114959e1c76d2c01448ff61c5d
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4763215Z Build Date: 2026-01-23T19:41:17Z
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4764570Z Worker ID: {fbcd2437-ffd9-438c-a442-39eb702ea76e}
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4765898Z Azure Region: eastus2
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4766746Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4769167Z ##[group]Operating System
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4770178Z Ubuntu
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4771027Z 24.04.3
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4771744Z LTS
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4772841Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4773922Z ##[group]Runner Image
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4775015Z Image: ubuntu-24.04
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4775952Z Version: 20260209.23.1
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4777949Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260209.23/images/ubuntu/Ubuntu2404-Readme.md
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4780694Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260209.23
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4782201Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4784223Z ##[group]GITHUB_TOKEN Permissions
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4786622Z Contents: read
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4787563Z Metadata: read
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4788438Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4791079Z Secret source: Actions
+schema	UNKNOWN STEP	2026-02-13T03:36:47.4792309Z Prepare workflow directory
+schema	UNKNOWN STEP	2026-02-13T03:36:47.5269847Z Prepare all required actions
+schema	UNKNOWN STEP	2026-02-13T03:36:47.5327259Z Getting action download info
+schema	UNKNOWN STEP	2026-02-13T03:36:47.7881049Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+schema	UNKNOWN STEP	2026-02-13T03:36:47.9557185Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+schema	UNKNOWN STEP	2026-02-13T03:36:48.1402017Z Complete job name: schema
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2091117Z ##[group]Run actions/checkout@v4
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2091939Z with:
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2092519Z   repository: PaySurity-Biz/RideShare
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2093328Z   token: ***
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2093867Z   ssh-strict: true
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2094270Z   ssh-user: git
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2094678Z   persist-credentials: true
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2095140Z   clean: true
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2095533Z   sparse-checkout-cone-mode: true
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2096021Z   fetch-depth: 1
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2096450Z   fetch-tags: false
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2096860Z   show-progress: true
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2097266Z   lfs: false
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2097644Z   submodules: false
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2098060Z   set-safe-directory: true
+schema	UNKNOWN STEP	2026-02-13T03:36:48.2098764Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3223121Z Syncing repository: PaySurity-Biz/RideShare
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3225566Z ##[group]Getting Git version info
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3226279Z Working directory is '/home/runner/work/RideShare/RideShare'
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3227283Z [command]/usr/bin/git version
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3242838Z git version 2.52.0
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3269585Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3285016Z Temporarily overriding HOME='/home/runner/work/_temp/f5c3f079-7315-487a-8e51-8600a62608a7' before making global git config changes
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3287386Z Adding repository directory to the temporary git global config as a safe directory
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3291882Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/RideShare/RideShare
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3333792Z Deleting the contents of '/home/runner/work/RideShare/RideShare'
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3337787Z ##[group]Initializing the repository
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3342690Z [command]/usr/bin/git init /home/runner/work/RideShare/RideShare
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3460867Z hint: Using 'master' as the name for the initial branch. This default branch name
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3462229Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3463145Z hint: to use in all of your new repositories, which will suppress this warning,
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3464102Z hint: call:
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3465145Z hint:
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3466004Z hint: 	git config --global init.defaultBranch <name>
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3466799Z hint:
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3467777Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3469409Z hint: 'development'. The just-created branch can be renamed via this command:
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3470702Z hint:
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3471393Z hint: 	git branch -m <name>
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3472213Z hint:
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3473292Z hint: Disable this message with "git config set advice.defaultBranchName false"
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3475258Z Initialized empty Git repository in /home/runner/work/RideShare/RideShare/.git/
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3479531Z [command]/usr/bin/git remote add origin https://github.com/PaySurity-Biz/RideShare
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3514396Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3515182Z ##[group]Disabling automatic garbage collection
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3518544Z [command]/usr/bin/git config --local gc.auto 0
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3547049Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3547737Z ##[group]Setting up auth
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3554185Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3584809Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3947269Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+schema	UNKNOWN STEP	2026-02-13T03:36:48.3979872Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+schema	UNKNOWN STEP	2026-02-13T03:36:48.4213784Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+schema	UNKNOWN STEP	2026-02-13T03:36:48.4246056Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+schema	UNKNOWN STEP	2026-02-13T03:36:48.4498806Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+schema	UNKNOWN STEP	2026-02-13T03:36:48.4537951Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:48.4539344Z ##[group]Fetching the repository
+schema	UNKNOWN STEP	2026-02-13T03:36:48.4547743Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +bc4e06ccb5e5e6723a418e93250a83800ca29628:refs/remotes/pull/21/merge
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7064627Z From https://github.com/PaySurity-Biz/RideShare
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7065749Z  * [new ref]         bc4e06ccb5e5e6723a418e93250a83800ca29628 -> pull/21/merge
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7098854Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7100094Z ##[group]Determining the checkout info
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7101574Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7107168Z [command]/usr/bin/git sparse-checkout disable
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7150045Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7177551Z ##[group]Checking out the ref
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7182023Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/21/merge
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7508637Z Note: switching to 'refs/remotes/pull/21/merge'.
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7509650Z 
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7510334Z You are in 'detached HEAD' state. You can look around, make experimental
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7512037Z changes and commit them, and you can discard any commits you make in this
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7513943Z state without impacting any branches by switching back to a branch.
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7514953Z 
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7515570Z If you want to create a new branch to retain commits you create, you may
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7516544Z do so (now or later) by using -c with the switch command. Example:
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7517046Z 
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7517276Z   git switch -c <new-branch-name>
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7517648Z 
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7517866Z Or undo this operation with:
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7518173Z 
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7518358Z   git switch -
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7518868Z 
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7519295Z Turn off this advice by setting config variable advice.detachedHead to false
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7519855Z 
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7520799Z HEAD is now at bc4e06c Merge 0443bc111c2535b7c75dd214c22ed5cab9a018a8 into acd8aa4ac629d71e3bcb810ba35ca06fc3d5d35d
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7524530Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7568512Z [command]/usr/bin/git log -1 --format=%H
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7595112Z bc4e06ccb5e5e6723a418e93250a83800ca29628
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7874747Z ##[group]Run actions/setup-python@v5
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7875407Z with:
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7875797Z   python-version: 3.11
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7876275Z   check-latest: false
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7876930Z   token: ***
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7877346Z   update-environment: true
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7877860Z   allow-prereleases: false
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7878356Z   freethreaded: false
+schema	UNKNOWN STEP	2026-02-13T03:36:48.7878813Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:48.9548096Z ##[group]Installed versions
+schema	UNKNOWN STEP	2026-02-13T03:36:48.9681348Z Successfully set up CPython (3.11.14)
+schema	UNKNOWN STEP	2026-02-13T03:36:48.9683134Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:48.9821258Z ##[group]Run pip install --disable-pip-version-check --no-cache-dir jsonschema
+schema	UNKNOWN STEP	2026-02-13T03:36:48.9823129Z [36;1mpip install --disable-pip-version-check --no-cache-dir jsonschema[0m
+schema	UNKNOWN STEP	2026-02-13T03:36:48.9891631Z shell: /usr/bin/bash -e {0}
+schema	UNKNOWN STEP	2026-02-13T03:36:48.9892265Z env:
+schema	UNKNOWN STEP	2026-02-13T03:36:48.9892925Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	UNKNOWN STEP	2026-02-13T03:36:48.9894484Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib/pkgconfig
+schema	UNKNOWN STEP	2026-02-13T03:36:48.9895935Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	UNKNOWN STEP	2026-02-13T03:36:48.9897161Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	UNKNOWN STEP	2026-02-13T03:36:48.9898439Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	UNKNOWN STEP	2026-02-13T03:36:48.9899673Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib
+schema	UNKNOWN STEP	2026-02-13T03:36:48.9900680Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:49.8622198Z Collecting jsonschema
+schema	UNKNOWN STEP	2026-02-13T03:36:49.9402810Z   Downloading jsonschema-4.26.0-py3-none-any.whl.metadata (7.6 kB)
+schema	UNKNOWN STEP	2026-02-13T03:36:49.9580859Z Collecting attrs>=22.2.0 (from jsonschema)
+schema	UNKNOWN STEP	2026-02-13T03:36:49.9655206Z   Downloading attrs-25.4.0-py3-none-any.whl.metadata (10 kB)
+schema	UNKNOWN STEP	2026-02-13T03:36:49.9817774Z Collecting jsonschema-specifications>=2023.03.6 (from jsonschema)
+schema	UNKNOWN STEP	2026-02-13T03:36:49.9900741Z   Downloading jsonschema_specifications-2025.9.1-py3-none-any.whl.metadata (2.9 kB)
+schema	UNKNOWN STEP	2026-02-13T03:36:50.0142505Z Collecting referencing>=0.28.4 (from jsonschema)
+schema	UNKNOWN STEP	2026-02-13T03:36:50.0220449Z   Downloading referencing-0.37.0-py3-none-any.whl.metadata (2.8 kB)
+schema	UNKNOWN STEP	2026-02-13T03:36:50.3034383Z Collecting rpds-py>=0.25.0 (from jsonschema)
+schema	UNKNOWN STEP	2026-02-13T03:36:50.3109309Z   Downloading rpds_py-0.30.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.1 kB)
+schema	UNKNOWN STEP	2026-02-13T03:36:50.3295466Z Collecting typing-extensions>=4.4.0 (from referencing>=0.28.4->jsonschema)
+schema	UNKNOWN STEP	2026-02-13T03:36:50.3366976Z   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+schema	UNKNOWN STEP	2026-02-13T03:36:50.3455277Z Downloading jsonschema-4.26.0-py3-none-any.whl (90 kB)
+schema	UNKNOWN STEP	2026-02-13T03:36:50.3616529Z Downloading attrs-25.4.0-py3-none-any.whl (67 kB)
+schema	UNKNOWN STEP	2026-02-13T03:36:50.3697539Z Downloading jsonschema_specifications-2025.9.1-py3-none-any.whl (18 kB)
+schema	UNKNOWN STEP	2026-02-13T03:36:50.3775967Z Downloading referencing-0.37.0-py3-none-any.whl (26 kB)
+schema	UNKNOWN STEP	2026-02-13T03:36:50.3847247Z Downloading rpds_py-0.30.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (390 kB)
+schema	UNKNOWN STEP	2026-02-13T03:36:50.3999412Z Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+schema	UNKNOWN STEP	2026-02-13T03:36:50.4207996Z Installing collected packages: typing-extensions, rpds-py, attrs, referencing, jsonschema-specifications, jsonschema
+schema	UNKNOWN STEP	2026-02-13T03:36:50.5904411Z 
+schema	UNKNOWN STEP	2026-02-13T03:36:50.5914763Z Successfully installed attrs-25.4.0 jsonschema-4.26.0 jsonschema-specifications-2025.9.1 referencing-0.37.0 rpds-py-0.30.0 typing-extensions-4.15.0
+schema	UNKNOWN STEP	2026-02-13T03:36:50.6538814Z ##[group]Run python scripts/validate_canonical_schema.py
+schema	UNKNOWN STEP	2026-02-13T03:36:50.6539506Z [36;1mpython scripts/validate_canonical_schema.py[0m
+schema	UNKNOWN STEP	2026-02-13T03:36:50.6592094Z shell: /usr/bin/bash -e {0}
+schema	UNKNOWN STEP	2026-02-13T03:36:50.6592344Z env:
+schema	UNKNOWN STEP	2026-02-13T03:36:50.6592606Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	UNKNOWN STEP	2026-02-13T03:36:50.6593042Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib/pkgconfig
+schema	UNKNOWN STEP	2026-02-13T03:36:50.6593671Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	UNKNOWN STEP	2026-02-13T03:36:50.6594068Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	UNKNOWN STEP	2026-02-13T03:36:50.6594470Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+schema	UNKNOWN STEP	2026-02-13T03:36:50.6594886Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib
+schema	UNKNOWN STEP	2026-02-13T03:36:50.6595210Z ##[endgroup]
+schema	UNKNOWN STEP	2026-02-13T03:36:50.6758664Z python: can't open file '/home/runner/work/RideShare/RideShare/scripts/validate_canonical_schema.py': [Errno 2] No such file or directory
+schema	UNKNOWN STEP	2026-02-13T03:36:50.6790337Z ##[error]Process completed with exit code 2.
+schema	UNKNOWN STEP	2026-02-13T03:36:50.6921854Z Post job cleanup.
+schema	UNKNOWN STEP	2026-02-13T03:36:50.7903936Z [command]/usr/bin/git version
+schema	UNKNOWN STEP	2026-02-13T03:36:50.7940532Z git version 2.52.0
+schema	UNKNOWN STEP	2026-02-13T03:36:50.7991373Z Temporarily overriding HOME='/home/runner/work/_temp/4cb94a58-bec2-4276-a9b9-0813bb4f2407' before making global git config changes
+schema	UNKNOWN STEP	2026-02-13T03:36:50.7992618Z Adding repository directory to the temporary git global config as a safe directory
+schema	UNKNOWN STEP	2026-02-13T03:36:50.7996894Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/RideShare/RideShare
+schema	UNKNOWN STEP	2026-02-13T03:36:50.8032221Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+schema	UNKNOWN STEP	2026-02-13T03:36:50.8066805Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+schema	UNKNOWN STEP	2026-02-13T03:36:50.8313129Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+schema	UNKNOWN STEP	2026-02-13T03:36:50.8335793Z http.https://github.com/.extraheader
+schema	UNKNOWN STEP	2026-02-13T03:36:50.8348643Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+schema	UNKNOWN STEP	2026-02-13T03:36:50.8380274Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+schema	UNKNOWN STEP	2026-02-13T03:36:50.8616406Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+schema	UNKNOWN STEP	2026-02-13T03:36:50.8647709Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+schema	UNKNOWN STEP	2026-02-13T03:36:50.9007733Z Cleaning up orphan processes
+

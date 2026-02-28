@@ -1,0 +1,512 @@
+{
+  "generated_at_utc": "2026-02-23T03:53:41.0496565Z",
+  "source_ref": "refs/heads/main",
+  "source_sha": "0c240641b5beca4c4ad8cef320f09749dc507f39",
+  "total": 72,
+  "requirements": [
+    {
+      "req_id": "API-ERR-0001",
+      "md_line": 62,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "API-IDEM-0001",
+      "md_line": 61,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "AUD-EVT-0001",
+      "md_line": 57,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "BILL-AUTO-0001",
+      "md_line": 53,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "BILL-INV-0001",
+      "md_line": 52,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "CFG-JSON-0001",
+      "md_line": 285,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "CFG-JSON-0002",
+      "md_line": 294,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "CFG-PLAT-0001",
+      "md_line": 37,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "CFG-TEN-0001",
+      "md_line": 36,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "CORP-ACCT-010",
+      "md_line": 1145,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "CORP-ACCT-020",
+      "md_line": 1153,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "CORP-ACCT-030",
+      "md_line": 1161,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "CORP-ACCT-040",
+      "md_line": 1169,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "DIS-OFR-0001",
+      "md_line": 47,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "DIS-REAL-0001",
+      "md_line": 46,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "DOC-STO-0001",
+      "md_line": 56,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "DRV-APP-SYNC-010",
+      "md_line": 513,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "DRV-MOB-0001",
+      "md_line": 45,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "DRV-MULT-0001",
+      "md_line": 67,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "DRV-WEB-0001",
+      "md_line": 44,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "ENV-0001",
+      "md_line": 207,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "GCP-ARCH-0001",
+      "md_line": 65,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "GCP-ARCH-0002",
+      "md_line": 66,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "GCP-AUTH-0001",
+      "md_line": 228,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "GCP-CD-0001",
+      "md_line": 233,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "JOB-QUE-0001",
+      "md_line": 54,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "MAP-GEO-0001",
+      "md_line": 63,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "MIC-PUB-0001",
+      "md_line": 41,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "MIC-WGT-0001",
+      "md_line": 40,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "NOT-PUSH-0001",
+      "md_line": 55,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "OBS-DASH-0001",
+      "md_line": 58,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "PAY-ADJ-0001",
+      "md_line": 51,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "PAY-FLOW-0100",
+      "md_line": 49,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "PAY-SETL-0001",
+      "md_line": 50,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "PLAN-TO-100",
+      "md_line": 139,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-APP-SYNC-010",
+      "md_line": 456,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-BOOK-ANTI-010",
+      "md_line": 379,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-DISC-010",
+      "md_line": 723,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-LEGAL-010",
+      "md_line": 358,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-LEGAL-020",
+      "md_line": 364,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAY-010",
+      "md_line": 731,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAY-020",
+      "md_line": 736,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAY-030",
+      "md_line": 740,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAY-040",
+      "md_line": 757,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAY-050",
+      "md_line": 768,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAYOUT-100",
+      "md_line": 793,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAYOUT-101",
+      "md_line": 799,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAYOUT-102",
+      "md_line": 808,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAYOUT-103",
+      "md_line": 822,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAYOUT-104",
+      "md_line": 830,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAYOUT-105",
+      "md_line": 838,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAYOUT-106",
+      "md_line": 847,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAYOUT-108",
+      "md_line": 854,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAYOUT-110",
+      "md_line": 827,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAYOUT-111",
+      "md_line": 868,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RIDE-PAYOUT-112",
+      "md_line": 875,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RID-MOB-0001",
+      "md_line": 43,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "RID-WEB-0001",
+      "md_line": 42,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "TAX-1099-0001",
+      "md_line": 59,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "TAX-1099-010",
+      "md_line": 913,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "TAX-1099-020",
+      "md_line": 920,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "TAX-1099-030",
+      "md_line": 932,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "TEN-BASE-0001",
+      "md_line": 34,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "TEN-BASE-0002",
+      "md_line": 35,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "TEN-POL-0001",
+      "md_line": 38,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "TEN-POL-0002",
+      "md_line": 39,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "TEN-POL-0003",
+      "md_line": 993,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "TEN-POL-0004",
+      "md_line": 1000,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "TEN-POL-0005",
+      "md_line": 1129,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "TIME-TZ-0001",
+      "md_line": 64,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "TRP-STM-0001",
+      "md_line": 48,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    },
+    {
+      "req_id": "UI-FAQ-0001",
+      "md_line": 60,
+      "title": "",
+      "status": "UNASSESSED",
+      "notes": ""
+    }
+  ]
+}

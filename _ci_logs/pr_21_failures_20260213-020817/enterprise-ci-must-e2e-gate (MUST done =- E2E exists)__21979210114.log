@@ -1,0 +1,18 @@
+﻿must_e2e_gate	must-e2e-gate	∩╗┐2026-02-13T07:59:57.1431327Z ##[group]Run node scripts/e2e_gate.js
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:57.1432763Z [36;1mnode scripts/e2e_gate.js[0m
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:57.1487480Z shell: /usr/bin/bash -e {0}
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:57.1488643Z ##[endgroup]
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:58.6059299Z file:///home/runner/work/RideShare/RideShare/scripts/e2e_gate.js:1
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:58.6060089Z const fs = require("fs");
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:58.6060560Z            ^
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:58.6060792Z 
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:58.6061218Z ReferenceError: require is not defined in ES module scope, you can use import instead
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:58.6064050Z This file is being treated as an ES module because it has a '.js' file extension and '/home/runner/work/RideShare/RideShare/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:58.6066644Z     at file:///home/runner/work/RideShare/RideShare/scripts/e2e_gate.js:1:12
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:58.6067590Z     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:58.6068609Z     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:58.6069554Z     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:58.6070012Z 
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:58.6070100Z Node.js v20.20.0
+must_e2e_gate	must-e2e-gate	2026-02-13T07:59:58.6108834Z ##[error]Process completed with exit code 1.
+
