@@ -12,8 +12,8 @@ permissions:
 env:
   PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
   REGION: ${{ vars.GCP_REGION }}
-  SERVICE: rideoo-api-staging
-  IMAGE: us-central1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/rideoo-repo/api-staging
+  SERVICE: urway-api-staging
+  IMAGE: us-central1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/urway-repo/api-staging
 
 jobs:
   deploy:

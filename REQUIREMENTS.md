@@ -1,4 +1,4 @@
-# LuxRide Platform - Comprehensive Requirements Document
+# UrWay Dispatch Platform - Comprehensive Requirements Document
 
 ## Table of Contents
 1. [Executive Summary](#executive-summary)
@@ -12,7 +12,7 @@
 
 ## Executive Summary
 
-LuxRide is a premium rideshare platform designed to provide luxury transportation services with professional drivers, high-end vehicles, and enterprise-grade reliability. The platform serves three primary user types: Riders seeking premium transportation, Drivers providing luxury services, and Administrators managing the platform operations.
+UrWay Dispatch is a premium rideshare platform designed to provide luxury transportation services with professional drivers, high-end vehicles, and enterprise-grade reliability. The platform serves three primary user types: Riders seeking premium transportation, Drivers providing luxury services, and Administrators managing the platform operations.
 
 ## User Roles & Personas
 
@@ -49,7 +49,7 @@ LuxRide is a premium rideshare platform designed to provide luxury transportatio
 ### Rider Journey
 
 #### 1. Discovery & Registration
-- User discovers LuxRide through marketing/referral
+- User discovers UrWay Dispatch through marketing/referral
 - Downloads app or visits website
 - Creates account with email/phone verification
 - Provides payment method
@@ -88,7 +88,7 @@ LuxRide is a premium rideshare platform designed to provide luxury transportatio
 ### Driver Journey
 
 #### 1. Application & Onboarding
-- Discovers LuxRide driver opportunity
+- Discovers UrWay Dispatch driver opportunity
 - Completes online application
 - Uploads required documents (license, insurance, registration)
 - Submits vehicle photos and information
@@ -462,4 +462,4 @@ LuxRide is a premium rideshare platform designed to provide luxury transportatio
 
 ---
 
-*This requirements document serves as the comprehensive specification for the LuxRide platform. All requirements should be validated with stakeholders and updated as the platform evolves.*
+*This requirements document serves as the comprehensive specification for the UrWay Dispatch platform. All requirements should be validated with stakeholders and updated as the platform evolves.*

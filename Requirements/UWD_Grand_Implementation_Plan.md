@@ -1,0 +1,408 @@
+# UWD 100% Coverage: Deep Audit, Grand Plan & Compliance Checklist
+
+Exhaustive bottom-up audit of every source file in the workspace revealing 30 gaps across 4 severity tiers, mapped to a 12-milestone remediation plan with 5 smoke tests.
+
+---
+
+## PART A: DEEP AUDIT FINDINGS (30 Gaps)
+
+### CRITICAL (6 gaps -- system will not function correctly)
+
+**G1: DispatchService + DriverService query legacy `drivers` table, not `driver_profiles`**
+- Files: dispatch.service.ts (lines 76, 408), driver.service.ts (lines 37, 81, 123, 194, 223, 366, 496)
+- Impact: Breaks non-blocking concurrency. Driver status in Tenant A leaks to Tenant B.
+- 15+ queries need migration to `driver_profiles`.
+
+**G2: `tenants` table missing columns expected by tenant.service.ts**
+- Migration 999 creates only `id, name, created_at`.
+- tenant.service.ts inserts `slug, owner_email, owner_name, is_active` (lines 62-67).
+- Impact: `createTenant()` throws at runtime.
+
+**G3: PaymentService, FluidpayService, PricingService, ReservationsService, PaymentController NOT registered in AppModule**
+- File: app.module.ts -- only registers DriverController, DispatchController, TenantController, HealthController.
+- Impact: Entire payment, pricing, and reservation pipeline is dead code. No endpoints served.
+
+**G4: No auth guard implementation -- all endpoints unprotected**
+- `UseGuards` is imported in driver.controller.ts line 1 but NEVER applied.
+- `@ApiBearerAuth()` decorators are Swagger-only (cosmetic). No JWT validation middleware exists.
+- Impact: Any unauthenticated request can access all driver, dispatch, and tenant endpoints.
+
+**G5: `trips` table has `driver_id NOT NULL` constraint**
+- Migration jade_sea.sql line 91: `driver_id uuid NOT NULL REFERENCES drivers(id)`.
+- But `dispatchRide()` creates trips in 'requested' status BEFORE any driver is assigned (dispatch.service.ts line 164).
+- Impact: Trip creation will fail with NOT NULL constraint violation.
+
+**G6: Plaintext API keys committed to git in `secrets/` directory**
+- `secrets/fluidpay_private.txt` contains private API key `api_2wuAslzZsN...`
+- `secrets/fluidpay_public.txt` contains public key `pub_2wuB3MF6c...`
+- Neither file is in `.gitignore`. These will be pushed to the remote repository.
+- Impact: Critical security vulnerability. Keys must be rotated immediately.
+
+### HIGH (10 gaps -- major functionality broken or missing)
+
+**G7: No AdminService or kill-switch exists**
+- No admin.service.ts or admin.controller.ts anywhere in codebase.
+
+**G8: No PaySurity webhook controller**
+- Only Fluidpay webhook exists in payment.controller.ts (line 45-54), which is itself dead code (G3).
+
+**G9: Fee logic hardcoded at 80/20 split**
+- dispatch.service.ts lines 177-178: `Math.floor(estimatedFareCents * 0.8)` and `0.2`.
+- Ignores tenant commercial terms (`per_ride_fee_cents`, `revenue_share_bps` from `tenant_onboarding`).
+
+**G10: PII masking is frontend-only -- API leaks raw PII**
+- driver.service.ts line 308: `getCurrentOffer()` returns raw `rider_phone`.
+- reservations.service.ts line 144: `getBookingStatus()` returns raw `driver.phone`.
+
+**G11: RealtimeService channels not tenant-scoped**
+- Channel names `driver-locations`, `ride-offers`, `trips` are global strings (realtime.service.ts lines 29, 44, 58).
+- Cross-tenant event leakage risk.
+
+**G12: Hardcoded `localhost:3001` in useRealtime.ts**
+- Lines 90 and 115: `fetch('http://localhost:3001/driver/offers/...')` bypasses `API_BASE_URL`.
+- Will break in production. Also missing `x-tenant-id` header.
+
+**G13: `ledger_entries` table has no migration**
+- ledger.service.ts line 15: `supabase.from('ledger_entries').insert(...)`.
+- No migration creates this table. Runtime failure guaranteed on trip completion.
+
+**G14: RLS policies don't account for tenant_id**
+- All policies use `auth.uid() = id` or `auth.uid() = driver_id` patterns.
+- None filter by `tenant_id`. Cross-tenant data access possible through Supabase client.
+
+**G15: ReservationsService queries legacy tables without tenant scoping**
+- Line 114: joins `trips.drivers` (legacy FK). Line 164: `cancelBooking` doesn't filter by tenant_id.
+- Line 186: `ride_offers` update doesn't filter by tenant_id.
+
+**G16: BookingPage.tsx uses `riderApiService` without importing it**
+- Lines 27 and 77 call `riderApiService.getQuote()` and `riderApiService.bookRide()`.
+- No import statement exists. Page will not compile.
+
+### MEDIUM (8 gaps -- degraded functionality or compliance issues)
+
+**G17: PricingService surge calculation ignores tenant_id**
+- pricing.service.ts line 108: queries ALL trips globally for demand calculation.
+
+**G18: OnboardingPage.tsx doesn't submit to API**
+- Line 559: `console.log('Submitting application:', formData); alert(...)`. No actual API call.
+
+**G19: `paysurity_merchant_id` not in schema or SetCommercialTermsRequest**
+- Cannot capture merchant account ID during onboarding.
+
+**G20: 5 "Luxury Ride" brand remnants**
+- admin-portal/app/page.tsx:64, layout.tsx:4-5, README.md:5, index.html:98, enterprise-service/package.json:4.
+
+**G21: CORS only allows localhost origins**
+- main.ts lines 15-20: Only localhost:5173/4200/4300/4400. No production domains.
+
+**G22: TypeScript strict mode fully disabled**
+- tsconfig.json: `strictNullChecks: false`, `noImplicitAny: false`, `strictBindCallApply: false`.
+
+**G23: `driver_profiles` has no `email` column**
+- Migration 1000 creates profile with name/phone/address but no email.
+- DriverService.register() currently inserts email into `drivers`. Migration to `driver_profiles` will fail.
+
+**G24: PaymentForm.tsx references "Fluidpay" branding**
+- Line 364: "processed securely by Fluidpay" -- should reference PaySurity.
+
+### LOW (6 gaps -- cleanup and hardening)
+
+**G25: No `.env.example` file documenting required variables.**
+**G26: driver-app Dockerfile uses `npm install` instead of `npm ci` (line 6).**
+**G27: No rate limiting middleware on any endpoint.**
+**G28: `dist/` directory contains stale compiled JS (pre-tenant services).**
+**G29: DriverStatus.BUSY defined in DTO but never used as valid state transition.**
+**G30: cloudbuild.yaml syncs entire workspace to GCS including potential secrets.**
+
+---
+
+## PART B: WHAT'S ALREADY DONE (Verified Working)
+
+- Schema: `driver_identities` (global), `driver_profiles` (tenant-scoped), `tenant_onboarding` state machine, `payout_settlement_status` enum, `payment_providers` table, `tenant_domain_mappings` table -- all in migrations 999+1000
+- TenantContext middleware: domain lookup via `tenant_domain_mappings` -> `x-tenant-id` header fallback (tenant-context.middleware.ts)
+- IdentityService: full auth->identity->profile chain (identity.service.ts)
+- TenantService + Controller: DRAFT->SUBMITTED->STAFF_REVIEW->APPROVED->ACTIVE lifecycle with ACH, tax_id, branding captures
+- PaymentService: BANK_SETTLED hard-gate on processDriverPayout() (lines 156-173)
+- Frontend PII masking: maskPii() in TripPage.tsx (lines 10-24)
+- Frontend Google Maps deep-link: openGoogleMapsNav() in TripPage.tsx (lines 4-8)
+- Frontend tenant header: x-tenant-id injection in both driver-app and rider-app api.service.ts
+- Swagger: Correctly branded "UrWay Dispatch API Gateway" (main.ts lines 33-34)
+- Driver app: Auth flow, dashboard, trip page, earnings, profile, onboarding, airport queue pages
+- Rider app: Booking page, payment form component
+
+---
+
+## PART C: EXECUTION PLAN (12 Milestones)
+
+### M1: Security Emergency -- Secrets + Auth Guard
+**Priority: IMMEDIATE. Blocks everything.**
+
+- Add `secrets/` to `.gitignore`. Rotate both FluidPay/PaySurity API keys.
+- Create a JwtAuthGuard using Supabase token verification.
+- Apply `@UseGuards(JwtAuthGuard)` to all protected endpoints.
+- Add production domains to CORS whitelist in main.ts.
+
+Fixes: G4, G6, G21, G27 (partial)
+
+### M2: Schema Migration -- Fix All Missing Columns + Tables
+**File: supabase/migrations/1001_schema_fixes.sql**
+
+- ALTER TABLE tenants ADD COLUMN slug text UNIQUE, owner_email text, owner_name text, is_active boolean DEFAULT true, is_suspended boolean DEFAULT false, suspended_at timestamptz, suspension_reason text
+- ALTER TABLE trips ALTER COLUMN driver_id DROP NOT NULL (fix G5)
+- ALTER TABLE driver_identities ADD COLUMN is_suspended boolean DEFAULT false, suspended_at timestamptz, suspension_reason text
+- ALTER TABLE driver_profiles ADD COLUMN email text
+- ALTER TABLE tenant_onboarding ADD COLUMN paysurity_merchant_id text
+- CREATE TABLE ledger_entries (id uuid PK, event_type text, trip_id uuid, driver_id uuid, tenant_id uuid, fare_cents integer, platform_fee_cents integer, tenant_fee_cents integer, created_at timestamptz)
+- UPDATE RLS policies to include tenant_id filtering on ALL tables
+- Backfill: UPDATE tenants SET slug = name, is_active = true WHERE slug IS NULL
+
+Fixes: G2, G5, G13, G14, G19, G23
+
+### M3: Wire Dead Code into AppModule
+**File: app.module.ts**
+
+- Register: FluidpayService, PaymentService, PricingService, ReservationsService, PaymentController
+- This unblocks the entire payment/pricing/booking pipeline.
+
+Fixes: G3
+
+### M4: Core Concurrency Fix -- Migrate `drivers` to `driver_profiles`
+**Files: dispatch.service.ts, driver.service.ts, reservations.service.ts**
+
+This is the MOST IMPORTANT change for non-blocking concurrency.
+
+- Replace ALL `.from('drivers')` queries with `.from('driver_profiles')` where tenant-scoped (15+ locations)
+- DispatchService.findAvailableDrivers(): query driver_profiles joined with driver_locations
+- DriverService.login()/register(): resolve via IdentityService chain instead of direct drivers table
+- DriverService.respondToOffer() line 366: change drivers -> driver_profiles
+- DriverService.getDashboard() line 496: change drivers -> driver_profiles
+- DispatchService.acceptRideOffer() line 408: change drivers -> driver_profiles
+- ReservationsService.getBookingStatus() line 114: change join path
+- ReservationsService.cancelBooking(): add tenant_id filters
+
+Key invariant: After this change, a driver on_trip in Tenant A stays online in Tenant B because profiles are separate rows. Zero cross-tenant state leakage.
+
+Fixes: G1, G15
+
+### M5: Tenant-Aware Fee Extraction
+**Files: dispatch.service.ts, ledger.service.ts**
+
+- In dispatchRide(), replace hardcoded 80/20 with lookup from tenant_onboarding:
+  - Fetch per_ride_fee_cents and revenue_share_bps for the tenant
+  - platform_fee = fare * revenue_share_bps / 10000
+  - tenant_fee = per_ride_fee_cents
+  - net_payout = fare - platform_fee - tenant_fee
+- Record fee breakdown in ledger_entries (platform_fee_cents, tenant_fee_cents)
+
+Fixes: G9
+
+### M5.1: Dynamic Tiered Pricing
+**Files: dispatch.service.ts, ledger.service.ts, tenant_onboarding schema**
+
+UrWay Platform Fee is calculated dynamically per trip:
+
+```
+calculated_fee = (fare_cents * revenue_share_bps / 10000) + per_ride_fee_cents
+platform_fee   = MAX(calculated_fee, min_platform_fee_cents)
+tenant_net     = fare_cents - platform_fee
+driver_payout  = tenant_net  (tenant pays driver from their net)
+```
+
+Schema fields required on tenant_onboarding:
+- `revenue_share_bps` integer (e.g., 500 = 5%)
+- `per_ride_fee_cents` integer (e.g., 100 = $1.00 flat per ride)
+- `min_platform_fee_cents` integer (e.g., 250 = $2.50 floor)
+- `base_monthly_fee_cents` integer (monthly SaaS fee, billed separately)
+
+Ledger recording per trip:
+- `event_type = 'TRIP_FARE'`
+- `fare_cents`, `platform_fee_cents` (UrWay revenue), `tenant_net_cents` (Tenant revenue)
+
+Minimum Override: If `calculated_fee < min_platform_fee_cents`, the platform fee is floored at `min_platform_fee_cents`. This protects UrWay margin on low-fare rides.
+
+Fixes: G9 (enhanced with minimum floor and tiered structure)
+
+### M6: API-Level PII Masking
+**File: driver.service.ts**
+
+- Add maskPhone() utility function
+- getCurrentOffer(): mask riderPhone in response
+- respondToOffer(): only reveal full phone after acceptance for active trip
+- getTripHistory(): mask riderName
+
+Fixes: G10
+
+### M7: Tenant-Scoped Realtime Channels
+**File: realtime.service.ts**
+
+- Prefix all channel names with tenant_id
+- Update emitTripStateChanged() to accept and use tenantId
+- Update all callers in dispatch.service.ts
+
+Fixes: G11
+
+### M8: AdminService + Emergency Kill-Switch
+**New files: admin.service.ts, admin.controller.ts**
+
+- suspendTenant(tenantId, reason): sets is_suspended=true, deactivates all profiles, cancels open trips
+- suspendDriverIdentity(identityId, reason): global suspension across all tenants
+- reinstateEntity(type, id): reversal with staff review requirement
+- Add suspension check to TenantContextMiddleware (return 503 for suspended tenants)
+- Add suspension check to IdentityService.resolveIdentity()
+
+Endpoints: POST /admin/tenants/:id/suspend, /reinstate, POST /admin/drivers/:id/suspend, /reinstate
+
+Fixes: G7
+
+### M9: Internal Ops Command Center
+**Same files as M8**
+
+- GET /admin/ops/ledger: global ledger view with settlement_status, tenant_id, date filters
+- GET /admin/ops/volume: active trip count by tenant + total
+- GET /admin/ops/settlement-watch: transactions stuck PENDING_BANK_SETTLEMENT > 48 hours
+
+### M10: PaySurity Webhook Integration
+**New file: paysurity-webhook.controller.ts. Updated: payment.service.ts, tenant.service.ts, app.module.ts**
+
+- POST /webhooks/paysurity with HMAC-SHA256 signature verification
+- Event handling: settlement.completed -> BANK_SETTLED, settlement.failed -> FAILED, payout.completed -> PAID
+- Automated fee extraction on settlement events
+- Add paysurity_merchant_id to SetCommercialTermsRequest
+- Exclude webhook path from TenantContextMiddleware
+
+Fixes: G8, G19
+
+### M11: Frontend Fixes
+**Files: useRealtime.ts, BookingPage.tsx, OnboardingPage.tsx, PaymentForm.tsx**
+
+- useRealtime.ts: Replace hardcoded localhost:3001 with API_BASE_URL, add x-tenant-id header (G12)
+- BookingPage.tsx: Add missing `import riderApiService` (G16)
+- OnboardingPage.tsx: Connect submit to actual API endpoint (G18)
+- PaymentForm.tsx: Change "Fluidpay" to "PaySurity" (G24)
+- PricingService: Add tenant_id filter to surge calculation (G17)
+
+Fixes: G12, G16, G17, G18, G24
+
+### M12: Brand Scrub + Cleanup
+- Replace 5 "Luxury Ride" remnants (G20)
+- Add secrets/ to .gitignore, delete from tracking (G6)
+- Fix driver-app Dockerfile to use npm ci (G26)
+- Delete stale dist/ contents (G28)
+- Create .env.example with all required vars (G25)
+- Add rate limiting middleware (G27)
+
+Fixes: G20, G25, G26, G28, G30
+
+---
+
+## PART D: REQUIREMENT-TO-MODULE MATRIX (5 Pillars)
+
+### Pillar 1: Identity & Non-Blocking Concurrency
+| Requirement | Module | Gap | Fix |
+|---|---|---|---|
+| 1:N identity-to-profile mapping | Schema (mig 1000) | Done | -- |
+| IdentityService chain | identity.service.ts | Done | -- |
+| Services use driver_profiles | dispatch/driver.service.ts | G1 | M4 |
+| Tenant-scoped realtime | realtime.service.ts | G11 | M7 |
+| No global busy lock | dispatch.service.ts | Verified: none exists | -- |
+
+### Pillar 2: Financial Integrity & PaySurity
+| Requirement | Module | Gap | Fix |
+|---|---|---|---|
+| BANK_SETTLED hard-gate | payment.service.ts:156-173 | Done (but dead code G3) | M3 |
+| PaySurity webhook | -- | G8 | M10 |
+| Tenant-aware fee split | dispatch.service.ts | G9 | M5 |
+| Payment pipeline wired | app.module.ts | G3 | M3 |
+| paysurity_merchant_id | tenant.service.ts | G19 | M10 |
+
+### Pillar 3: Operational Command & Control
+| Requirement | Module | Gap | Fix |
+|---|---|---|---|
+| Tenant kill-switch | -- | G7 | M8 |
+| Driver kill-switch | -- | G7 | M8 |
+| Global ledger | -- | G7 | M9 |
+| Volume monitor | -- | G7 | M9 |
+| Settlement watch (48h) | -- | G7 | M9 |
+
+### Pillar 4: Automated Tenant Onboarding
+| Requirement | Module | Gap | Fix |
+|---|---|---|---|
+| State machine DRAFT->ACTIVE | tenant.service.ts | Done | -- |
+| ACH authorization capture | tenant_onboarding schema | Done | -- |
+| Tax ID last 4 | tenant_onboarding schema | Done | -- |
+| Branding assets | tenant_onboarding schema | Done | -- |
+| Driver onboarding submission | OnboardingPage.tsx | G18 | M11 |
+
+### Pillar 5: Brand Normalization & PII Safety
+| Requirement | Module | Gap | Fix |
+|---|---|---|---|
+| Remove legacy names | Various files | G20, G24 | M12 |
+| API-level PII masking | driver.service.ts | G10 | M6 |
+| Frontend PII masking | TripPage.tsx | Done | -- |
+| Google Maps deep-linking | TripPage.tsx | Done | -- |
+
+---
+
+## PART E: COMPLIANCE SMOKE TESTS
+
+### Test 1: Parallel Session Test
+Question: Can a single driver_id accept two rides from two different tenants simultaneously?
+Expected: YES
+Proof: After M4, driver_profiles are separate rows per tenant. findAvailableDrivers() queries driver_profiles WHERE tenant_id = current_tenant only.
+Verify: dispatch.service.ts contains zero queries to `drivers` table; all use `driver_profiles` with tenant_id filter.
+
+### Test 2: Brand Purity Test
+Question: Does grep for "Rideoo" or "LuxRide" or "Luxury Ride" or "Fluidpay" (user-facing) return zero in code?
+Expected: YES
+Proof: After M12, all 5 Luxury Ride and 1 Fluidpay (PaymentForm.tsx) remnants replaced. "Rideoo"/"LuxRide" already return 0 matches.
+Verify: `grep -ri "luxury ride\|luxride\|rideoo" --include="*.ts" --include="*.tsx" --include="*.html" --include="*.json" .`
+
+### Test 3: Settlement Gate Test
+Question: If transaction is PENDING_BANK_SETTLEMENT, does processDriverPayout() return error?
+Expected: YES
+Proof: payment.service.ts lines 156-173 check settledTotal < request.amount_cents and throw BadRequestException with PAY-SETTLE-002.
+Verify: After M3, PaymentController is registered and endpoint is callable. Manual test: POST /payments/payout with driver having only PENDING records returns 400.
+
+### Test 4: Kill-Switch Test
+Question: If Tenant A is suspended, can driver still complete ride for Tenant B?
+Expected: YES
+Proof: After M8, suspendTenant(A) sets tenants.is_suspended=true, cancels Tenant A trips. Tenant B profiles and trips completely untouched. TenantContextMiddleware returns 503 only for requests with Tenant A's tenant_id.
+Verify: Tenant B endpoints return 200 while Tenant A returns 503.
+
+### Test 5: PII Masking Test
+Question: In active ON_TRIP state, does API response hide rider's full phone?
+Expected: YES
+Proof: After M6, getCurrentOffer() returns masked phone. Full phone only via separate secure endpoint for assigned driver.
+Verify: GET /driver/offers/current returns riderPhone matching pattern `+1-312-***-0456`.
+
+---
+
+## PART F: WORKSPACE RECONCILIATION
+
+Git status: 70+ modified/new/deleted files assessed.
+
+SAFE TO MERGE: All gateway service mods, controller mods, frontend mods, new services (identity, ledger, tenant), new migrations (999, 1000), infrastructure files (Dockerfiles, cloudbuild, nginx). No legacy branding or single-session logic found in any modified file.
+
+MUST FIX BEFORE MERGE:
+- secrets/ directory (G6) -- add to .gitignore, remove from tracking, rotate keys
+- stale dist/ directory (G28) -- delete compiled output
+
+COMMIT STRATEGY (5 groups):
+1. Security: .gitignore + secrets cleanup
+2. Schema: migrations 999, 1000, 1001 (new)
+3. Gateway: services + controllers + module + middleware + auth guard
+4. Frontend: driver-app + rider-app + admin-portal
+5. Infra + docs: Dockerfiles, cloudbuild, nginx, README, .env.example
+
+---
+
+## IMPLEMENTATION SEQUENCE
+
+M1 (Security) -> M2 (Schema) -> M3 (Wire AppModule) -> M4 (Core Concurrency) -> M5 (Fees) -> M6 (PII) -> M7 (Realtime) -> M8 (Kill-Switch) -> M9 (Ops Center) -> M10 (PaySurity) -> M11 (Frontend) -> M12 (Brand/Cleanup)
+
+M1 + M2 + M3 are hard prerequisites for everything else.
+M4 is the single most critical change (non-blocking concurrency).
+M8-M10 can be parallelized after M4.
+M11-M12 are independent and can run anytime.
+
+The Requirements/UWD_Grand_Implementation_Plan.md standalone artifact will be generated during M1 execution.

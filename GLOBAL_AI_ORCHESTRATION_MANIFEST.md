@@ -1,5 +1,5 @@
 # GLOBAL AI ORCHESTRATION MANIFEST (GAIOM)
-## Project: UrwayDispatch.com (Internal: Rideoo)
+## Project: UrwayDispatch.com
 ## Environment: Windows PowerShell + Google Cloud SDK
 
 ### 1. PROJECT STATUS: [READY FOR VERTEX SWARM]
@@ -50,7 +50,11 @@
 - [X] **File:** cloudbuild.yaml confirmed in repository.
 - [ ] **Build:** Awaiting first successful automated deployment.
 ### 33. FULL SYSTEM SYNCHRONIZATION COMPLETE
-- [X] **Data Store:** gs://rideoo-agentic-brain/source/ fully populated.
+- [X] **Data Store:** gs://urway-dispatch-brain/source/ fully populated.
 - [X] **Pipeline:** Manual and Triggered builds verified (STATUS: SUCCESS).
 - [X] **Codebase:** apps, services, infra, and requirements all synced.
 - [!] **DNS:** A-Record set to 136.110.182.120 (Awaiting SSL Propagation).
+### 36. SECRET INGESTION & EBT PREP
+- [X] **Secrets:** FluidPay Sandbox keys moved to Google Secret Manager.
+- [X] **IAM:** urway-deployer granted SecretAccessor roles.
+- [!] **Transition:** Manual tactical phase closing; shifting to Agentic EBT Flow.

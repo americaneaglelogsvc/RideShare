@@ -49,14 +49,43 @@ export interface BookingResponse {
 }
 
 class RiderApiService {
+  private tenantId: string | null = null;
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      this.tenantId = localStorage.getItem('tenant_id');
+    }
+  }
+
+  setTenantId(tenantId: string): void {
+    this.tenantId = tenantId;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('tenant_id', tenantId);
+    }
+  }
+
+  getTenantId(): string | null {
+    return this.tenantId;
+  }
+
+  private getHeaders(): HeadersInit {
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+    if (this.tenantId) {
+      headers['x-tenant-id'] = this.tenantId;
+    }
+    return headers;
+  }
+
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
         headers: {
-          'Content-Type': 'application/json',
+          ...this.getHeaders(),
           ...options.headers,
         },
-        ...options,
       });
 
       if (!response.ok) {

@@ -29,7 +29,7 @@ const EXEMPT = new Set([
   "Requirements/BUILD_AUTHORITY.md"
 ]);
 
-const REQ = /\b[A-Z][A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3,5}\b/; // e.g., RIDEOO-CORE-0001, TEN-BASE-01234
+const REQ = /\b[A-Z][A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3,5}\b/; // e.g., URWAY-CORE-0001, TEN-BASE-01234
 
 const bad = [];
 for (const f of mdFiles) {

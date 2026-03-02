@@ -1,4 +1,4 @@
-﻿# Rideoo-RideShare Platform — Canonical Requirements (v6.1)
+# urwaydispatch.com-RideShare Platform — Canonical Requirements (v6.1)
 
 **Timestamp (America/Chicago): 2026-02-05 21:16:45**  
 

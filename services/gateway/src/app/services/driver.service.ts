@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class DriverService {
   constructor(private readonly supabaseService: SupabaseService) {}
 
-  async login(loginDto: DriverAuthDto) {
+  async login(tenantId: string, loginDto: DriverAuthDto) {
     const supabase = this.supabaseService.getClient();
 
     try {
@@ -36,6 +36,7 @@ export class DriverService {
       const { data: driver, error: profileError } = await supabase
         .from('drivers')
         .select('*')
+        .eq('tenant_id', tenantId)
         .eq('id', authData.user.id)
         .single();
 
@@ -61,7 +62,7 @@ export class DriverService {
     }
   }
 
-  async register(registrationDto: DriverRegistrationDto) {
+  async register(tenantId: string, registrationDto: DriverRegistrationDto) {
     const supabase = this.supabaseService.getClient();
 
     try {
@@ -79,6 +80,7 @@ export class DriverService {
       const { data: driver, error: profileError } = await supabase
         .from('drivers')
         .insert({
+          tenant_id: tenantId,
           id: authData.user.id,
           first_name: registrationDto.firstName,
           last_name: registrationDto.lastName,
@@ -112,7 +114,7 @@ export class DriverService {
     }
   }
 
-  async getProfile(driverId: string): Promise<DriverProfileDto> {
+  async getProfile(tenantId: string, driverId: string): Promise<DriverProfileDto> {
     const supabase = this.supabaseService.getClient();
 
     try {
@@ -123,6 +125,7 @@ export class DriverService {
           *,
           vehicles (*)
         `)
+        .eq('tenant_id', tenantId)
         .eq('id', driverId)
         .single();
 
@@ -134,6 +137,7 @@ export class DriverService {
       const { data: location } = await supabase
         .from('driver_locations')
         .select('*')
+        .eq('tenant_id', tenantId)
         .eq('driver_id', driverId)
         .order('updated_at', { ascending: false })
         .limit(1)
@@ -175,7 +179,7 @@ export class DriverService {
     }
   }
 
-  async updateProfile(driverId: string, profileData: Partial<DriverProfileDto>) {
+  async updateProfile(tenantId: string, driverId: string, profileData: Partial<DriverProfileDto>) {
     const supabase = this.supabaseService.getClient();
 
     try {
@@ -189,6 +193,7 @@ export class DriverService {
       const { data: driver, error } = await supabase
         .from('drivers')
         .update(updateData)
+        .eq('tenant_id', tenantId)
         .eq('id', driverId)
         .select()
         .single();
@@ -199,7 +204,7 @@ export class DriverService {
 
       return {
         success: true,
-        driver: await this.getProfile(driverId),
+        driver: await this.getProfile(tenantId, driverId),
       };
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -209,7 +214,7 @@ export class DriverService {
     }
   }
 
-  async updateStatus(driverId: string, statusUpdate: DriverStatusUpdateDto) {
+  async updateStatus(tenantId: string, driverId: string, statusUpdate: DriverStatusUpdateDto) {
     const supabase = this.supabaseService.getClient();
 
     try {
@@ -217,6 +222,7 @@ export class DriverService {
       const { error: statusError } = await supabase
         .from('drivers')
         .update({ status: statusUpdate.status })
+        .eq('tenant_id', tenantId)
         .eq('id', driverId);
 
       if (statusError) {
@@ -225,12 +231,12 @@ export class DriverService {
 
       // Update location if provided
       if (statusUpdate.location) {
-        await this.updateLocation(driverId, statusUpdate.location);
+        await this.updateLocation(tenantId, driverId, statusUpdate.location);
       }
 
       // If going online, potentially send ride offers
       if (statusUpdate.status === DriverStatus.ONLINE) {
-        this.simulateRideOffer(driverId);
+        this.simulateRideOffer(tenantId, driverId);
       }
 
       return {
@@ -246,7 +252,7 @@ export class DriverService {
     }
   }
 
-  async updateLocation(driverId: string, location: LocationUpdateDto) {
+  async updateLocation(tenantId: string, driverId: string, location: LocationUpdateDto) {
     const supabase = this.supabaseService.getClient();
 
     try {
@@ -254,6 +260,7 @@ export class DriverService {
       const { error } = await supabase
         .from('driver_locations')
         .insert({
+          tenant_id: tenantId,
           driver_id: driverId,
           lat: location.lat,
           lng: location.lng,
@@ -274,13 +281,14 @@ export class DriverService {
     }
   }
 
-  async getCurrentOffer(driverId: string): Promise<RideOfferDto | null> {
+  async getCurrentOffer(tenantId: string, driverId: string): Promise<RideOfferDto | null> {
     const supabase = this.supabaseService.getClient();
 
     try {
       const { data: offer, error } = await supabase
         .from('ride_offers')
         .select('*')
+        .eq('tenant_id', tenantId)
         .eq('driver_id', driverId)
         .eq('status', 'pending')
         .gt('expires_at', new Date().toISOString())
@@ -322,7 +330,7 @@ export class DriverService {
     }
   }
 
-  async respondToOffer(driverId: string, offerId: string, response: RideOfferResponseDto) {
+  async respondToOffer(tenantId: string, driverId: string, offerId: string, response: RideOfferResponseDto) {
     const supabase = this.supabaseService.getClient();
 
     try {
@@ -330,6 +338,7 @@ export class DriverService {
       const { data: offer, error: offerError } = await supabase
         .from('ride_offers')
         .select('*')
+        .eq('tenant_id', tenantId)
         .eq('id', offerId)
         .eq('driver_id', driverId)
         .eq('status', 'pending')
@@ -344,6 +353,7 @@ export class DriverService {
       const { error: updateError } = await supabase
         .from('ride_offers')
         .update({ status: newStatus })
+        .eq('tenant_id', tenantId)
         .eq('id', offerId);
 
       if (updateError) {
@@ -355,6 +365,7 @@ export class DriverService {
         await supabase
           .from('drivers')
           .update({ status: DriverStatus.EN_ROUTE_PICKUP })
+          .eq('tenant_id', tenantId)
           .eq('id', driverId);
 
         return {
@@ -376,7 +387,7 @@ export class DriverService {
     }
   }
 
-  async getEarnings(driverId: string, period: string): Promise<EarningsDto> {
+  async getEarnings(tenantId: string, driverId: string, period: string): Promise<EarningsDto> {
     const supabase = this.supabaseService.getClient();
 
     try {
@@ -403,6 +414,7 @@ export class DriverService {
       const { data: trips, error } = await supabase
         .from('trips')
         .select('fare_cents, net_payout_cents, commission_cents, duration_minutes')
+        .eq('tenant_id', tenantId)
         .eq('driver_id', driverId)
         .eq('status', 'completed')
         .gte('completed_at', startDate.toISOString());
@@ -434,13 +446,14 @@ export class DriverService {
     }
   }
 
-  async getTripHistory(driverId: string, limit: number, offset: number): Promise<TripHistoryDto[]> {
+  async getTripHistory(tenantId: string, driverId: string, limit: number, offset: number): Promise<TripHistoryDto[]> {
     const supabase = this.supabaseService.getClient();
 
     try {
       const { data: trips, error } = await supabase
         .from('trips')
         .select('*')
+        .eq('tenant_id', tenantId)
         .eq('driver_id', driverId)
         .eq('status', 'completed')
         .order('completed_at', { ascending: false })
@@ -474,7 +487,7 @@ export class DriverService {
     }
   }
 
-  async getDashboard(driverId: string) {
+  async getDashboard(tenantId: string, driverId: string) {
     const supabase = this.supabaseService.getClient();
 
     try {
@@ -482,6 +495,7 @@ export class DriverService {
       const { data: driver, error: driverError } = await supabase
         .from('drivers')
         .select('*')
+        .eq('tenant_id', tenantId)
         .eq('id', driverId)
         .single();
 
@@ -490,10 +504,10 @@ export class DriverService {
       }
 
       // Get today's earnings
-      const todayEarnings = await this.getEarnings(driverId, 'today');
+      const todayEarnings = await this.getEarnings(tenantId, driverId, 'today');
 
       // Get current offer
-      const currentOffer = await this.getCurrentOffer(driverId);
+      const currentOffer = await this.getCurrentOffer(tenantId, driverId);
 
       return {
         driver: {
@@ -521,7 +535,7 @@ export class DriverService {
     }
   }
 
-  private async simulateRideOffer(driverId: string) {
+  private async simulateRideOffer(tenantId: string, driverId: string) {
     const supabase = this.supabaseService.getClient();
 
     // Simulate receiving a ride offer after going online
@@ -531,6 +545,7 @@ export class DriverService {
         const { data: trip, error: tripError } = await supabase
           .from('trips')
           .insert({
+            tenant_id: tenantId,
             driver_id: driverId,
             pickup_address: '123 N Michigan Ave, Chicago, IL',
             dropoff_address: "O'Hare International Airport, Terminal 1",
@@ -559,6 +574,7 @@ export class DriverService {
         const { error: offerError } = await supabase
           .from('ride_offers')
           .insert({
+            tenant_id: tenantId,
             driver_id: driverId,
             trip_id: trip.id,
             rider_name: 'Sarah Johnson',
@@ -588,6 +604,7 @@ export class DriverService {
           await supabase
             .from('ride_offers')
             .update({ status: 'expired' })
+            .eq('tenant_id', tenantId)
             .eq('trip_id', trip.id)
             .eq('status', 'pending');
         }, 15000);

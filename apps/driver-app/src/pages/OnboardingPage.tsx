@@ -487,7 +487,7 @@ export function OnboardingPage() {
         <div className="text-center mb-8">
           <Car className="w-12 h-12 text-blue-600 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-gray-900">Driver Onboarding</h1>
-          <p className="text-gray-600">Complete your application to start driving with LuxRide</p>
+          <p className="text-gray-600">Complete your application to start driving with UrWay Dispatch</p>
         </div>
 
         {/* Progress Steps */}

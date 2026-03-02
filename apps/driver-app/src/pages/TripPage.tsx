@@ -1,9 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Navigation, Phone, MessageCircle, Clock, DollarSign, User } from 'lucide-react';
+import { MapPin, Navigation, Phone, MessageCircle, Clock, DollarSign, User, ExternalLink } from 'lucide-react';
+
+function openGoogleMapsNav(lat: number, lng: number, address?: string) {
+  const dest = address ? encodeURIComponent(address) : `${lat},${lng}`;
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
+  window.open(url, '_blank');
+}
+
+function maskPii(value: string | undefined, isActive: boolean): string {
+  if (!value) return '';
+  if (!isActive) return value;
+  if (value.includes('@')) {
+    const [local, domain] = value.split('@');
+    return `${local.slice(0, 2)}***@${domain}`;
+  }
+  if (/^\+?\d/.test(value.replace(/[\s()-]/g, ''))) {
+    return value.slice(0, 6) + '••••' + value.slice(-2);
+  }
+  const parts = value.trim().split(/\s+/);
+  if (parts.length > 1) {
+    return parts[0] + ' ' + parts.slice(1).map(p => p[0] + '***').join(' ');
+  }
+  return value;
+}
+
+interface TripData {
+  tripId: string;
+  riderId: string;
+  riderName: string;
+  riderPhone: string;
+  pickup: { address: string; lat: number; lng: number };
+  dropoff: { address: string; lat: number; lng: number };
+  estimatedFare: number;
+  netPayout: number;
+  estimatedDistance: number;
+  estimatedDuration: number;
+  pickupEta: number;
+  category: string;
+  specialInstructions?: string;
+}
 
 export function TripPage() {
   const [tripStatus, setTripStatus] = useState('no_trip'); // no_trip, offer_received, en_route_pickup, arrived_pickup, en_route_dropoff, completed
-  const [currentTrip, setCurrentTrip] = useState(null);
+  const [currentTrip, setCurrentTrip] = useState<TripData | null>(null);
   const [offerTimer, setOfferTimer] = useState(0);
 
   // Mock trip data
@@ -213,15 +252,15 @@ export function TripPage() {
                 <div className="flex items-center">
                   <User className="w-8 h-8 text-gray-600 mr-3" />
                   <div>
-                    <p className="font-medium">{currentTrip?.riderName}</p>
-                    <p className="text-sm text-gray-600">Passenger</p>
+                    <p className="font-medium">{maskPii(currentTrip?.riderName, true)}</p>
+                    <p className="text-sm text-gray-600">{maskPii(currentTrip?.riderPhone, true)}</p>
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <button className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  <button aria-label="Call rider" className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                     <Phone className="w-5 h-5" />
                   </button>
-                  <button className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                  <button aria-label="Message rider" className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
                     <MessageCircle className="w-5 h-5" />
                   </button>
                 </div>
@@ -239,12 +278,21 @@ export function TripPage() {
                 </div>
               </div>
 
-              <button
-                onClick={handleArrivedPickup}
-                className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
-              >
-                I've Arrived at Pickup
-              </button>
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => currentTrip && openGoogleMapsNav(currentTrip.pickup.lat, currentTrip.pickup.lng, currentTrip.pickup.address)}
+                  className="flex-1 px-4 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 font-semibold flex items-center justify-center"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Navigate
+                </button>
+                <button
+                  onClick={handleArrivedPickup}
+                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
+                >
+                  I've Arrived at Pickup
+                </button>
+              </div>
             </div>
           </div>
         );
@@ -264,15 +312,15 @@ export function TripPage() {
                 <div className="flex items-center">
                   <User className="w-8 h-8 text-gray-600 mr-3" />
                   <div>
-                    <p className="font-medium">{currentTrip?.riderName}</p>
-                    <p className="text-sm text-gray-600">{currentTrip?.riderPhone}</p>
+                    <p className="font-medium">{maskPii(currentTrip?.riderName, true)}</p>
+                    <p className="text-sm text-gray-600">{maskPii(currentTrip?.riderPhone, true)}</p>
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <button className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  <button aria-label="Call rider" className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                     <Phone className="w-5 h-5" />
                   </button>
-                  <button className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                  <button aria-label="Message rider" className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
                     <MessageCircle className="w-5 h-5" />
                   </button>
                 </div>
@@ -311,7 +359,7 @@ export function TripPage() {
                 <div className="flex items-center">
                   <User className="w-8 h-8 text-gray-600 mr-3" />
                   <div>
-                    <p className="font-medium">{currentTrip?.riderName}</p>
+                    <p className="font-medium">{maskPii(currentTrip?.riderName, true)}</p>
                     <p className="text-sm text-gray-600">In vehicle</p>
                   </div>
                 </div>
@@ -335,12 +383,21 @@ export function TripPage() {
                 </div>
               </div>
 
-              <button
-                onClick={handleCompleteTrip}
-                className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold"
-              >
-                Complete Trip
-              </button>
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => currentTrip && openGoogleMapsNav(currentTrip.dropoff.lat, currentTrip.dropoff.lng, currentTrip.dropoff.address)}
+                  className="flex-1 px-4 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 font-semibold flex items-center justify-center"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Navigate
+                </button>
+                <button
+                  onClick={handleCompleteTrip}
+                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold"
+                >
+                  Complete Trip
+                </button>
+              </div>
             </div>
           </div>
         );

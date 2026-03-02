@@ -1,8 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
 import { RealtimeService } from './realtime.service';
+import { LedgerService } from './ledger.service';
+
+export enum TripStatus {
+  REQUESTED = 'requested',
+  ASSIGNED = 'assigned',
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+}
+
+const DEFAULT_MAX_DISTANCE_KM = 5;
+const KM_TO_MILES = 0.621371;
+const BASE_FARE_CENTS = 500;
+const PER_KM_CENTS = 150;
 
 interface RideRequest {
+  tenantId: string;
   riderId: string;
   riderName: string;
   riderPhone: string;
@@ -23,7 +37,7 @@ interface RideRequest {
 
 interface DriverMatch {
   driverId: string;
-  distance: number;
+  distanceKm: number;
   eta: number;
   rating: number;
   vehicleCategory: string;
@@ -33,19 +47,31 @@ interface DriverMatch {
 export class DispatchService {
   constructor(
     private readonly supabaseService: SupabaseService,
-    private readonly realtimeService: RealtimeService
+    private readonly realtimeService: RealtimeService,
+    private readonly ledgerService: LedgerService
   ) {}
 
-  async findAvailableDrivers(
+  async radiusSearchDrivers(
+    tenantId: string,
     pickupLat: number,
     pickupLng: number,
     category: string,
-    maxDistance: number = 10
+    maxDistanceKm: number = DEFAULT_MAX_DISTANCE_KM
+  ): Promise<DriverMatch[]> {
+    return this.findAvailableDrivers(tenantId, pickupLat, pickupLng, category, maxDistanceKm);
+  }
+
+  async findAvailableDrivers(
+    tenantId: string,
+    pickupLat: number,
+    pickupLng: number,
+    category: string,
+    maxDistanceKm: number = DEFAULT_MAX_DISTANCE_KM
   ): Promise<DriverMatch[]> {
     const supabase = this.supabaseService.getClient();
+    const maxDistanceMiles = maxDistanceKm * KM_TO_MILES;
 
     try {
-      // Find online drivers with matching vehicle category within radius
       const { data: drivers, error } = await supabase
         .from('drivers')
         .select(`
@@ -60,10 +86,11 @@ export class DispatchService {
             updated_at
           )
         `)
+        .eq('tenant_id', tenantId)
         .eq('status', 'online')
         .eq('is_active', true)
         .eq('vehicles.category', category)
-        .gte('driver_locations.updated_at', new Date(Date.now() - 5 * 60 * 1000).toISOString()) // Within last 5 minutes
+        .gte('driver_locations.updated_at', new Date(Date.now() - 5 * 60 * 1000).toISOString())
         .order('rating', { ascending: false });
 
       if (error || !drivers) {
@@ -71,23 +98,23 @@ export class DispatchService {
         return [];
       }
 
-      // Calculate distances and filter by radius
       const matches: DriverMatch[] = [];
-      
+
       for (const driver of drivers) {
         const driverLat = driver.driver_locations[0]?.lat;
         const driverLng = driver.driver_locations[0]?.lng;
-        
-        if (!driverLat || !driverLng) continue;
 
-        const distance = this.calculateDistance(pickupLat, pickupLng, driverLat, driverLng);
-        
-        if (distance <= maxDistance) {
-          const eta = Math.ceil(distance * 2.5); // Rough estimate: 2.5 minutes per mile
-          
+        if (driverLat === null || driverLat === undefined || driverLng === null || driverLng === undefined) continue;
+
+        const distanceMiles = this.calculateDistanceMiles(pickupLat, pickupLng, driverLat, driverLng);
+        const distanceKm = distanceMiles / KM_TO_MILES;
+
+        if (distanceMiles <= maxDistanceMiles) {
+          const eta = Math.ceil(distanceKm * 2);
+
           matches.push({
             driverId: driver.id,
-            distance,
+            distanceKm,
             eta,
             rating: driver.rating,
             vehicleCategory: driver.vehicles[0].category
@@ -95,10 +122,9 @@ export class DispatchService {
         }
       }
 
-      // Sort by distance, then by rating
       return matches.sort((a, b) => {
-        if (a.distance !== b.distance) {
-          return a.distance - b.distance;
+        if (a.distanceKm !== b.distanceKm) {
+          return a.distanceKm - b.distanceKm;
         }
         return b.rating - a.rating;
       });
@@ -113,8 +139,8 @@ export class DispatchService {
     const supabase = this.supabaseService.getClient();
 
     try {
-      // Find available drivers
       const availableDrivers = await this.findAvailableDrivers(
+        rideRequest.tenantId,
         rideRequest.pickup.lat,
         rideRequest.pickup.lng,
         rideRequest.category
@@ -125,10 +151,20 @@ export class DispatchService {
         return null;
       }
 
-      // Create trip record
+      const tripDistanceMiles = this.calculateDistanceMiles(
+        rideRequest.pickup.lat,
+        rideRequest.pickup.lng,
+        rideRequest.dropoff.lat,
+        rideRequest.dropoff.lng
+      );
+
+      const tripDistanceKm = tripDistanceMiles / KM_TO_MILES;
+      const estimatedFareCents = this.calculateEstimatedFareCents(tripDistanceKm);
+
       const { data: trip, error: tripError } = await supabase
         .from('trips')
         .insert({
+          tenant_id: rideRequest.tenantId,
           rider_id: rideRequest.riderId,
           pickup_address: rideRequest.pickup.address,
           dropoff_address: rideRequest.dropoff.address,
@@ -136,16 +172,11 @@ export class DispatchService {
           pickup_lng: rideRequest.pickup.lng,
           dropoff_lat: rideRequest.dropoff.lat,
           dropoff_lng: rideRequest.dropoff.lng,
-          distance_miles: this.calculateDistance(
-            rideRequest.pickup.lat,
-            rideRequest.pickup.lng,
-            rideRequest.dropoff.lat,
-            rideRequest.dropoff.lng
-          ),
-          fare_cents: rideRequest.estimatedFare,
-          net_payout_cents: Math.floor(rideRequest.estimatedFare * 0.8), // 80% to driver
-          commission_cents: Math.floor(rideRequest.estimatedFare * 0.2), // 20% commission
-          status: 'requested',
+          distance_miles: tripDistanceMiles,
+          fare_cents: estimatedFareCents,
+          net_payout_cents: Math.floor(estimatedFareCents * 0.8),
+          commission_cents: Math.floor(estimatedFareCents * 0.2),
+          status: TripStatus.REQUESTED,
           special_instructions: rideRequest.specialInstructions
         })
         .select()
@@ -156,11 +187,15 @@ export class DispatchService {
         return null;
       }
 
-      // Send offers to top 3 drivers
       const topDrivers = availableDrivers.slice(0, 3);
       const offerPromises = topDrivers.map(driver => this.sendRideOffer(driver, trip, rideRequest));
-      
+
       await Promise.all(offerPromises);
+
+      await this.realtimeService.emitTripStateChanged({
+        tripId: trip.id,
+        status: TripStatus.REQUESTED,
+      });
 
       return trip.id;
 
@@ -170,15 +205,16 @@ export class DispatchService {
     }
   }
 
-  private async sendRideOffer(driver: DriverMatch, trip: any, rideRequest: RideRequest) {
+  async sendRideOffer(driver: DriverMatch, trip: any, rideRequest: RideRequest) {
     const supabase = this.supabaseService.getClient();
-    
-    const expiresAt = new Date(Date.now() + 15000); // 15 seconds to respond
+
+    const expiresAt = new Date(Date.now() + 15000);
 
     try {
       const { error } = await supabase
         .from('ride_offers')
         .insert({
+          tenant_id: rideRequest.tenantId,
           driver_id: driver.driverId,
           trip_id: trip.id,
           rider_name: rideRequest.riderName,
@@ -189,8 +225,8 @@ export class DispatchService {
           pickup_lng: rideRequest.pickup.lng,
           dropoff_lat: rideRequest.dropoff.lat,
           dropoff_lng: rideRequest.dropoff.lng,
-          estimated_fare_cents: rideRequest.estimatedFare,
-          net_payout_cents: Math.floor(rideRequest.estimatedFare * 0.8),
+          estimated_fare_cents: trip.fare_cents,
+          net_payout_cents: trip.net_payout_cents,
           estimated_distance_miles: trip.distance_miles,
           estimated_duration_minutes: Math.ceil(trip.distance_miles * 2.5),
           pickup_eta_minutes: driver.eta,
@@ -203,11 +239,11 @@ export class DispatchService {
         console.error('Error sending ride offer:', error);
       }
 
-      // Auto-expire the offer
       setTimeout(async () => {
         await supabase
           .from('ride_offers')
           .update({ status: 'expired' })
+          .eq('tenant_id', rideRequest.tenantId)
           .eq('driver_id', driver.driverId)
           .eq('trip_id', trip.id)
           .eq('status', 'pending');
@@ -218,31 +254,120 @@ export class DispatchService {
     }
   }
 
-  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-    const R = 3959; // Earth's radius in miles
-    const dLat = this.toRadians(lat2 - lat1);
-    const dLng = this.toRadians(lng2 - lng1);
-    
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(this.toRadians(lat1)) * Math.cos(this.toRadians(lat2)) *
-              Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }
-
-  private toRadians(degrees: number): number {
-    return degrees * (Math.PI / 180);
-  }
-
-  async acceptRideOffer(driverId: string, offerId: string): Promise<boolean> {
+  async acceptOffer(tenantId: string, tripId: string, driverId: string): Promise<{ success: boolean; trip?: any; message?: string }> {
     const supabase = this.supabaseService.getClient();
 
     try {
-      // Get the offer
+      const { data: updatedTrip, error } = await supabase
+        .from('trips')
+        .update({
+          driver_id: driverId,
+          status: TripStatus.ASSIGNED,
+        })
+        .eq('tenant_id', tenantId)
+        .eq('id', tripId)
+        .eq('status', TripStatus.REQUESTED)
+        .is('driver_id', null)
+        .select('*')
+        .single();
+
+      if (error || !updatedTrip) {
+        return {
+          success: false,
+          message: 'Trip is no longer available to accept',
+        };
+      }
+
+      await this.realtimeService.emitTripStateChanged({
+        tripId,
+        status: TripStatus.ASSIGNED,
+        driverId,
+      });
+
+      return { success: true, trip: updatedTrip };
+
+    } catch (e: any) {
+      console.error('acceptOffer failed:', e?.message || e);
+      return { success: false, message: 'acceptOffer failed' };
+    }
+  }
+
+  async startTrip(tenantId: string, tripId: string): Promise<{ success: boolean; trip?: any; message?: string }> {
+    const supabase = this.supabaseService.getClient();
+
+    try {
+      const { data: updatedTrip, error } = await supabase
+        .from('trips')
+        .update({ status: TripStatus.ACTIVE })
+        .eq('tenant_id', tenantId)
+        .eq('id', tripId)
+        .eq('status', TripStatus.ASSIGNED)
+        .select('*')
+        .single();
+
+      if (error || !updatedTrip) {
+        return { success: false, message: 'Trip cannot be started in its current state' };
+      }
+
+      await this.realtimeService.emitTripStateChanged({
+        tripId,
+        status: TripStatus.ACTIVE,
+        driverId: updatedTrip.driver_id,
+      });
+
+      return { success: true, trip: updatedTrip };
+
+    } catch (e: any) {
+      console.error('startTrip failed:', e?.message || e);
+      return { success: false, message: 'startTrip failed' };
+    }
+  }
+
+  async completeTrip(tenantId: string, tripId: string): Promise<{ success: boolean; trip?: any; message?: string }> {
+    const supabase = this.supabaseService.getClient();
+
+    try {
+      const { data: updatedTrip, error } = await supabase
+        .from('trips')
+        .update({ status: TripStatus.COMPLETED })
+        .eq('tenant_id', tenantId)
+        .eq('id', tripId)
+        .eq('status', TripStatus.ACTIVE)
+        .select('*')
+        .single();
+
+      if (error || !updatedTrip) {
+        return { success: false, message: 'Trip cannot be completed in its current state' };
+      }
+
+      await this.ledgerService.recordTripFare({
+        tripId,
+        driverId: updatedTrip.driver_id,
+        fareCents: updatedTrip.fare_cents,
+      });
+
+      await this.realtimeService.emitTripStateChanged({
+        tripId,
+        status: TripStatus.COMPLETED,
+        driverId: updatedTrip.driver_id,
+      });
+
+      return { success: true, trip: updatedTrip };
+
+    } catch (e: any) {
+      console.error('completeTrip failed:', e?.message || e);
+      return { success: false, message: 'completeTrip failed' };
+    }
+  }
+
+  async acceptRideOffer(tenantId: string, driverId: string, offerId: string): Promise<boolean> {
+    const supabase = this.supabaseService.getClient();
+
+    try {
       const { data: offer, error: offerError } = await supabase
         .from('ride_offers')
         .select('*')
+        .eq('tenant_id', tenantId)
         .eq('id', offerId)
         .eq('driver_id', driverId)
         .eq('status', 'pending')
@@ -252,38 +377,44 @@ export class DispatchService {
         return false;
       }
 
-      // Accept the offer and decline all others for this trip
       const { error: updateError } = await supabase
         .from('ride_offers')
         .update({ status: 'accepted' })
+        .eq('tenant_id', tenantId)
         .eq('id', offerId);
 
       if (updateError) {
         return false;
       }
 
-      // Decline other offers for the same trip
       await supabase
         .from('ride_offers')
         .update({ status: 'declined' })
+        .eq('tenant_id', tenantId)
         .eq('trip_id', offer.trip_id)
         .neq('id', offerId)
         .eq('status', 'pending');
 
-      // Update trip status
       await supabase
         .from('trips')
         .update({ 
           driver_id: driverId,
-          status: 'accepted' 
+          status: TripStatus.ASSIGNED
         })
+        .eq('tenant_id', tenantId)
         .eq('id', offer.trip_id);
 
-      // Update driver status
       await supabase
         .from('drivers')
         .update({ status: 'en_route_pickup' })
+        .eq('tenant_id', tenantId)
         .eq('id', driverId);
+
+      await this.realtimeService.emitTripStateChanged({
+        tripId: offer.trip_id,
+        status: TripStatus.ASSIGNED,
+        driverId,
+      });
 
       return true;
 
@@ -291,5 +422,27 @@ export class DispatchService {
       console.error('Error accepting ride offer:', error);
       return false;
     }
+  }
+
+  private calculateDistanceMiles(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 3959; // Earth's radius in miles
+    const dLat = this.toRadians(lat2 - lat1);
+    const dLng = this.toRadians(lng2 - lng1);
+
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(this.toRadians(lat1)) * Math.cos(this.toRadians(lat2)) *
+              Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  private calculateEstimatedFareCents(distanceKm: number): number {
+    const distanceCharge = Math.round(distanceKm * PER_KM_CENTS);
+    return BASE_FARE_CENTS + distanceCharge;
+  }
+
+  private toRadians(degrees: number): number {
+    return degrees * (Math.PI / 180);
   }
 }

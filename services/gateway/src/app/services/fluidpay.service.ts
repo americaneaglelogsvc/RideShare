@@ -87,13 +87,13 @@ export class FluidpayService {
     }
 
     try {
-      const response = await firstValueFrom(
+      const response: any = await firstValueFrom(
         this.httpService.post(`${this.baseUrl}/payments`, request, {
           headers: this.getHeaders()
         })
       );
 
-      return response.data;
+      return response.data as FluidpayPaymentResponse;
     } catch (error) {
       console.error('Fluidpay payment error:', error.response?.data || error.message);
       throw new BadRequestException('Payment processing failed');
@@ -107,13 +107,13 @@ export class FluidpayService {
     }
 
     try {
-      const response = await firstValueFrom(
+      const response: any = await firstValueFrom(
         this.httpService.get(`${this.baseUrl}/payments/${paymentId}`, {
           headers: this.getHeaders()
         })
       );
 
-      return response.data;
+      return response.data as FluidpayPaymentResponse;
     } catch (error) {
       console.error('Fluidpay get payment error:', error.response?.data || error.message);
       throw new BadRequestException('Failed to retrieve payment');
@@ -134,7 +134,7 @@ export class FluidpayService {
     }
 
     try {
-      const response = await firstValueFrom(
+      const response: any = await firstValueFrom(
         this.httpService.post(`${this.baseUrl}/payouts`, request, {
           headers: this.getHeaders()
         })
@@ -161,7 +161,7 @@ export class FluidpayService {
 
     try {
       const refundData = amount ? { amount } : {};
-      const response = await firstValueFrom(
+      const response: any = await firstValueFrom(
         this.httpService.post(`${this.baseUrl}/payments/${paymentId}/refunds`, refundData, {
           headers: this.getHeaders()
         })

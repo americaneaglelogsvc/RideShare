@@ -1,18 +1,18 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { SupabaseService } from './services/supabase.service';
 import { RealtimeService } from './services/realtime.service';
 import { DispatchService } from './services/dispatch.service';
-import { PricingController } from './controllers/pricing.controller';
-import { ReservationsController } from './controllers/reservations.controller';
-import { AirportController } from './controllers/airport.controller';
+import { LedgerService } from './services/ledger.service';
+import { IdentityService } from './services/identity.service';
+import { TenantService } from './services/tenant.service';
+import { HealthController } from './controllers/health.controller';
 import { DriverController } from './controllers/driver.controller';
 import { DispatchController } from './controllers/dispatch.controller';
-import { PricingService } from './services/pricing.service';
-import { ReservationsService } from './services/reservations.service';
-import { AirportService } from './services/airport.service';
+import { TenantController } from './controllers/tenant.controller';
 import { DriverService } from './services/driver.service';
+import { TenantContextMiddleware } from './tenant-context.middleware';
 
 @Module({
   imports: [
@@ -22,20 +22,27 @@ import { DriverService } from './services/driver.service';
     HttpModule,
   ],
   controllers: [
-    PricingController,
-    ReservationsController,
-    AirportController,
+    HealthController,
     DriverController,
     DispatchController,
+    TenantController,
   ],
   providers: [
     SupabaseService,
     RealtimeService,
     DispatchService,
-    PricingService,
-    ReservationsService,
-    AirportService,
+    LedgerService,
     DriverService,
+    IdentityService,
+    TenantService,
+    TenantContextMiddleware,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(TenantContextMiddleware)
+      .exclude('health', 'api/(.*)', 'tenants')
+      .forRoutes('*');
+  }
+}

@@ -72,6 +72,32 @@ export class DriverRegistrationDto extends DriverAuthDto {
   address?: string;
 }
 
+export class VehicleInfoDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  make: string;
+
+  @ApiProperty()
+  model: string;
+
+  @ApiProperty()
+  year: number;
+
+  @ApiProperty()
+  color: string;
+
+  @ApiProperty()
+  licensePlate: string;
+
+  @ApiProperty()
+  category: string;
+
+  @ApiProperty({ required: false })
+  photoUrls?: string[];
+}
+
 export class DriverProfileDto {
   @ApiProperty()
   id: string;
@@ -103,37 +129,11 @@ export class DriverProfileDto {
   @ApiProperty()
   isActive: boolean;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({ required: false, type: () => LocationUpdateDto })
   currentLocation?: LocationUpdateDto;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({ required: false, type: () => VehicleInfoDto })
   vehicle?: VehicleInfoDto;
-}
-
-export class VehicleInfoDto {
-  @ApiProperty()
-  id: string;
-
-  @ApiProperty()
-  make: string;
-
-  @ApiProperty()
-  model: string;
-
-  @ApiProperty()
-  year: number;
-
-  @ApiProperty()
-  color: string;
-
-  @ApiProperty()
-  licensePlate: string;
-
-  @ApiProperty()
-  category: string;
-
-  @ApiProperty({ required: false })
-  photoUrls?: string[];
 }
 
 export class RideOfferDto {

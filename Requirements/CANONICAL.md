@@ -1,16 +1,16 @@
-# Rideoo-RideShare Platform â€” Canonical Requirements (v6.1, rev v10)
+# urwaydispatch.com-RideShare Platform â€” Canonical Requirements (v6.1, rev v10)
 
 **Timestamp (America/Chicago): 2026-02-17 21:45**  
 
 **Repo:** `PaySurity-Biz/RideShare` (https://github.com/PaySurity-Biz/RideShare)
-**Canonical location in repo:** `Requirements/Rideoo_RideShare_Canonical_Requirements.md` (copy also at repo root for tooling)
+**Canonical location in repo:** `Requirements/urwaydispatch.com_RideShare_Canonical_Requirements.md` (copy also at repo root for tooling)
 
 
 **Seed tenants (test data during build):**  
 - **GoldRavenia** (sample tenant): goldravenia.com  
 - **BlackRavenia** (sample tenant): blackravenia.com  
 
-**Scope:** Passenger rides first. Multi-tenant, white-label SaaS. **Rideoo is the software provider; tenants are the service providers** (ops/compliance/insurance are tenant responsibilities).  
+**Scope:** Passenger rides first. Multi-tenant, white-label SaaS. **urwaydispatch.com is the software provider; tenants are the service providers** (ops/compliance/insurance are tenant responsibilities).  
 
 **Target market:** Posh / high-end / corporate / luxury passenger transportation (tenant-configurable to support any passenger vehicle/fleet).  
 
@@ -221,7 +221,7 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
 - Analytics: GA (platform site + tenant microsites)
 
 **GCP-ARCH-0002 â€” Tenant microsites hosting cost policy**
-- Tenant microsites are hosted under Rideooâ€™s umbrella (shared GCP infra).
+- Tenant microsites are hosted under urwaydispatch.comâ€™s umbrella (shared GCP infra).
 - Cost impact is primarily bandwidth + storage; static-first + CDN keeps marginal cost low per tenant.
 - Per-tenant domain mappings must be automated (primary domain + aliases).
 
@@ -322,8 +322,8 @@ A **milestone** is considered **Completed** only when **all** in-scope requireme
 - Drivers may work with multiple tenants by authenticating separately into each tenantâ€™s driver experience (separate sessions; tenant data isolation preserved).
 - **Money presentation rule:** driver receipts and payout history must show:
   - `Paid by: {TenantName}`
-  - `Processed via: Rideoo`
-  - Support-only/internal details may show payout rail funding truth (Rideoo/PaySurity).
+  - `Processed via: urwaydispatch.com`
+  - Support-only/internal details may show payout rail funding truth (urwaydispatch.com/PaySurity).
 - Platform records the financial truth via ledger; external gateway identities remain abstracted behind PaySurity rails unless explicitly required for support/audit.
 
 ### 2.4 Role taxonomy RBAC (authoritative)
@@ -455,8 +455,8 @@ The platform must support service-standard enforcement as compliance policy and 
 
 **RIDE-APP-SYNC-010 â€” Rider Web + mobile parity + sync (mandatory)**
 - Rider experience must be available as:
-  - Rideoo Rider Web App (responsive, latest web tech)
-  - Rideoo Rider Mobile App (iOS + Android)
+  - urwaydispatch.com Rider Web App (responsive, latest web tech)
+  - urwaydispatch.com Rider Mobile App (iOS + Android)
 - Core flows must be feature-parity across web and mobile (booking, tracking, chat, receipts, support).
 - Cross-device state must remain consistent (same rider logged in on multiple devices):
   - real-time updates for trip state, driver location, and messages,
@@ -512,8 +512,8 @@ The platform must support service-standard enforcement as compliance policy and 
 
 **DRV-APP-SYNC-010 â€” Driver Web + mobile parity + sync (mandatory)**
 - Driver experience must be available as:
-  - Rideoo Driver Web App (responsive)
-  - Rideoo Driver Mobile App (iOS + Android)
+  - urwaydispatch.com Driver Web App (responsive)
+  - urwaydispatch.com Driver Mobile App (iOS + Android)
 - Core flows must be feature-parity across web and mobile (onboarding, offers, navigation deep-link, trip execution, earnings, receipts, support).
 - **Tenant-scoped UX:** driver sees only the currently authenticated tenant context; no consolidated cross-tenant stats or payouts UI.
 - Cross-device state must remain consistent:
@@ -529,7 +529,7 @@ The platform must support service-standard enforcement as compliance policy and 
 - Compliance expiries are recorded and surfaced. If tenant enables gating in Policy Center, go-online/accept can be blocked; otherwise platform is enable-only.
 
 ### 5.2 Going online and offers
-- No trip handoff/transfer feature exists in Rideoo. Any off-platform delegation is outside scope; Rideoo records only the in-app driver actions and trip state timeline.
+- No trip handoff/transfer feature exists in urwaydispatch.com. Any off-platform delegation is outside scope; urwaydispatch.com records only the in-app driver actions and trip state timeline.
 - Driver status is tenant-local: offline/online/busy (busy is not global across tenants).
 - Offer flow parameters are tenant-configurable via Policy Center (ring duration, offer expiry, hop strategy, GrabBoard use). No tenant business defaults are imposed by platform.
 - Real-time earnings + accumulated unpaid balance visible to the driver within tenant context; tenant staff see tenant-scoped views; platform staff see cross-tenant views RBAC.
@@ -738,7 +738,7 @@ The platform must implement a **Policy Center** as the authoritative system for 
 - This mode must be explicitly disclosed to the tenant during onboarding and recorded as signed acceptance.
 
 **RIDE-PAY-030 â€” Billing + autopull (invoices + schedule + as-needed triggers)**
-- In all payment operating modes, the platform must be able to collect Rideoo fees from the tenant:
+- In all payment operating modes, the platform must be able to collect urwaydispatch.com fees from the tenant:
   - via tenant bank account (ACH debit mandate), and/or
   - via tenant wallet balance (if wallet enabled).
 - System must generate invoices and execute autopull:
@@ -792,9 +792,9 @@ The platform must implement a **Policy Center** as the authoritative system for 
 
 **RIDE-PAYOUT-100 â€” Payout modes (tenant-managed vs platform-triggered)**
 - The platform must support both payout operating modes per tenant:
-  - **Tenant-managed payouts:** tenant pays drivers outside Rideoo; Rideoo tracks earnings and provides statements/reports only.
-  - **Platform-triggered payouts (PaySurity rail):** Rideoo executes payouts on behalf of the tenant.
-- **Pinned PAY-FLOW-0100:** If a tenant enables platform-triggered driver payouts, the tenant automatically agrees that funds for **ALL rides** for that tenant flow through Rideoo first (PaySurity rail). Rideoo executes driver payouts from Rideooâ€™s account and applies platform-controlled configurable fees. Tenant consent must be captured, versioned, and auditable.
+  - **Tenant-managed payouts:** tenant pays drivers outside urwaydispatch.com; urwaydispatch.com tracks earnings and provides statements/reports only.
+  - **Platform-triggered payouts (PaySurity rail):** urwaydispatch.com executes payouts on behalf of the tenant.
+- **Pinned PAY-FLOW-0100:** If a tenant enables platform-triggered driver payouts, the tenant automatically agrees that funds for **ALL rides** for that tenant flow through urwaydispatch.com first (PaySurity rail). urwaydispatch.com executes driver payouts from urwaydispatch.comâ€™s account and applies platform-controlled configurable fees. Tenant consent must be captured, versioned, and auditable.
 
 **RIDE-PAYOUT-101 â€” â€œCompletely Settledâ€ truth (bank_settled)**
 - When platform-triggered payouts are enabled, a driver payout (including on-demand cash-out) must be permitted only when the related ride funds are in **Completely Settled** state.
@@ -803,7 +803,7 @@ The platform must implement a **Policy Center** as the authoritative system for 
   - `pending` (not settled)
   - `eligible` (settled)
   - `paid` (payout executed)
-- Tenant may configure business-facing policies (wait/cancel/no-show) via Tenant Policy Center; Rideoo does not impose any tenantâ†”rider or tenantâ†”driver business rules by default.
+- Tenant may configure business-facing policies (wait/cancel/no-show) via Tenant Policy Center; urwaydispatch.com does not impose any tenantâ†”rider or tenantâ†”driver business rules by default.
 
 **RIDE-PAYOUT-102 â€” On-demand cash-out request UX (request anytime; pay only eligible)**
 - Driver must be able to **request cash-out at any time**.
@@ -820,7 +820,7 @@ The platform must implement a **Policy Center** as the authoritative system for 
 - If eligible amount is zero, driver UI must show â€œNot eligible yetâ€ with reasons (e.g., pending settlement).
 
 **RIDE-PAYOUT-103 â€” Fee model (platform-controlled; tenant-visible)**
-- All Rideoo platform fees (subscription + per-ride fees + payout fees + optional doc-gen fees) are configurable by platform Super Admin (and designated sub super admins).
+- All urwaydispatch.com platform fees (subscription + per-ride fees + payout fees + optional doc-gen fees) are configurable by platform Super Admin (and designated sub super admins).
 - When platform-triggered payouts are enabled:
   - payout execution fee(s) are platform-configurable,
   - fees are charged to the tenant (not silently netted from driver without disclosure),
@@ -832,8 +832,8 @@ The platform must implement a **Policy Center** as the authoritative system for 
 - Tenant view: payout queue + history + export.
 - Each payout receipt must include:
   - `Paid by: {TenantName}`
-  - `Processed via: Rideoo`
-  - Support-only/internal details may show: `Funded by: Rideoo (PaySurity rail)`.
+  - `Processed via: urwaydispatch.com`
+  - Support-only/internal details may show: `Funded by: urwaydispatch.com (PaySurity rail)`.
 
 **RIDE-PAYOUT-105 â€” Adjustments, reversals, and recovery (drivers + tenants)**
 - System must support an **adjustment object** that adds/subtracts from driver earnings ledger.
@@ -858,9 +858,9 @@ The platform must implement a **Policy Center** as the authoritative system for 
 **RIDE-PAYOUT-110 â€” â€œPaid by tenantâ€ presentation + receipt truth**
 - Driver-facing payout artifacts must include:
   - `Paid by: {TenantName}`
-  - `Processed via: Rideoo`
+  - `Processed via: urwaydispatch.com`
 - Support/internal view must retain:
-  - `Funded by: Rideoo (PaySurity rail)`
+  - `Funded by: urwaydispatch.com (PaySurity rail)`
   - pointer to the captured tenant consent for PAY-FLOW-0100 (version + timestamp + actor).
 
 ### 8.3B Bulk payout runs (enable-only; tenant + platform roles)
@@ -885,7 +885,7 @@ The platform must implement a **Policy Center** as the authoritative system for 
   - ledger linkage + reconciliation exception creation,
   - scheduled payout window behavior when enabled,
   - bulk payout preview/edit/confirm + checksum + idempotent execution when enabled,
-  - receipt strings (Paid by Tenant / Processed via Rideoo),
+  - receipt strings (Paid by Tenant / Processed via urwaydispatch.com),
   - audit log emission for payout + recovery + bulk payout actions.
 <!-- EBT_PATCH:PAYOUTS_V2_END -->
 
@@ -968,7 +968,7 @@ Tenant console must include modules (RBAC-gated) at minimum:
 - Airports (queue mode + rules)
 - Payments & settlement visibility (tenant-scoped)
 - Payouts (if tenant uses platform-triggered payouts or tracks payouts)
-- Billing to Rideoo (invoices + autopull mandate + status)
+- Billing to urwaydispatch.com (invoices + autopull mandate + status)
 - Tax docs generation (fee-gated; export)
 - Microsites (templates + theme tokens + on-page booking/quote widget)
 - Support/Disputes (tenant-owned workflows)
@@ -978,8 +978,8 @@ Tenant console must include modules (RBAC-gated) at minimum:
 ### 9.2B Tenant Policy Center (enable-only; no platform-enforced defaults) (authoritative)
 
 **TEN-POL-0001 â€” Policy Center philosophy (pinned)**
-- Rideoo provides tenants the ability to define and optionally automate their own tenantâ†”rider and tenantâ†”driver policies.
-- Rideoo does not impose mandatory tenant business rules or defaults. Every policy is **OFF until tenant enables** it (or explicitly adopts a template).
+- urwaydispatch.com provides tenants the ability to define and optionally automate their own tenantâ†”rider and tenantâ†”driver policies.
+- urwaydispatch.com does not impose mandatory tenant business rules or defaults. Every policy is **OFF until tenant enables** it (or explicitly adopts a template).
 - Baseline platform behavior for tenantâ†”rider/driver is **non-penalizing** (no automatic fees/penalties/blocks) unless tenant enables `auto_apply` in the relevant policy block.
 - Templates are labeled as â€œstarting pointsâ€ with unmissable disclaimers; tenant must acknowledge and acceptance is logged.
 
@@ -994,8 +994,8 @@ Tenant console must include modules (RBAC-gated) at minimum:
 Each policy block must support:
 - `enabled` (bool) â€” OFF by default
 - `action_mode` (enum): `manual_only` | `auto_apply`
-  - `manual_only`: Rideoo records policy, provides UI/reporting hooks; tenant staff enforces manually.
-  - `auto_apply`: Rideoo executes configured actions (fees, holds, workflow steps) on behalf of tenant.
+  - `manual_only`: urwaydispatch.com records policy, provides UI/reporting hooks; tenant staff enforces manually.
+  - `auto_apply`: urwaydispatch.com executes configured actions (fees, holds, workflow steps) on behalf of tenant.
 
 **TEN-POL-0004 â€” Authoritative JSON schema (minimum)**
 ```json
@@ -1219,13 +1219,13 @@ Lead capture:
 
 **DoD gates:** UI (tenant domain manager) + API + automated tests (redirect/canonical) + deployment smoke test.
 
-- Each tenant must have an auto-provisioned public microsite, hosted by Rideoo on GCP (static-first + CDN).
+- Each tenant must have an auto-provisioned public microsite, hosted by urwaydispatch.com on GCP (static-first + CDN).
 - Microsite must support tenant-owned domains (primary domain + optional alias domains with 301 redirects or canonical tags).
 - Microsite must support theme tokens (logo, colors, typography), page blocks, and SEO metadata (title/description/OG/Twitter cards).
 - Microsite must include an **on-page booking + quote widget**:
   - The widget is tenant-branded and embedded in the microsite pages.
-  - The widget submits/reads data from the tenant-scoped Rideoo Rider Web App backend and creates bookings for that tenant.
-  - Rider experience must feel like dealing with the tenant; Rideoo remains the underlying software.
+  - The widget submits/reads data from the tenant-scoped urwaydispatch.com Rider Web App backend and creates bookings for that tenant.
+  - Rider experience must feel like dealing with the tenant; urwaydispatch.com remains the underlying software.
 - Booking widget must support: pickup/dropoff, time, vehicle class, passenger/luggage, notes, quote preview, and submit booking.
 - Tenant can choose to allow â€œinstant bookâ€ vs â€œrequest quote / call-backâ€ modes (widget mode is tenant-configurable).
 

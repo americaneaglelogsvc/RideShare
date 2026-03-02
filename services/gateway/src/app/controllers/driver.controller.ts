@@ -21,15 +21,17 @@ export class DriverController {
   @Post('auth/login')
   @ApiOperation({ summary: 'Driver login' })
   @ApiResponse({ status: 200, description: 'Login successful' })
-  async login(@Body() loginDto: DriverAuthDto) {
-    return this.driverService.login(loginDto);
+  async login(@Request() req, @Body() loginDto: DriverAuthDto) {
+    const tenantId = req.tenantId as string;
+    return this.driverService.login(tenantId, loginDto);
   }
 
   @Post('auth/register')
   @ApiOperation({ summary: 'Driver registration' })
   @ApiResponse({ status: 201, description: 'Registration successful' })
-  async register(@Body() registrationDto: DriverRegistrationDto) {
-    return this.driverService.register(registrationDto);
+  async register(@Request() req, @Body() registrationDto: DriverRegistrationDto) {
+    const tenantId = req.tenantId as string;
+    return this.driverService.register(tenantId, registrationDto);
   }
 
   @Get('profile')
@@ -38,7 +40,8 @@ export class DriverController {
   @ApiBearerAuth()
   async getProfile(@Request() req) {
     const driverId = req.user?.id || 'mock-driver-id';
-    return this.driverService.getProfile(driverId);
+    const tenantId = req.tenantId as string;
+    return this.driverService.getProfile(tenantId, driverId);
   }
 
   @Put('profile')
@@ -47,7 +50,8 @@ export class DriverController {
   @ApiBearerAuth()
   async updateProfile(@Request() req, @Body() profileData: Partial<DriverProfileDto>) {
     const driverId = req.user?.id || 'mock-driver-id';
-    return this.driverService.updateProfile(driverId, profileData);
+    const tenantId = req.tenantId as string;
+    return this.driverService.updateProfile(tenantId, driverId, profileData);
   }
 
   @Put('status')
@@ -56,7 +60,8 @@ export class DriverController {
   @ApiBearerAuth()
   async updateStatus(@Request() req, @Body() statusUpdate: DriverStatusUpdateDto) {
     const driverId = req.user?.id || 'mock-driver-id';
-    return this.driverService.updateStatus(driverId, statusUpdate);
+    const tenantId = req.tenantId as string;
+    return this.driverService.updateStatus(tenantId, driverId, statusUpdate);
   }
 
   @Post('location')
@@ -65,7 +70,8 @@ export class DriverController {
   @ApiBearerAuth()
   async updateLocation(@Request() req, @Body() location: LocationUpdateDto) {
     const driverId = req.user?.id || 'mock-driver-id';
-    return this.driverService.updateLocation(driverId, location);
+    const tenantId = req.tenantId as string;
+    return this.driverService.updateLocation(tenantId, driverId, location);
   }
 
   @Get('offers/current')
@@ -74,7 +80,8 @@ export class DriverController {
   @ApiBearerAuth()
   async getCurrentOffer(@Request() req) {
     const driverId = req.user?.id || 'mock-driver-id';
-    return this.driverService.getCurrentOffer(driverId);
+    const tenantId = req.tenantId as string;
+    return this.driverService.getCurrentOffer(tenantId, driverId);
   }
 
   @Post('offers/:offerId/respond')
@@ -87,7 +94,8 @@ export class DriverController {
     @Body() response: RideOfferResponseDto
   ) {
     const driverId = req.user?.id || 'mock-driver-id';
-    return this.driverService.respondToOffer(driverId, offerId, response);
+    const tenantId = req.tenantId as string;
+    return this.driverService.respondToOffer(tenantId, driverId, offerId, response);
   }
 
   @Get('earnings')
@@ -99,7 +107,8 @@ export class DriverController {
     @Query('period') period: string = 'week'
   ) {
     const driverId = req.user?.id || 'mock-driver-id';
-    return this.driverService.getEarnings(driverId, period);
+    const tenantId = req.tenantId as string;
+    return this.driverService.getEarnings(tenantId, driverId, period);
   }
 
   @Get('trips/history')
@@ -112,7 +121,8 @@ export class DriverController {
     @Query('offset') offset: number = 0
   ) {
     const driverId = req.user?.id || 'mock-driver-id';
-    return this.driverService.getTripHistory(driverId, limit, offset);
+    const tenantId = req.tenantId as string;
+    return this.driverService.getTripHistory(tenantId, driverId, limit, offset);
   }
 
   @Get('dashboard')
@@ -121,6 +131,7 @@ export class DriverController {
   @ApiBearerAuth()
   async getDashboard(@Request() req) {
     const driverId = req.user?.id || 'mock-driver-id';
-    return this.driverService.getDashboard(driverId);
+    const tenantId = req.tenantId as string;
+    return this.driverService.getDashboard(tenantId, driverId);
   }
 }

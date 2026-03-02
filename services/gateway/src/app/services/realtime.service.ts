@@ -9,11 +9,20 @@ export class RealtimeService implements OnModuleInit {
   constructor(private readonly supabaseService: SupabaseService) {}
 
   onModuleInit() {
-    this.setupRealtimeChannels();
+    try {
+      this.setupRealtimeChannels();
+    } catch (e: any) {
+      console.warn('RealtimeService disabled (Supabase not configured):', e?.message || e);
+    }
   }
 
   private setupRealtimeChannels() {
     const supabase = this.supabaseService.getClient();
+
+    if (!supabase) {
+      console.warn('Supabase client is not available, skipping realtime channel setup');
+      return;
+    }
 
     // Driver location updates channel
     const locationChannel = supabase
@@ -71,6 +80,37 @@ export class RealtimeService implements OnModuleInit {
 
   private broadcastTripUpdate(payload: any) {
     console.log('Broadcasting trip update to clients:', payload);
+  }
+
+  async emitTripStateChanged(event: {
+    tripId: string;
+    status: string;
+    driverId?: string;
+  }) {
+    const supabase = this.supabaseService.getClient();
+
+    if (!supabase) {
+      console.log('Trip state changed (no realtime client):', event);
+      return;
+    }
+
+    try {
+      const channelName = `trip-${event.tripId}`;
+      let channel = this.channels.get(channelName);
+
+      if (!channel) {
+        channel = supabase.channel(channelName).subscribe();
+        this.channels.set(channelName, channel);
+      }
+
+      await channel.send({
+        type: 'broadcast',
+        event: 'trip_state_changed',
+        payload: event,
+      });
+    } catch (e: any) {
+      console.warn('Failed to emit trip_state_changed event:', e?.message || e);
+    }
   }
 
   async subscribeToDriverUpdates(driverId: string, callback: (data: any) => void) {

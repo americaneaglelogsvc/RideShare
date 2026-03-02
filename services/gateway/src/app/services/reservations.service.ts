@@ -4,6 +4,7 @@ import { DispatchService } from './dispatch.service';
 import { PricingService } from './pricing.service';
 
 interface BookingRequest {
+  tenantId: string;
   quote_id: string;
   rider_name: string;
   rider_phone: string;
@@ -52,6 +53,7 @@ export class ReservationsService {
 
       // Dispatch the ride
       const tripId = await this.dispatchService.dispatchRide({
+        tenantId: request.tenantId,
         riderId,
         riderName: request.rider_name,
         riderPhone: request.rider_phone,

@@ -30,8 +30,8 @@ async function bootstrap() {
 
   // Swagger documentation
   const config = new DocumentBuilder()
-    .setTitle('LuxRide API Gateway')
-    .setDescription('API Gateway for the luxury rideshare platform')
+    .setTitle('UrWay Dispatch API Gateway')
+    .setDescription('API Gateway for the urwaydispatch.com rideshare platform')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -39,7 +39,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  const port = process.env.GATEWAY_PORT || 3001;
+  const port = process.env.PORT || 8080;
   await app.listen(port);
   
   console.log(`🚀 Gateway service running on http://localhost:${port}`);

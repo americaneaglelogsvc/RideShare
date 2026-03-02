@@ -88,7 +88,7 @@ export class PaymentService {
           phone: trip.riders.phone
         },
         payment_method: request.payment_method,
-        description: `LuxRide trip payment - ${trip.pickup_address} to ${trip.dropoff_address}`,
+        description: `urwaydispatch.com trip payment - ${trip.pickup_address} to ${trip.dropoff_address}`,
         metadata: {
           trip_id: request.trip_id,
           rider_id: request.rider_id,
@@ -153,13 +153,33 @@ export class PaymentService {
         throw new NotFoundException('Driver not found');
       }
 
-      // Create payout record
+      // PAY-SETTLE-002: BANK_SETTLED hard-gate
+      // Check if there are eligible (BANK_SETTLED) funds
+      const { data: settled } = await supabase
+        .from('driver_payouts')
+        .select('id, amount_cents')
+        .eq('driver_id', request.driver_id)
+        .eq('settlement_status', 'BANK_SETTLED');
+
+      const settledTotal = (settled || []).reduce(
+        (sum: number, p: { amount_cents: number }) => sum + p.amount_cents, 0
+      );
+
+      if (settledTotal < request.amount_cents) {
+        throw new BadRequestException(
+          `Payout rejected: requested ${request.amount_cents} cents but only ${settledTotal} cents are in BANK_SETTLED state. ` +
+          'Funds must be fully settled before payout initiation (PAY-SETTLE-002).'
+        );
+      }
+
+      // Create payout record with PAYOUT_INITIATED settlement status
       const { data: payout, error: payoutError } = await supabase
         .from('driver_payouts')
         .insert({
           driver_id: request.driver_id,
           amount_cents: request.amount_cents,
           status: 'pending',
+          settlement_status: 'PENDING_BANK_SETTLEMENT',
           bank_account: request.bank_account
         })
         .select()
@@ -199,12 +219,16 @@ export class PaymentService {
         payout_id: payout.id,
         fluidpay_payout_id: fluidpayPayout.id,
         status: fluidpayPayout.status,
+        settlement_status: 'PENDING_BANK_SETTLEMENT',
         estimated_arrival: fluidpayPayout.estimated_arrival,
         message: 'Payout initiated successfully'
       };
 
     } catch (error) {
       console.error('Payout processing error:', error);
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
       throw new BadRequestException(error.message || 'Payout processing failed');
     }
   }

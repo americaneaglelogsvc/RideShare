@@ -19,6 +19,17 @@ jobs:
         run: |
           rm -rf AgentOutput
           python scripts/agentic_scan_runner.py --requirements-json Requirements/CANONICAL.json --mode full --max-requirements 9999 --out-dir AgentOutput
+      - name: Apply foundation status updater
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Update canonical foundation statuses in AgentOutput
+        run: |
+          if [ -f AgentOutput/requirements_status.jsonl ]; then
+            node scripts/update_requirements_status_from_foundation.mjs --jsonl AgentOutput/requirements_status.jsonl
+          else
+            echo "AgentOutput/requirements_status.jsonl not found; skipping foundation status update" >&2
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: AgentOutput

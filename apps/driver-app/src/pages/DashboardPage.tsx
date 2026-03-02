@@ -72,7 +72,7 @@ export function DashboardPage() {
           <div className="flex items-center space-x-3">
             <Car className="w-8 h-8 text-blue-600" />
             <div>
-              <h1 className="text-xl font-bold text-gray-900">LuxRide Driver</h1>
+              <h1 className="text-xl font-bold text-gray-900">UrWay Dispatch Driver</h1>
               <p className="text-sm text-gray-600">Welcome back, {driver?.firstName}</p>
             </div>
           </div>

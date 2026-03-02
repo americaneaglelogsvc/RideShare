@@ -57,7 +57,7 @@ export function AuthPage() {
       <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
         <div className="text-center mb-8">
           <Car className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900">LuxRide Driver</h1>
+          <h1 className="text-2xl font-bold text-gray-900">UrWay Dispatch Driver</h1>
           <p className="text-gray-600">
             {isLogin ? 'Sign in to your account' : 'Create your driver account'}
           </p>

@@ -1,0 +1,43 @@
+name: Canonical Requirements Status (Foundation)
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  update-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Update canonical foundation status from AgentOutput (dry-run on PR)
+        if: github.event_name == 'pull_request'
+        run: |
+          if [ -f AgentOutput/requirements_status.jsonl ]; then
+            node scripts/update_requirements_status_from_foundation.mjs --jsonl AgentOutput/requirements_status.jsonl --dry-run
+          else
+            echo "No AgentOutput/requirements_status.jsonl found; skipping status update (PR)."
+          fi
+
+      - name: Update canonical foundation status from AgentOutput (write on main)
+        if: github.event_name != 'pull_request'
+        run: |
+          if [ -f AgentOutput/requirements_status.jsonl ]; then
+            node scripts/update_requirements_status_from_foundation.mjs --jsonl AgentOutput/requirements_status.jsonl
+          else
+            echo "No AgentOutput/requirements_status.jsonl found; skipping status update (main)."
+          fi

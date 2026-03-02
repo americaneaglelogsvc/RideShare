@@ -105,7 +105,7 @@ export function BookingPage() {
           </Link>
           <div className="flex items-center space-x-2">
             <Car className="w-6 h-6 text-blue-600" />
-            <span className="text-xl font-bold text-gray-900">LuxRide</span>
+            <span className="text-xl font-bold text-gray-900">UrWay Dispatch</span>
           </div>
         </div>
       </header>

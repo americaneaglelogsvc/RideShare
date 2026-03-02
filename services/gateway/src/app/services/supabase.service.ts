@@ -4,14 +4,17 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SupabaseService {
-  private supabase: SupabaseClient;
+  private supabase?: SupabaseClient;
 
   constructor(private configService: ConfigService) {
     const supabaseUrl = this.configService.get<string>('VITE_SUPABASE_URL');
     const supabaseKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Supabase configuration is missing. Please check your environment variables.');
+      // For Cloud Run smoke tests and early scaffolding, don't crash the whole service.
+      // Any endpoint that requires Supabase will fail when invoked via getClient().
+      console.warn('Supabase configuration is missing. Supabase-backed operations will be unavailable.');
+      return;
     }
 
     this.supabase = createClient(supabaseUrl, supabaseKey, {
@@ -23,14 +26,23 @@ export class SupabaseService {
   }
 
   getClient(): SupabaseClient {
+    if (!this.supabase) {
+      throw new Error('Supabase client not initialized. Missing VITE_SUPABASE_URL and/or SUPABASE_SERVICE_ROLE_KEY.');
+    }
     return this.supabase;
   }
 
   // Helper method for authenticated operations
   async getAuthenticatedClient(token: string): Promise<SupabaseClient> {
+    const supabaseUrl = this.configService.get<string>('VITE_SUPABASE_URL');
+    const anonKey = this.configService.get<string>('VITE_SUPABASE_ANON_KEY');
+    if (!supabaseUrl || !anonKey) {
+      throw new Error('Supabase auth client not initialized. Missing VITE_SUPABASE_URL and/or VITE_SUPABASE_ANON_KEY.');
+    }
+
     const client = createClient(
-      this.configService.get<string>('VITE_SUPABASE_URL')!,
-      this.configService.get<string>('VITE_SUPABASE_ANON_KEY')!
+      supabaseUrl,
+      anonKey
     );
 
     await client.auth.setSession({

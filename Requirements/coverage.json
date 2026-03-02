@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "notes": "Machine-readable summary of canonical requirements coverage. This file will be progressively enriched from requirements_status.jsonl.",
+  "foundations": {
+    "TEN-BASE-0001": {
+      "status_hint": "InProgressOrBetter",
+      "artifacts": [
+        "Requirements/tenancy_isolation.md",
+        "Requirements/rbac_roles.json"
+      ]
+    },
+    "TEN-BASE-0002": {
+      "status_hint": "InProgressOrBetter",
+      "artifacts": [
+        "Requirements/auth_model.md",
+        "Requirements/rbac_matrix.md",
+        "Requirements/rbac_roles.json"
+      ]
+    },
+    "CFG-PLAT-0001": {
+      "status_hint": "InProgressOrBetter",
+      "artifacts": [
+        "Requirements/schemas/platform_config.schema.json",
+        "config/platform_config.example.json"
+      ]
+    },
+    "CFG-TEN-0001": {
+      "status_hint": "InProgressOrBetter",
+      "artifacts": [
+        "Requirements/schemas/tenant_config.schema.json",
+        "config/tenant_config.example.json"
+      ]
+    },
+    "CFG-JSON-0001": {
+      "status_hint": "InProgressOrBetter",
+      "artifacts": [
+        "Requirements/schemas/platform_config.schema.json",
+        "Requirements/schemas/tenant_config.schema.json",
+        "Requirements/schemas/tenant_policy_config.schema.json"
+      ]
+    },
+    "CFG-JSON-0002": {
+      "status_hint": "InProgressOrBetter",
+      "artifacts": [
+        "Requirements/schemas/platform_config.schema.json",
+        "Requirements/schemas/tenant_config.schema.json",
+        "Requirements/schemas/tenant_policy_config.schema.json",
+        "config/platform_config.example.json",
+        "config/tenant_config.example.json"
+      ]
+    },
+    "PII-BASE-0001": {
+      "status_hint": "InProgressOrBetter",
+      "artifacts": [
+        "Requirements/pii_minimization.md",
+        "Requirements/pii_catalog.json"
+      ]
+    },
+    "MSG-RET-0001": {
+      "status_hint": "InProgressOrBetter",
+      "artifacts": [
+        "Requirements/messaging_masking_and_retention.md",
+        "Requirements/messaging_retention_policy.json"
+      ]
+    },
+    "AUD-EVT-0001": {
+      "status_hint": "InProgressOrBetter",
+      "artifacts": [
+        "Requirements/audit_events.md",
+        "Requirements/audit_events.json"
+      ]
+    }
+  }
+}

@@ -119,12 +119,25 @@ export interface TripHistory {
 
 class ApiService {
   private token: string | null = null;
+  private tenantId: string | null = null;
 
   constructor() {
     // Load token from localStorage if available
     if (typeof window !== 'undefined') {
       this.token = localStorage.getItem('driver_token');
+      this.tenantId = localStorage.getItem('tenant_id');
     }
+  }
+
+  setTenantId(tenantId: string): void {
+    this.tenantId = tenantId;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('tenant_id', tenantId);
+    }
+  }
+
+  getTenantId(): string | null {
+    return this.tenantId;
   }
 
   private getHeaders(): HeadersInit {
@@ -134,6 +147,10 @@ class ApiService {
 
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
+    if (this.tenantId) {
+      headers['x-tenant-id'] = this.tenantId;
     }
 
     return headers;

@@ -11,6 +11,7 @@ coverage/
 .env
 .env.*
 !.env.example
+secrets/
 
 # OS/editor
 .DS_Store
@@ -74,3 +75,5 @@ _scan_fail_log_*.txt
 _windsurf/
 _ebt_gap_report_*
 *_log_*.txt
+runner_log_*
+plans/
