@@ -24,6 +24,10 @@ import { TaxService } from './services/tax.service';
 import { RefundService } from './services/refund.service';
 import { MetricsService } from './services/metrics.service';
 import { CircuitBreakerService } from './services/circuit-breaker.service';
+import { OfferService } from './services/offer.service';
+import { DistributionService } from './services/distribution.service';
+import { ComplianceService } from './services/compliance.service';
+import { ParallelSessionService } from './services/parallel-session.service';
 import { HealthController } from './controllers/health.controller';
 import { DriverController } from './controllers/driver.controller';
 import { DispatchController } from './controllers/dispatch.controller';
@@ -32,6 +36,8 @@ import { PaymentController } from './controllers/payment.controller';
 import { AdminController } from './controllers/admin.controller';
 import { PaysurityWebhookController } from './controllers/paysurity-webhook.controller';
 import { DeveloperController } from './controllers/developer.controller';
+import { ComplianceController } from './controllers/compliance.controller';
+import { DriverSocketGateway } from './gateways/driver-socket.gateway';
 import { TenantContextMiddleware } from './tenant-context.middleware';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.guard';
@@ -53,6 +59,7 @@ import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.
     AdminController,
     PaysurityWebhookController,
     DeveloperController,
+    ComplianceController,
   ],
   providers: [
     SupabaseService,
@@ -76,6 +83,11 @@ import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.
     RefundService,
     MetricsService,
     CircuitBreakerService,
+    OfferService,
+    DistributionService,
+    ComplianceService,
+    ParallelSessionService,
+    DriverSocketGateway,
     TenantContextMiddleware,
     JwtAuthGuard,
     AdminRateLimitGuard,

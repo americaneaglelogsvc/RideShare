@@ -6,6 +6,9 @@ import { TaxService } from '../services/tax.service';
 import { RefundService } from '../services/refund.service';
 import { MetricsService } from '../services/metrics.service';
 import { CircuitBreakerService } from '../services/circuit-breaker.service';
+import { DistributionService } from '../services/distribution.service';
+import { ParallelSessionService } from '../services/parallel-session.service';
+import { DriverSocketGateway } from '../gateways/driver-socket.gateway';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { AdminRateLimitGuard } from '../guards/rate-limit.guard';
 
@@ -21,6 +24,9 @@ export class AdminController {
     private readonly refundService: RefundService,
     private readonly metricsService: MetricsService,
     private readonly circuitBreakerService: CircuitBreakerService,
+    private readonly distributionService: DistributionService,
+    private readonly parallelSessionService: ParallelSessionService,
+    private readonly driverSocketGateway: DriverSocketGateway,
   ) {}
 
   @Post('tenants/:tenantId/suspend')
@@ -213,5 +219,58 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Circuit breaker state' })
   async getCircuitBreakerState() {
     return this.circuitBreakerService.getState();
+  }
+
+  // ── M5.4: Distribution ───────────────────────────────────────────────
+
+  @Post('distribution/settle')
+  @ApiOperation({ summary: 'M5.4: Execute settlement split for a trip' })
+  @ApiResponse({ status: 200, description: 'Settlement split executed' })
+  async executeSettlementSplit(
+    @Body() body: { settlement_transaction_id: string; trip_id: string },
+  ) {
+    return this.distributionService.executeSettlementSplit(
+      body.settlement_transaction_id,
+      body.trip_id,
+    );
+  }
+
+  @Get('distribution/:tenantId')
+  @ApiOperation({ summary: 'M5.4: Get distribution history for a tenant' })
+  @ApiResponse({ status: 200, description: 'Distribution history' })
+  async getDistributionHistory(
+    @Param('tenantId') tenantId: string,
+    @Query('limit') limit?: number,
+  ) {
+    return this.distributionService.getDistributionHistory(tenantId, limit || 50);
+  }
+
+  @Get('distribution/driver/:identityId/revenue')
+  @ApiOperation({ summary: 'M5.4: Driver revenue summary across all tenants' })
+  @ApiResponse({ status: 200, description: 'Driver revenue summary' })
+  async getDriverRevenue(
+    @Param('identityId') identityId: string,
+    @Query('start_date') startDate?: string,
+    @Query('end_date') endDate?: string,
+  ) {
+    return this.distributionService.getDriverRevenueSummary(identityId, startDate, endDate);
+  }
+
+  // ── M9.3: Parallel Session Monitor ───────────────────────────────────
+
+  @Get('ops/parallel-rides')
+  @ApiOperation({ summary: 'M9.3: Parallel multi-tenant ride overlap report' })
+  @ApiResponse({ status: 200, description: 'Parallel session report' })
+  async getParallelRideReport(@Query('limit') limit?: number) {
+    return this.parallelSessionService.getParallelSessionReport({ limit: limit || 100 });
+  }
+
+  // ── M6.2: Socket Connection Stats ────────────────────────────────────
+
+  @Get('ops/socket-stats')
+  @ApiOperation({ summary: 'M6.2: Live WebSocket connection statistics' })
+  @ApiResponse({ status: 200, description: 'Socket connection stats' })
+  async getSocketStats() {
+    return this.driverSocketGateway.getConnectionStats();
   }
 }
