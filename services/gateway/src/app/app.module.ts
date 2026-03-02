@@ -32,6 +32,8 @@ import { DisputeService } from './services/dispute.service';
 import { GeoZoneService } from './services/geozone.service';
 import { ConsentService } from './services/consent.service';
 import { IdempotencyGuard, IdempotencyInterceptor } from './guards/idempotency.guard';
+import { TenantAnalyticsService } from './services/tenant-analytics.service';
+import { VipAnalyticsService } from './services/vip-analytics.service';
 import { HealthController } from './controllers/health.controller';
 import { DriverController } from './controllers/driver.controller';
 import { DispatchController } from './controllers/dispatch.controller';
@@ -41,6 +43,7 @@ import { AdminController } from './controllers/admin.controller';
 import { PaysurityWebhookController } from './controllers/paysurity-webhook.controller';
 import { DeveloperController } from './controllers/developer.controller';
 import { ComplianceController } from './controllers/compliance.controller';
+import { TenantDashboardController } from './controllers/tenant-dashboard.controller';
 import { DriverSocketGateway } from './gateways/driver-socket.gateway';
 import { TenantContextMiddleware } from './tenant-context.middleware';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -64,6 +67,7 @@ import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.
     PaysurityWebhookController,
     DeveloperController,
     ComplianceController,
+    TenantDashboardController,
   ],
   providers: [
     SupabaseService,
@@ -96,6 +100,8 @@ import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.
     ConsentService,
     IdempotencyGuard,
     IdempotencyInterceptor,
+    TenantAnalyticsService,
+    VipAnalyticsService,
     DriverSocketGateway,
     TenantContextMiddleware,
     JwtAuthGuard,
