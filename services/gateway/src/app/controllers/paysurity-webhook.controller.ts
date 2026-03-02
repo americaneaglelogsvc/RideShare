@@ -1,6 +1,8 @@
 import { Controller, Post, Headers, Body, RawBodyRequest, Req, HttpCode } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PaymentService } from '../services/payment.service';
+import { DisputeService } from '../services/dispute.service';
+import { DistributionService } from '../services/distribution.service';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { UseGuards } from '@nestjs/common';
@@ -12,6 +14,8 @@ import { WebhookRateLimitGuard } from '../guards/rate-limit.guard';
 export class PaysurityWebhookController {
   constructor(
     private readonly paymentService: PaymentService,
+    private readonly disputeService: DisputeService,
+    private readonly distributionService: DistributionService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -57,6 +61,23 @@ export class PaysurityWebhookController {
 
       case 'payout.completed':
         await this.paymentService.handlePayoutCompleted(transactionId);
+        break;
+
+      case 'transaction.settled':
+        await this.distributionService.handleSettlementEvent({
+          transaction_id: transactionId,
+          metadata: body?.metadata || body?.data?.metadata,
+        });
+        break;
+
+      case 'chargeback.initiated':
+        await this.disputeService.handleChargebackInitiated({
+          transaction_id: transactionId,
+          disputed_amount_cents: body?.data?.disputed_amount_cents || body?.disputed_amount_cents || 0,
+          reason: body?.data?.reason || body?.reason,
+          paysurity_dispute_id: body?.data?.dispute_id || body?.dispute_id,
+          metadata: body?.metadata || body?.data?.metadata,
+        });
         break;
 
       default:

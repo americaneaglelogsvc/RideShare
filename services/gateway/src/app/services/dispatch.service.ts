@@ -10,10 +10,10 @@ export enum TripStatus {
   COMPLETED = 'completed',
 }
 
-const DEFAULT_MAX_DISTANCE_KM = 5;
-const KM_TO_MILES = 0.621371;
+const DEFAULT_MAX_DISTANCE_MILES = 5;
+const MILES_TO_METERS = 1609.34;
 const BASE_FARE_CENTS = 500;
-const PER_KM_CENTS = 150;
+const PER_MILE_CENTS = 150;
 
 interface RideRequest {
   tenantId: string;
@@ -37,7 +37,7 @@ interface RideRequest {
 
 interface DriverMatch {
   driverId: string;
-  distanceKm: number;
+  distanceMiles: number;
   eta: number;
   rating: number;
   vehicleCategory: string;
@@ -56,9 +56,9 @@ export class DispatchService {
     pickupLat: number,
     pickupLng: number,
     category: string,
-    maxDistanceKm: number = DEFAULT_MAX_DISTANCE_KM
+    maxDistanceMiles: number = DEFAULT_MAX_DISTANCE_MILES
   ): Promise<DriverMatch[]> {
-    return this.findAvailableDrivers(tenantId, pickupLat, pickupLng, category, maxDistanceKm);
+    return this.findAvailableDrivers(tenantId, pickupLat, pickupLng, category, maxDistanceMiles);
   }
 
   async findAvailableDrivers(
@@ -66,10 +66,9 @@ export class DispatchService {
     pickupLat: number,
     pickupLng: number,
     category: string,
-    maxDistanceKm: number = DEFAULT_MAX_DISTANCE_KM
+    maxDistanceMiles: number = DEFAULT_MAX_DISTANCE_MILES
   ): Promise<DriverMatch[]> {
     const supabase = this.supabaseService.getClient();
-    const maxDistanceMiles = maxDistanceKm * KM_TO_MILES;
 
     try {
       const { data: drivers, error } = await supabase
@@ -108,14 +107,13 @@ export class DispatchService {
         if (driverLat === null || driverLat === undefined || driverLng === null || driverLng === undefined) continue;
 
         const distanceMiles = this.calculateDistanceMiles(pickupLat, pickupLng, driverLat, driverLng);
-        const distanceKm = distanceMiles / KM_TO_MILES;
 
         if (distanceMiles <= maxDistanceMiles) {
-          const eta = Math.ceil(distanceKm * 2);
+          const eta = Math.ceil(distanceMiles * 2);
 
           matches.push({
             driverId: driver.id,
-            distanceKm,
+            distanceMiles,
             eta,
             rating: driver.rating,
             vehicleCategory: driver.vehicles[0].category
@@ -124,8 +122,8 @@ export class DispatchService {
       }
 
       return matches.sort((a, b) => {
-        if (a.distanceKm !== b.distanceKm) {
-          return a.distanceKm - b.distanceKm;
+        if (a.distanceMiles !== b.distanceMiles) {
+          return a.distanceMiles - b.distanceMiles;
         }
         return b.rating - a.rating;
       });
@@ -139,18 +137,17 @@ export class DispatchService {
   /**
    * M7.1: PostGIS-powered geospatial driver discovery.
    * Uses ST_DWithin for fast spatial index lookup, strictly tenant-scoped.
-   * Returns Top 10 nearest available drivers within radiusKm.
+   * Returns Top 10 nearest available drivers within radiusMiles.
    */
   async findNearestDriversGeo(
     tenantId: string,
     pickupLat: number,
     pickupLng: number,
     category: string,
-    radiusKm: number = DEFAULT_MAX_DISTANCE_KM,
+    radiusMiles: number = DEFAULT_MAX_DISTANCE_MILES,
     limit: number = 10,
   ): Promise<DriverMatch[]> {
     const supabase = this.supabaseService.getClient();
-    const radiusMeters = radiusKm * 1000;
 
     try {
       // Use Supabase RPC to call a PostGIS spatial query
@@ -158,27 +155,27 @@ export class DispatchService {
         p_tenant_id: tenantId,
         p_lat: pickupLat,
         p_lng: pickupLng,
-        p_radius_meters: radiusMeters,
+        p_radius_miles: radiusMiles,
         p_category: category,
         p_limit: limit,
       });
 
       if (error) {
         console.warn('PostGIS RPC unavailable, falling back to in-memory search:', error.message);
-        const fallback = await this.findAvailableDrivers(tenantId, pickupLat, pickupLng, category, radiusKm);
+        const fallback = await this.findAvailableDrivers(tenantId, pickupLat, pickupLng, category, radiusMiles);
         return fallback.slice(0, limit);
       }
 
       return (data || []).map((row: any) => ({
         driverId: row.driver_profile_id,
-        distanceKm: Math.round((row.distance_meters / 1000) * 100) / 100,
-        eta: Math.ceil((row.distance_meters / 1000) * 2),
+        distanceMiles: Math.round((row.distance_meters / MILES_TO_METERS) * 100) / 100,
+        eta: Math.ceil((row.distance_meters / MILES_TO_METERS) * 2),
         rating: row.rating || 5.0,
         vehicleCategory: row.category || category,
       }));
     } catch (err) {
       console.error('Geospatial search error, falling back:', err);
-      const fallback = await this.findAvailableDrivers(tenantId, pickupLat, pickupLng, category, radiusKm);
+      const fallback = await this.findAvailableDrivers(tenantId, pickupLat, pickupLng, category, radiusMiles);
       return fallback.slice(0, limit);
     }
   }
@@ -206,8 +203,7 @@ export class DispatchService {
         rideRequest.dropoff.lng
       );
 
-      const tripDistanceKm = tripDistanceMiles / KM_TO_MILES;
-      const estimatedFareCents = this.calculateEstimatedFareCents(tripDistanceKm);
+      const estimatedFareCents = this.calculateEstimatedFareCents(tripDistanceMiles);
 
       const { data: trip, error: tripError } = await supabase
         .from('trips')
@@ -524,8 +520,8 @@ export class DispatchService {
     return R * c;
   }
 
-  private calculateEstimatedFareCents(distanceKm: number): number {
-    const distanceCharge = Math.round(distanceKm * PER_KM_CENTS);
+  private calculateEstimatedFareCents(distanceMiles: number): number {
+    const distanceCharge = Math.round(distanceMiles * PER_MILE_CENTS);
     return BASE_FARE_CENTS + distanceCharge;
   }
 

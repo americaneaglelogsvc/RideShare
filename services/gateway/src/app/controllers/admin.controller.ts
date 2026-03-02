@@ -9,6 +9,9 @@ import { CircuitBreakerService } from '../services/circuit-breaker.service';
 import { DistributionService } from '../services/distribution.service';
 import { ParallelSessionService } from '../services/parallel-session.service';
 import { DriverSocketGateway } from '../gateways/driver-socket.gateway';
+import { DisputeService } from '../services/dispute.service';
+import { GeoZoneService } from '../services/geozone.service';
+import { ConsentService } from '../services/consent.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { AdminRateLimitGuard } from '../guards/rate-limit.guard';
 
@@ -27,6 +30,9 @@ export class AdminController {
     private readonly distributionService: DistributionService,
     private readonly parallelSessionService: ParallelSessionService,
     private readonly driverSocketGateway: DriverSocketGateway,
+    private readonly disputeService: DisputeService,
+    private readonly geoZoneService: GeoZoneService,
+    private readonly consentService: ConsentService,
   ) {}
 
   @Post('tenants/:tenantId/suspend')
@@ -272,5 +278,153 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Socket connection stats' })
   async getSocketStats() {
     return this.driverSocketGateway.getConnectionStats();
+  }
+
+  // ── M5.5: Dispute & Chargeback ─────────────────────────────────────────
+
+  @Get('disputes/summary')
+  @ApiOperation({ summary: 'M5.5: Active dispute summary across all tenants' })
+  @ApiResponse({ status: 200, description: 'Dispute summary' })
+  async getDisputeSummary() {
+    return this.disputeService.getDisputeSummary();
+  }
+
+  @Get('disputes/:tenantId')
+  @ApiOperation({ summary: 'M5.5: List disputes for a tenant' })
+  @ApiResponse({ status: 200, description: 'Dispute list' })
+  async listDisputes(
+    @Param('tenantId') tenantId: string,
+    @Query('status') status?: string,
+    @Query('limit') limit?: number,
+  ) {
+    return this.disputeService.listDisputes(tenantId, status, limit || 50);
+  }
+
+  @Post('disputes/:disputeId/evidence')
+  @ApiOperation({ summary: 'M5.5: Submit evidence for a dispute' })
+  @ApiResponse({ status: 200, description: 'Evidence submitted' })
+  async submitDisputeEvidence(
+    @Param('disputeId') disputeId: string,
+    @Body() body: { additional_evidence?: Record<string, any> },
+  ) {
+    return this.disputeService.submitEvidence(disputeId, body.additional_evidence);
+  }
+
+  @Post('disputes/:disputeId/resolve')
+  @ApiOperation({ summary: 'M5.5: Resolve a dispute (won/lost/expired)' })
+  @ApiResponse({ status: 200, description: 'Dispute resolved' })
+  async resolveDispute(
+    @Param('disputeId') disputeId: string,
+    @Body() body: { resolution: 'won' | 'lost' | 'expired'; notes?: string },
+  ) {
+    return this.disputeService.resolveDispute(disputeId, body.resolution, body.notes);
+  }
+
+  // ── M7.3: Geo Zones ────────────────────────────────────────────────────
+
+  @Post('geozones/:tenantId')
+  @ApiOperation({ summary: 'M7.3: Create a pricing geo zone for a tenant' })
+  @ApiResponse({ status: 201, description: 'Geo zone created' })
+  async createGeoZone(
+    @Param('tenantId') tenantId: string,
+    @Body() body: {
+      zone_name: string;
+      zone_type: string;
+      boundary_geojson: any;
+      price_multiplier: number;
+      per_mile_rate_cents?: number;
+      base_fare_override_cents?: number;
+      surge_floor?: number;
+      surge_cap?: number;
+    },
+  ) {
+    return this.geoZoneService.createZone({
+      tenantId,
+      zoneName: body.zone_name,
+      zoneType: body.zone_type,
+      boundaryGeoJson: body.boundary_geojson,
+      priceMultiplier: body.price_multiplier,
+      perMileRateCents: body.per_mile_rate_cents,
+      baseFareOverrideCents: body.base_fare_override_cents,
+      surgeFloor: body.surge_floor,
+      surgeCap: body.surge_cap,
+    });
+  }
+
+  @Get('geozones/:tenantId')
+  @ApiOperation({ summary: 'M7.3: List active geo zones for a tenant' })
+  @ApiResponse({ status: 200, description: 'Geo zone list' })
+  async listGeoZones(@Param('tenantId') tenantId: string) {
+    return this.geoZoneService.listZones(tenantId);
+  }
+
+  @Get('geozones/:tenantId/pricing')
+  @ApiOperation({ summary: 'M7.3: Get zone-aware pricing for a location' })
+  @ApiResponse({ status: 200, description: 'Zone pricing result' })
+  async getZonePricing(
+    @Param('tenantId') tenantId: string,
+    @Query('lat') lat: string,
+    @Query('lng') lng: string,
+    @Query('category') category?: string,
+  ) {
+    return this.geoZoneService.calculateZonePricing(
+      tenantId,
+      parseFloat(lat),
+      parseFloat(lng),
+      category || 'economy',
+    );
+  }
+
+  // ── M12.3: Consent & PII ───────────────────────────────────────────────
+
+  @Post('consent/sign')
+  @ApiOperation({ summary: 'M12.3: Record a driver consent signature' })
+  @ApiResponse({ status: 201, description: 'Consent recorded' })
+  async signConsent(
+    @Body() body: {
+      tenant_id: string;
+      driver_identity_id: string;
+      driver_profile_id: string;
+      document_type: string;
+      document_version: string;
+      document_content: string;
+      ip_address?: string;
+      user_agent?: string;
+    },
+  ) {
+    return this.consentService.signAgreement({
+      tenantId: body.tenant_id,
+      driverIdentityId: body.driver_identity_id,
+      driverProfileId: body.driver_profile_id,
+      documentType: body.document_type,
+      documentVersion: body.document_version,
+      documentContent: body.document_content,
+      ipAddress: body.ip_address,
+      userAgent: body.user_agent,
+    });
+  }
+
+  @Get('consent/:tenantId/:identityId')
+  @ApiOperation({ summary: 'M12.3: Get consent records for a driver' })
+  @ApiResponse({ status: 200, description: 'Consent records' })
+  async getDriverConsents(
+    @Param('tenantId') tenantId: string,
+    @Param('identityId') identityId: string,
+  ) {
+    return this.consentService.getDriverConsents(tenantId, identityId);
+  }
+
+  @Get('consent/:consentId/verify')
+  @ApiOperation({ summary: 'M12.3: Verify cryptographic signature integrity' })
+  @ApiResponse({ status: 200, description: 'Signature verification result' })
+  async verifySignature(@Param('consentId') consentId: string) {
+    return this.consentService.verifySignature(consentId);
+  }
+
+  @Post('ops/pii-mask')
+  @ApiOperation({ summary: 'M12.3: Trigger PII masking for trips >2yr (manual)' })
+  @ApiResponse({ status: 200, description: 'PII masking result' })
+  async triggerPiiMasking() {
+    return this.consentService.maskOldTripPii();
   }
 }

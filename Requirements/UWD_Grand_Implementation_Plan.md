@@ -647,3 +647,88 @@ All tables have B-Tree indexes on `tenant_id` and `created_at`.
 M7.2 (Parallel Offers) -> M5.4 (Distribution) -> M11.4 (Compliance Vault) -> M9.3 (Overlap Monitor) -> M6.2 (Multi-Tenant Sockets)
 
 All milestones completed. Zero TypeScript errors. All wired into AppModule.
+
+---
+
+## PHASE 5: USA MARKET MATURITY & GLOBAL RESILIENCE
+
+### USA Geospatial Localization ("The Miles Fix") — COMPLETED
+
+Files: dispatch.service.ts, 1005_phase5_usa_market_maturity.sql
+
+- **Full km→miles migration**: Eliminated all `km`, `KM_TO_MILES`, `distanceKm`, `radiusKm`, `PER_KM_CENTS` from codebase
+- **New constants**: `DEFAULT_MAX_DISTANCE_MILES = 5`, `MILES_TO_METERS = 1609.34`, `PER_MILE_CENTS = 150`
+- **PostGIS RPC**: `find_nearest_drivers` now accepts `p_radius_miles` (DEFAULT 5.0), converts internally via `p_radius_miles * 1609.34`
+- **RPC returns `distance_miles`** alongside `distance_meters` for UI consumption
+- **DriverMatch interface**: `distanceKm` → `distanceMiles`
+- **PricingService**: Already used miles (`R = 3959`, rates per-mile). No changes needed.
+- **Fare calculation**: `calculateEstimatedFareCents(distanceMiles)` — direct per-mile pricing, no conversion
+- **Verified**: Zero remaining instances of `km`, `kilometer`, or `* 1000` as meter constants in gateway/src
+
+### M5.5: Automated Dispute & Chargeback Orchestrator — COMPLETED
+
+Files: dispute.service.ts, paysurity-webhook.controller.ts, 1005_phase5_usa_market_maturity.sql
+
+- **Chargeback Event Handler**: On `chargeback.initiated` webhook, creates dispute case and moves funds from `pending_balance_cents` → `disputed_balance_cents`
+- **Evidence Package**: Auto-generates trip summary with mile-based GPS traces, Google Maps URL, fare details, timestamps, and SHA256 integrity hash
+- **Dispute Lifecycle**: `initiated` → `evidence_submitted` → `won` / `lost` / `expired`
+- **Balance Resolution**: Won = funds restored to pending; Lost = funds permanently deducted
+- **Idempotent**: UNIQUE INDEX on `transaction_id` prevents duplicate dispute cases
+- **Webhook Integration**: `PaysurityWebhookController` now handles `chargeback.initiated` and `transaction.settled` events
+- **Admin Endpoints**: Summary, list, submit evidence, resolve dispute
+- New table: `dispute_cases` + columns `disputed_balance_cents`, `pending_balance_cents` on `tenants`
+
+### M7.3: Multi-Zone Dynamic Pricing & Surging — COMPLETED
+
+Files: geozone.service.ts, 1005_phase5_usa_market_maturity.sql
+
+- **PostGIS Polygon Zones**: `geo_zones` table with `GEOGRAPHY(POLYGON, 4326)` boundary column + GIST index
+- **Zone Types**: `standard`, `premium`, `airport`, `surge` — each with configurable `price_multiplier`, `per_mile_rate_cents`, `base_fare_override_cents`
+- **`find_geo_zone()` RPC**: Given lat/lng, returns the matching zone with its pricing overrides (GIST-indexed for <100ms)
+- **Dynamic Surge**: `get_driver_density_per_sq_mile()` RPC calculates online drivers per square mile within a radius
+  - Density < 0.5 → 2.0x surge; < 1.0 → 1.8x; < 2.0 → 1.5x; < 3.0 → 1.3x; < 5.0 → 1.1x; ≥ 5.0 → no surge
+- **Zone-Aware Pricing**: `calculateZonePricing()` combines polygon zone multiplier + density-based surge, clamped by zone's `surge_floor` / `surge_cap`
+- **Admin Endpoints**: Create zone, list zones, get zone-aware pricing for a location
+
+### M1.3: Automated System Recovery & Idempotency — COMPLETED
+
+Files: guards/idempotency.guard.ts, 1005_phase5_usa_market_maturity.sql
+
+- **`X-Idempotency-Key` Header Guard**: `IdempotencyGuard` intercepts POST requests, checks `idempotency_keys` table for duplicate key+endpoint
+- **Response Caching**: `IdempotencyInterceptor` caches successful responses; replays return cached result (HTTP status + body)
+- **Concurrent Protection**: If a key exists but has no cached response yet, returns HTTP 409 Conflict
+- **24-Hour Expiry**: Keys auto-expire after 24 hours; `cleanup_expired_idempotency_keys()` RPC for maintenance
+- **Graceful Degradation**: If DB check fails, allows request through (no false blocks)
+- **Request Hashing**: SHA256 of request body stored for audit trail
+- New table: `idempotency_keys` with UNIQUE INDEX on `(idempotency_key, endpoint)`
+
+### M12.3: Final Legal & Compliance Hardening — COMPLETED
+
+Files: consent.service.ts, 1005_phase5_usa_market_maturity.sql
+
+- **Cryptographic Consent**: `signAgreement()` creates SHA256(document_content) as `document_hash`, then SHA256(identity_id + document_hash + signed_at) as `signature_hash`
+- **Signature Verification**: `verifySignature()` recalculates hash and compares — detects any tampering
+- **Version Control**: When a new document version is signed, the old consent is automatically revoked with reason "Superseded by vX.Y"
+- **Consent Verification**: `verifyDriverConsent()` checks all required documents against active consents; returns missing/expired lists
+- **PII Auto-Masking**: Daily cron (3:00 AM) masks `pickup_address`, `dropoff_address`, `rider_name`, `rider_phone` for trips/offers older than 2 years
+  - Uses `mask_old_trip_pii()` PostgreSQL function when available, falls back to batched queries
+  - Manual trigger available: `POST /admin/ops/pii-mask`
+- New table: `consent_records` with indexes on `tenant_id`, `driver_identity_id`, `document_type`
+
+### Schema Migration 1005 — COMPLETED
+
+File: supabase/migrations/1005_phase5_usa_market_maturity.sql
+
+New tables: `geo_zones`, `dispute_cases`, `consent_records`, `idempotency_keys`
+RPCs: `find_nearest_drivers` (mile-based), `find_geo_zone`, `get_driver_density_per_sq_mile`, `mask_old_trip_pii`, `cleanup_expired_idempotency_keys`
+Columns added to `tenants`: `disputed_balance_cents`, `pending_balance_cents`
+GIST index on `geo_zones.boundary` for spatial polygon queries.
+All distance logic now uses miles with `* 1609.34` conversion to meters for PostGIS internals.
+
+---
+
+## PHASE 5 IMPLEMENTATION SEQUENCE
+
+USA Miles Fix -> M5.5 (Disputes) -> M7.3 (GeoZones) -> M1.3 (Idempotency) -> M12.3 (Consent/PII)
+
+All milestones completed. Zero TypeScript errors. All wired into AppModule.

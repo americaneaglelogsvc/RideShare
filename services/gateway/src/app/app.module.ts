@@ -28,6 +28,10 @@ import { OfferService } from './services/offer.service';
 import { DistributionService } from './services/distribution.service';
 import { ComplianceService } from './services/compliance.service';
 import { ParallelSessionService } from './services/parallel-session.service';
+import { DisputeService } from './services/dispute.service';
+import { GeoZoneService } from './services/geozone.service';
+import { ConsentService } from './services/consent.service';
+import { IdempotencyGuard, IdempotencyInterceptor } from './guards/idempotency.guard';
 import { HealthController } from './controllers/health.controller';
 import { DriverController } from './controllers/driver.controller';
 import { DispatchController } from './controllers/dispatch.controller';
@@ -87,6 +91,11 @@ import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.
     DistributionService,
     ComplianceService,
     ParallelSessionService,
+    DisputeService,
+    GeoZoneService,
+    ConsentService,
+    IdempotencyGuard,
+    IdempotencyInterceptor,
     DriverSocketGateway,
     TenantContextMiddleware,
     JwtAuthGuard,
