@@ -2,6 +2,10 @@ import { Controller, Post, Get, Body, Param, Query, UseGuards } from '@nestjs/co
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AdminService } from '../services/admin.service';
 import { BillingCronService } from '../services/billing-cron.service';
+import { TaxService } from '../services/tax.service';
+import { RefundService } from '../services/refund.service';
+import { MetricsService } from '../services/metrics.service';
+import { CircuitBreakerService } from '../services/circuit-breaker.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { AdminRateLimitGuard } from '../guards/rate-limit.guard';
 
@@ -13,6 +17,10 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly billingCronService: BillingCronService,
+    private readonly taxService: TaxService,
+    private readonly refundService: RefundService,
+    private readonly metricsService: MetricsService,
+    private readonly circuitBreakerService: CircuitBreakerService,
   ) {}
 
   @Post('tenants/:tenantId/suspend')
@@ -111,5 +119,99 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Billing retry initiated' })
   async retryBilling(@Param('tenantId') tenantId: string) {
     return this.billingCronService.retryBilling(tenantId);
+  }
+
+  // ── M5.3: Tax & Refund ─────────────────────────────────────────────
+
+  @Post('tax/generate/:taxYear')
+  @ApiOperation({ summary: 'M5.3: Generate 1099-K summaries for a tax year' })
+  @ApiResponse({ status: 200, description: 'Tax summaries generated' })
+  async generateTaxSummaries(@Param('taxYear') taxYear: string) {
+    return this.taxService.generate1099KSummaries(parseInt(taxYear, 10));
+  }
+
+  @Get('tax/:taxYear/candidates')
+  @ApiOperation({ summary: 'M5.3: List driver identities requiring 1099-K' })
+  @ApiResponse({ status: 200, description: '1099-K candidates' })
+  async get1099KCandidates(@Param('taxYear') taxYear: string) {
+    return this.taxService.get1099KCandidates(parseInt(taxYear, 10));
+  }
+
+  @Get('tax/:taxYear/driver/:identityId')
+  @ApiOperation({ summary: 'M5.3: Get tax summary for a driver identity' })
+  @ApiResponse({ status: 200, description: 'Driver tax summary' })
+  async getDriverTaxSummary(
+    @Param('taxYear') taxYear: string,
+    @Param('identityId') identityId: string,
+  ) {
+    return this.taxService.getDriverTaxSummary(parseInt(taxYear, 10), identityId);
+  }
+
+  @Post('refunds')
+  @ApiOperation({ summary: 'M5.3: Initiate a multi-step refund' })
+  @ApiResponse({ status: 200, description: 'Refund processed' })
+  async initiateRefund(
+    @Body() body: {
+      tenant_id: string;
+      trip_id: string;
+      payment_id?: string;
+      amount_cents: number;
+      reason: string;
+      initiated_by: string;
+      platform_fee_refundable?: boolean;
+    },
+  ) {
+    return this.refundService.initiateRefund({
+      tenantId: body.tenant_id,
+      tripId: body.trip_id,
+      paymentId: body.payment_id,
+      amountCents: body.amount_cents,
+      reason: body.reason,
+      initiatedBy: body.initiated_by,
+      platformFeeRefundable: body.platform_fee_refundable,
+    });
+  }
+
+  @Get('refunds/:tenantId')
+  @ApiOperation({ summary: 'M5.3: Get refund history for a tenant' })
+  @ApiResponse({ status: 200, description: 'Refund list' })
+  async getRefundHistory(
+    @Param('tenantId') tenantId: string,
+    @Query('limit') limit?: number,
+  ) {
+    return this.refundService.getRefundHistory(tenantId, limit || 50);
+  }
+
+  // ── M9.2: Observability ────────────────────────────────────────────
+
+  @Get('ops/metrics')
+  @ApiOperation({ summary: 'M9.2: Latest system metrics snapshot' })
+  @ApiResponse({ status: 200, description: 'Metrics snapshot' })
+  async getMetrics() {
+    return this.metricsService.getLatestMetrics();
+  }
+
+  @Get('ops/metrics/:name/timeseries')
+  @ApiOperation({ summary: 'M9.2: Metric time-series (last N hours)' })
+  @ApiResponse({ status: 200, description: 'Time-series data' })
+  async getMetricTimeSeries(
+    @Param('name') name: string,
+    @Query('hours') hours?: number,
+  ) {
+    return this.metricsService.getMetricTimeSeries(name, hours || 24);
+  }
+
+  @Get('ops/status')
+  @ApiOperation({ summary: 'M9.2: Global system status page' })
+  @ApiResponse({ status: 200, description: 'Global status' })
+  async getGlobalStatus() {
+    return this.metricsService.getGlobalStatus();
+  }
+
+  @Get('ops/circuit-breaker')
+  @ApiOperation({ summary: 'M9.2: PaySurity circuit breaker state' })
+  @ApiResponse({ status: 200, description: 'Circuit breaker state' })
+  async getCircuitBreakerState() {
+    return this.circuitBreakerService.getState();
   }
 }

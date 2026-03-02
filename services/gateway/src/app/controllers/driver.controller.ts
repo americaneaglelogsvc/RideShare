@@ -1,4 +1,10 @@
-import { Controller, Post, Get, Put, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, Param, Query, UseGuards, Req } from '@nestjs/common';
+import { Request as ExpressRequest } from 'express';
+
+interface AuthenticatedRequest extends ExpressRequest {
+  tenantId?: string;
+  user?: { id: string };
+}
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { DriverService } from '../services/driver.service';
 import { JwtAuthGuard, Public } from '../guards/jwt-auth.guard';
@@ -25,7 +31,7 @@ export class DriverController {
   @Post('auth/login')
   @ApiOperation({ summary: 'Driver login' })
   @ApiResponse({ status: 200, description: 'Login successful' })
-  async login(@Request() req, @Body() loginDto: DriverAuthDto) {
+  async login(@Req() req: AuthenticatedRequest, @Body() loginDto: DriverAuthDto) {
     const tenantId = req.tenantId as string;
     return this.driverService.login(tenantId, loginDto);
   }
@@ -34,7 +40,7 @@ export class DriverController {
   @Post('auth/register')
   @ApiOperation({ summary: 'Driver registration' })
   @ApiResponse({ status: 201, description: 'Registration successful' })
-  async register(@Request() req, @Body() registrationDto: DriverRegistrationDto) {
+  async register(@Req() req: AuthenticatedRequest, @Body() registrationDto: DriverRegistrationDto) {
     const tenantId = req.tenantId as string;
     return this.driverService.register(tenantId, registrationDto);
   }
@@ -42,8 +48,8 @@ export class DriverController {
   @Get('profile')
   @ApiOperation({ summary: 'Get driver profile' })
   @ApiResponse({ status: 200, type: DriverProfileDto })
-  async getProfile(@Request() req) {
-    const driverId = req.user.id;
+  async getProfile(@Req() req: AuthenticatedRequest) {
+    const driverId = req.user!.id;
     const tenantId = req.tenantId as string;
     return this.driverService.getProfile(tenantId, driverId);
   }
@@ -51,8 +57,8 @@ export class DriverController {
   @Put('profile')
   @ApiOperation({ summary: 'Update driver profile' })
   @ApiResponse({ status: 200, type: DriverProfileDto })
-  async updateProfile(@Request() req, @Body() profileData: Partial<DriverProfileDto>) {
-    const driverId = req.user.id;
+  async updateProfile(@Req() req: AuthenticatedRequest, @Body() profileData: Partial<DriverProfileDto>) {
+    const driverId = req.user!.id;
     const tenantId = req.tenantId as string;
     return this.driverService.updateProfile(tenantId, driverId, profileData);
   }
@@ -60,8 +66,8 @@ export class DriverController {
   @Put('status')
   @ApiOperation({ summary: 'Update driver status (online/offline)' })
   @ApiResponse({ status: 200, description: 'Status updated successfully' })
-  async updateStatus(@Request() req, @Body() statusUpdate: DriverStatusUpdateDto) {
-    const driverId = req.user.id;
+  async updateStatus(@Req() req: AuthenticatedRequest, @Body() statusUpdate: DriverStatusUpdateDto) {
+    const driverId = req.user!.id;
     const tenantId = req.tenantId as string;
     return this.driverService.updateStatus(tenantId, driverId, statusUpdate);
   }
@@ -69,8 +75,8 @@ export class DriverController {
   @Post('location')
   @ApiOperation({ summary: 'Update driver location' })
   @ApiResponse({ status: 200, description: 'Location updated successfully' })
-  async updateLocation(@Request() req, @Body() location: LocationUpdateDto) {
-    const driverId = req.user.id;
+  async updateLocation(@Req() req: AuthenticatedRequest, @Body() location: LocationUpdateDto) {
+    const driverId = req.user!.id;
     const tenantId = req.tenantId as string;
     return this.driverService.updateLocation(tenantId, driverId, location);
   }
@@ -78,8 +84,8 @@ export class DriverController {
   @Get('offers/current')
   @ApiOperation({ summary: 'Get current ride offer' })
   @ApiResponse({ status: 200, type: RideOfferDto })
-  async getCurrentOffer(@Request() req) {
-    const driverId = req.user.id;
+  async getCurrentOffer(@Req() req: AuthenticatedRequest) {
+    const driverId = req.user!.id;
     const tenantId = req.tenantId as string;
     return this.driverService.getCurrentOffer(tenantId, driverId);
   }
@@ -88,11 +94,11 @@ export class DriverController {
   @ApiOperation({ summary: 'Respond to ride offer (accept/decline)' })
   @ApiResponse({ status: 200, description: 'Response recorded successfully' })
   async respondToOffer(
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
     @Param('offerId') offerId: string,
     @Body() response: RideOfferResponseDto
   ) {
-    const driverId = req.user.id;
+    const driverId = req.user!.id;
     const tenantId = req.tenantId as string;
     return this.driverService.respondToOffer(tenantId, driverId, offerId, response);
   }
@@ -101,10 +107,10 @@ export class DriverController {
   @ApiOperation({ summary: 'Get driver earnings' })
   @ApiResponse({ status: 200, type: EarningsDto })
   async getEarnings(
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
     @Query('period') period: string = 'week'
   ) {
-    const driverId = req.user.id;
+    const driverId = req.user!.id;
     const tenantId = req.tenantId as string;
     return this.driverService.getEarnings(tenantId, driverId, period);
   }
@@ -113,11 +119,11 @@ export class DriverController {
   @ApiOperation({ summary: 'Get trip history' })
   @ApiResponse({ status: 200, type: [TripHistoryDto] })
   async getTripHistory(
-    @Request() req,
+    @Req() req: AuthenticatedRequest,
     @Query('limit') limit: number = 20,
     @Query('offset') offset: number = 0
   ) {
-    const driverId = req.user.id;
+    const driverId = req.user!.id;
     const tenantId = req.tenantId as string;
     return this.driverService.getTripHistory(tenantId, driverId, limit, offset);
   }
@@ -125,8 +131,8 @@ export class DriverController {
   @Get('dashboard')
   @ApiOperation({ summary: 'Get driver dashboard data' })
   @ApiResponse({ status: 200, description: 'Dashboard data' })
-  async getDashboard(@Request() req) {
-    const driverId = req.user.id;
+  async getDashboard(@Req() req: AuthenticatedRequest) {
+    const driverId = req.user!.id;
     const tenantId = req.tenantId as string;
     return this.driverService.getDashboard(tenantId, driverId);
   }

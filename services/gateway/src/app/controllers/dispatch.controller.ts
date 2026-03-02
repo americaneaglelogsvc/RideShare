@@ -1,4 +1,5 @@
-import { Controller, Post, Body, Get, Param, Put, Request, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Put, Req, UseGuards } from '@nestjs/common';
+import { Request as ExpressRequest } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { DispatchService } from '../services/dispatch.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
@@ -13,7 +14,7 @@ export class DispatchController {
   @Post('find-drivers')
   @ApiOperation({ summary: 'Find available drivers for a pickup location' })
   @ApiResponse({ status: 200, description: 'List of available drivers' })
-  async findDrivers(@Request() req, @Body() request: {
+  async findDrivers(@Req() req: ExpressRequest & { tenantId?: string }, @Body() request: {
     pickup_lat: number;
     pickup_lng: number;
     category: string;
@@ -38,7 +39,7 @@ export class DispatchController {
   @Post('dispatch-ride')
   @ApiOperation({ summary: 'Dispatch a ride to available drivers' })
   @ApiResponse({ status: 200, description: 'Ride dispatched successfully' })
-  async dispatchRide(@Request() req, @Body() request: {
+  async dispatchRide(@Req() req: ExpressRequest & { tenantId?: string }, @Body() request: {
     rider_id: string;
     rider_name: string;
     rider_phone: string;
@@ -88,7 +89,7 @@ export class DispatchController {
   @ApiResponse({ status: 200, description: 'Offer accepted successfully' })
   async acceptOffer(
     @Param('offerId') offerId: string,
-    @Request() req,
+    @Req() req: ExpressRequest & { tenantId?: string },
     @Body() request: { driver_id: string }
   ) {
     const tenantId = req.tenantId as string;
@@ -107,7 +108,7 @@ export class DispatchController {
   @Put('accept-trip')
   @ApiOperation({ summary: 'Accept a trip (tripId + driverId) with concurrency lock' })
   @ApiResponse({ status: 200, description: 'Trip accepted successfully' })
-  async acceptTrip(@Request() req, @Body() request: { trip_id: string; driver_id: string }) {
+  async acceptTrip(@Req() req: ExpressRequest & { tenantId?: string }, @Body() request: { trip_id: string; driver_id: string }) {
     const tenantId = req.tenantId as string;
     return this.dispatchService.acceptOffer(tenantId, request.trip_id, request.driver_id);
   }
@@ -115,7 +116,7 @@ export class DispatchController {
   @Put('start-trip')
   @ApiOperation({ summary: 'Start a trip (ASSIGNED -> ACTIVE)' })
   @ApiResponse({ status: 200, description: 'Trip started successfully' })
-  async startTrip(@Request() req, @Body() request: { trip_id: string }) {
+  async startTrip(@Req() req: ExpressRequest & { tenantId?: string }, @Body() request: { trip_id: string }) {
     const tenantId = req.tenantId as string;
     return this.dispatchService.startTrip(tenantId, request.trip_id);
   }
@@ -123,7 +124,7 @@ export class DispatchController {
   @Put('complete-trip')
   @ApiOperation({ summary: 'Complete a trip (ACTIVE -> COMPLETED) and record ledger entry' })
   @ApiResponse({ status: 200, description: 'Trip completed successfully' })
-  async completeTrip(@Request() req, @Body() request: { trip_id: string }) {
+  async completeTrip(@Req() req: ExpressRequest & { tenantId?: string }, @Body() request: { trip_id: string }) {
     const tenantId = req.tenantId as string;
     return this.dispatchService.completeTrip(tenantId, request.trip_id);
   }

@@ -14,11 +14,11 @@ export enum DriverStatus {
 export class LocationUpdateDto {
   @ApiProperty()
   @IsNumber()
-  lat: number;
+  lat!: number;
 
   @ApiProperty()
   @IsNumber()
-  lng: number;
+  lng!: number;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -34,7 +34,7 @@ export class LocationUpdateDto {
 export class DriverStatusUpdateDto {
   @ApiProperty({ enum: DriverStatus })
   @IsEnum(DriverStatus)
-  status: DriverStatus;
+  status!: DriverStatus;
 
   @ApiProperty({ type: LocationUpdateDto, required: false })
   @IsOptional()
@@ -46,25 +46,25 @@ export class DriverStatusUpdateDto {
 export class DriverAuthDto {
   @ApiProperty()
   @IsString()
-  email: string;
+  email!: string;
 
   @ApiProperty()
   @IsString()
-  password: string;
+  password!: string;
 }
 
 export class DriverRegistrationDto extends DriverAuthDto {
   @ApiProperty()
   @IsString()
-  firstName: string;
+  firstName!: string;
 
   @ApiProperty()
   @IsString()
-  lastName: string;
+  lastName!: string;
 
   @ApiProperty()
   @IsString()
-  phone: string;
+  phone!: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -74,25 +74,25 @@ export class DriverRegistrationDto extends DriverAuthDto {
 
 export class VehicleInfoDto {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  make: string;
+  make!: string;
 
   @ApiProperty()
-  model: string;
+  model!: string;
 
   @ApiProperty()
-  year: number;
+  year!: number;
 
   @ApiProperty()
-  color: string;
+  color!: string;
 
   @ApiProperty()
-  licensePlate: string;
+  licensePlate!: string;
 
   @ApiProperty()
-  category: string;
+  category!: string;
 
   @ApiProperty({ required: false })
   photoUrls?: string[];
@@ -100,34 +100,34 @@ export class VehicleInfoDto {
 
 export class DriverProfileDto {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  firstName: string;
+  firstName!: string;
 
   @ApiProperty()
-  lastName: string;
+  lastName!: string;
 
   @ApiProperty()
-  email: string;
+  email!: string;
 
   @ApiProperty()
-  phone: string;
+  phone!: string;
 
   @ApiProperty({ required: false })
   address?: string;
 
   @ApiProperty()
-  rating: number;
+  rating!: number;
 
   @ApiProperty()
-  totalTrips: number;
+  totalTrips!: number;
 
   @ApiProperty({ enum: DriverStatus })
-  status: DriverStatus;
+  status!: DriverStatus;
 
   @ApiProperty()
-  isActive: boolean;
+  isActive!: boolean;
 
   @ApiProperty({ required: false, type: () => LocationUpdateDto })
   currentLocation?: LocationUpdateDto;
@@ -138,67 +138,67 @@ export class DriverProfileDto {
 
 export class RideOfferDto {
   @ApiProperty()
-  offerId: string;
+  offerId!: string;
 
   @ApiProperty()
-  tripId: string;
+  tripId!: string;
 
   @ApiProperty()
-  riderId: string;
+  riderId!: string;
 
   @ApiProperty()
-  riderName: string;
+  riderName!: string;
 
   @ApiProperty({ required: false })
   riderPhone?: string;
 
   @ApiProperty()
-  pickup: {
+  pickup!: {
     address: string;
     lat: number;
     lng: number;
   };
 
   @ApiProperty()
-  dropoff: {
+  dropoff!: {
     address: string;
     lat: number;
     lng: number;
   };
 
   @ApiProperty()
-  estimatedFare: number;
+  estimatedFare!: number;
 
   @ApiProperty()
-  netPayout: number;
+  netPayout!: number;
 
   @ApiProperty()
-  estimatedDistance: number;
+  estimatedDistance!: number;
 
   @ApiProperty()
-  estimatedDuration: number;
+  estimatedDuration!: number;
 
   @ApiProperty()
-  pickupEta: number;
+  pickupEta!: number;
 
   @ApiProperty()
-  category: string;
+  category!: string;
 
   @ApiProperty({ required: false })
   specialInstructions?: string;
 
   @ApiProperty()
-  expiresAt: string;
+  expiresAt!: string;
 }
 
 export class RideOfferResponseDto {
   @ApiProperty()
   @IsString()
-  offerId: string;
+  offerId!: string;
 
   @ApiProperty()
   @IsBoolean()
-  accepted: boolean;
+  accepted!: boolean;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -208,55 +208,55 @@ export class RideOfferResponseDto {
 
 export class EarningsDto {
   @ApiProperty()
-  period: string;
+  period!: string;
 
   @ApiProperty()
-  grossEarnings: number;
+  grossEarnings!: number;
 
   @ApiProperty()
-  netEarnings: number;
+  netEarnings!: number;
 
   @ApiProperty()
-  totalTrips: number;
+  totalTrips!: number;
 
   @ApiProperty()
-  onlineHours: number;
+  onlineHours!: number;
 
   @ApiProperty()
-  commission: number;
+  commission!: number;
 }
 
 export class TripHistoryDto {
   @ApiProperty()
-  tripId: string;
+  tripId!: string;
 
   @ApiProperty()
-  date: string;
+  date!: string;
 
   @ApiProperty()
-  time: string;
+  time!: string;
 
   @ApiProperty()
-  pickup: string;
+  pickup!: string;
 
   @ApiProperty()
-  dropoff: string;
+  dropoff!: string;
 
   @ApiProperty()
-  distance: number;
+  distance!: number;
 
   @ApiProperty()
-  duration: number;
+  duration!: number;
 
   @ApiProperty()
-  fare: number;
+  fare!: number;
 
   @ApiProperty()
-  netEarnings: number;
+  netEarnings!: number;
 
   @ApiProperty()
-  rating: number;
+  rating!: number;
 
   @ApiProperty()
-  riderName: string;
+  riderName!: string;
 }

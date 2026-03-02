@@ -94,7 +94,7 @@ export class FluidpayService {
       );
 
       return response.data as FluidpayPaymentResponse;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Fluidpay payment error:', error.response?.data || error.message);
       throw new BadRequestException('Payment processing failed');
     }
@@ -114,7 +114,7 @@ export class FluidpayService {
       );
 
       return response.data as FluidpayPaymentResponse;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Fluidpay get payment error:', error.response?.data || error.message);
       throw new BadRequestException('Failed to retrieve payment');
     }
@@ -141,7 +141,7 @@ export class FluidpayService {
       );
 
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Fluidpay payout error:', error.response?.data || error.message);
       throw new BadRequestException('Payout processing failed');
     }
@@ -168,7 +168,7 @@ export class FluidpayService {
       );
 
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Fluidpay refund error:', error.response?.data || error.message);
       throw new BadRequestException('Refund processing failed');
     }

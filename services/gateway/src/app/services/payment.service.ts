@@ -132,7 +132,7 @@ export class PaymentService {
           : 'Payment is being processed'
       };
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment processing error:', error);
       throw new BadRequestException(error.message || 'Payment processing failed');
     }
@@ -224,7 +224,7 @@ export class PaymentService {
         message: 'Payout initiated successfully'
       };
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payout processing error:', error);
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
         throw error;
@@ -269,7 +269,7 @@ export class PaymentService {
             
             payment.status = fluidpayPayment.status;
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error fetching Fluidpay payment status:', error);
         }
       }
@@ -289,7 +289,7 @@ export class PaymentService {
         driver_name: `${payment.drivers.first_name} ${payment.drivers.last_name}`
       };
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -341,7 +341,7 @@ export class PaymentService {
         message: 'Refund processed successfully'
       };
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Refund processing error:', error);
       throw new BadRequestException(error.message || 'Refund processing failed');
     }
@@ -381,7 +381,7 @@ export class PaymentService {
           console.log(`Unhandled webhook type: ${type}`);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Webhook processing error:', error);
       throw error;
     }

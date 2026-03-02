@@ -136,6 +136,53 @@ export class DispatchService {
     }
   }
 
+  /**
+   * M7.1: PostGIS-powered geospatial driver discovery.
+   * Uses ST_DWithin for fast spatial index lookup, strictly tenant-scoped.
+   * Returns Top 10 nearest available drivers within radiusKm.
+   */
+  async findNearestDriversGeo(
+    tenantId: string,
+    pickupLat: number,
+    pickupLng: number,
+    category: string,
+    radiusKm: number = DEFAULT_MAX_DISTANCE_KM,
+    limit: number = 10,
+  ): Promise<DriverMatch[]> {
+    const supabase = this.supabaseService.getClient();
+    const radiusMeters = radiusKm * 1000;
+
+    try {
+      // Use Supabase RPC to call a PostGIS spatial query
+      const { data, error } = await supabase.rpc('find_nearest_drivers', {
+        p_tenant_id: tenantId,
+        p_lat: pickupLat,
+        p_lng: pickupLng,
+        p_radius_meters: radiusMeters,
+        p_category: category,
+        p_limit: limit,
+      });
+
+      if (error) {
+        console.warn('PostGIS RPC unavailable, falling back to in-memory search:', error.message);
+        const fallback = await this.findAvailableDrivers(tenantId, pickupLat, pickupLng, category, radiusKm);
+        return fallback.slice(0, limit);
+      }
+
+      return (data || []).map((row: any) => ({
+        driverId: row.driver_profile_id,
+        distanceKm: Math.round((row.distance_meters / 1000) * 100) / 100,
+        eta: Math.ceil((row.distance_meters / 1000) * 2),
+        rating: row.rating || 5.0,
+        vehicleCategory: row.category || category,
+      }));
+    } catch (err) {
+      console.error('Geospatial search error, falling back:', err);
+      const fallback = await this.findAvailableDrivers(tenantId, pickupLat, pickupLng, category, radiusKm);
+      return fallback.slice(0, limit);
+    }
+  }
+
   async dispatchRide(rideRequest: RideRequest): Promise<string | null> {
     const supabase = this.supabaseService.getClient();
 

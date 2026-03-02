@@ -95,7 +95,7 @@ export class ReservationsService {
         message: 'Booking created successfully. Looking for nearby drivers...'
       };
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Booking error:', error);
       throw new Error(error.message || 'Booking failed');
     }
@@ -147,7 +147,7 @@ export class ReservationsService {
         } : null
       };
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting booking status:', error);
       throw new Error(error.message || 'Failed to get booking status');
     }
@@ -191,7 +191,7 @@ export class ReservationsService {
         message: 'Booking cancelled successfully'
       };
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error cancelling booking:', error);
       throw new Error(error.message || 'Failed to cancel booking');
     }
@@ -229,7 +229,7 @@ export class ReservationsService {
 
       return newRider.id;
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting/creating rider:', error);
       throw error;
     }

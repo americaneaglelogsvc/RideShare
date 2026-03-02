@@ -18,6 +18,12 @@ import { AdminService } from './services/admin.service';
 import { BillingCronService } from './services/billing-cron.service';
 import { NotificationService } from './services/notification.service';
 import { HeartbeatService } from './services/heartbeat.service';
+import { OutboundWebhookService } from './services/outbound-webhook.service';
+import { TenantApiKeyService } from './services/tenant-api-key.service';
+import { TaxService } from './services/tax.service';
+import { RefundService } from './services/refund.service';
+import { MetricsService } from './services/metrics.service';
+import { CircuitBreakerService } from './services/circuit-breaker.service';
 import { HealthController } from './controllers/health.controller';
 import { DriverController } from './controllers/driver.controller';
 import { DispatchController } from './controllers/dispatch.controller';
@@ -25,6 +31,7 @@ import { TenantController } from './controllers/tenant.controller';
 import { PaymentController } from './controllers/payment.controller';
 import { AdminController } from './controllers/admin.controller';
 import { PaysurityWebhookController } from './controllers/paysurity-webhook.controller';
+import { DeveloperController } from './controllers/developer.controller';
 import { TenantContextMiddleware } from './tenant-context.middleware';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.guard';
@@ -45,6 +52,7 @@ import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.
     PaymentController,
     AdminController,
     PaysurityWebhookController,
+    DeveloperController,
   ],
   providers: [
     SupabaseService,
@@ -62,6 +70,12 @@ import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.
     BillingCronService,
     NotificationService,
     HeartbeatService,
+    OutboundWebhookService,
+    TenantApiKeyService,
+    TaxService,
+    RefundService,
+    MetricsService,
+    CircuitBreakerService,
     TenantContextMiddleware,
     JwtAuthGuard,
     AdminRateLimitGuard,
@@ -72,7 +86,7 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(TenantContextMiddleware)
-      .exclude('health', 'api/(.*)', 'tenants', 'webhooks/(.*)', 'admin/(.*)')
+      .exclude('health', 'api/(.*)', 'tenants', 'webhooks/(.*)', 'admin/(.*)', 'developer/(.*)')
       .forRoutes('*');
   }
 }
