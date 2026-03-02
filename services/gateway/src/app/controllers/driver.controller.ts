@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Put, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { DriverService } from '../services/driver.service';
+import { JwtAuthGuard, Public } from '../guards/jwt-auth.guard';
 import {
   DriverAuthDto,
   DriverRegistrationDto,
@@ -15,9 +16,12 @@ import {
 
 @ApiTags('driver')
 @Controller('driver')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class DriverController {
   constructor(private readonly driverService: DriverService) {}
 
+  @Public()
   @Post('auth/login')
   @ApiOperation({ summary: 'Driver login' })
   @ApiResponse({ status: 200, description: 'Login successful' })
@@ -26,6 +30,7 @@ export class DriverController {
     return this.driverService.login(tenantId, loginDto);
   }
 
+  @Public()
   @Post('auth/register')
   @ApiOperation({ summary: 'Driver registration' })
   @ApiResponse({ status: 201, description: 'Registration successful' })
@@ -37,9 +42,8 @@ export class DriverController {
   @Get('profile')
   @ApiOperation({ summary: 'Get driver profile' })
   @ApiResponse({ status: 200, type: DriverProfileDto })
-  @ApiBearerAuth()
   async getProfile(@Request() req) {
-    const driverId = req.user?.id || 'mock-driver-id';
+    const driverId = req.user.id;
     const tenantId = req.tenantId as string;
     return this.driverService.getProfile(tenantId, driverId);
   }
@@ -47,9 +51,8 @@ export class DriverController {
   @Put('profile')
   @ApiOperation({ summary: 'Update driver profile' })
   @ApiResponse({ status: 200, type: DriverProfileDto })
-  @ApiBearerAuth()
   async updateProfile(@Request() req, @Body() profileData: Partial<DriverProfileDto>) {
-    const driverId = req.user?.id || 'mock-driver-id';
+    const driverId = req.user.id;
     const tenantId = req.tenantId as string;
     return this.driverService.updateProfile(tenantId, driverId, profileData);
   }
@@ -57,9 +60,8 @@ export class DriverController {
   @Put('status')
   @ApiOperation({ summary: 'Update driver status (online/offline)' })
   @ApiResponse({ status: 200, description: 'Status updated successfully' })
-  @ApiBearerAuth()
   async updateStatus(@Request() req, @Body() statusUpdate: DriverStatusUpdateDto) {
-    const driverId = req.user?.id || 'mock-driver-id';
+    const driverId = req.user.id;
     const tenantId = req.tenantId as string;
     return this.driverService.updateStatus(tenantId, driverId, statusUpdate);
   }
@@ -67,9 +69,8 @@ export class DriverController {
   @Post('location')
   @ApiOperation({ summary: 'Update driver location' })
   @ApiResponse({ status: 200, description: 'Location updated successfully' })
-  @ApiBearerAuth()
   async updateLocation(@Request() req, @Body() location: LocationUpdateDto) {
-    const driverId = req.user?.id || 'mock-driver-id';
+    const driverId = req.user.id;
     const tenantId = req.tenantId as string;
     return this.driverService.updateLocation(tenantId, driverId, location);
   }
@@ -77,9 +78,8 @@ export class DriverController {
   @Get('offers/current')
   @ApiOperation({ summary: 'Get current ride offer' })
   @ApiResponse({ status: 200, type: RideOfferDto })
-  @ApiBearerAuth()
   async getCurrentOffer(@Request() req) {
-    const driverId = req.user?.id || 'mock-driver-id';
+    const driverId = req.user.id;
     const tenantId = req.tenantId as string;
     return this.driverService.getCurrentOffer(tenantId, driverId);
   }
@@ -87,13 +87,12 @@ export class DriverController {
   @Post('offers/:offerId/respond')
   @ApiOperation({ summary: 'Respond to ride offer (accept/decline)' })
   @ApiResponse({ status: 200, description: 'Response recorded successfully' })
-  @ApiBearerAuth()
   async respondToOffer(
     @Request() req,
     @Param('offerId') offerId: string,
     @Body() response: RideOfferResponseDto
   ) {
-    const driverId = req.user?.id || 'mock-driver-id';
+    const driverId = req.user.id;
     const tenantId = req.tenantId as string;
     return this.driverService.respondToOffer(tenantId, driverId, offerId, response);
   }
@@ -101,12 +100,11 @@ export class DriverController {
   @Get('earnings')
   @ApiOperation({ summary: 'Get driver earnings' })
   @ApiResponse({ status: 200, type: EarningsDto })
-  @ApiBearerAuth()
   async getEarnings(
     @Request() req,
     @Query('period') period: string = 'week'
   ) {
-    const driverId = req.user?.id || 'mock-driver-id';
+    const driverId = req.user.id;
     const tenantId = req.tenantId as string;
     return this.driverService.getEarnings(tenantId, driverId, period);
   }
@@ -114,13 +112,12 @@ export class DriverController {
   @Get('trips/history')
   @ApiOperation({ summary: 'Get trip history' })
   @ApiResponse({ status: 200, type: [TripHistoryDto] })
-  @ApiBearerAuth()
   async getTripHistory(
     @Request() req,
     @Query('limit') limit: number = 20,
     @Query('offset') offset: number = 0
   ) {
-    const driverId = req.user?.id || 'mock-driver-id';
+    const driverId = req.user.id;
     const tenantId = req.tenantId as string;
     return this.driverService.getTripHistory(tenantId, driverId, limit, offset);
   }
@@ -128,9 +125,8 @@ export class DriverController {
   @Get('dashboard')
   @ApiOperation({ summary: 'Get driver dashboard data' })
   @ApiResponse({ status: 200, description: 'Dashboard data' })
-  @ApiBearerAuth()
   async getDashboard(@Request() req) {
-    const driverId = req.user?.id || 'mock-driver-id';
+    const driverId = req.user.id;
     const tenantId = req.tenantId as string;
     return this.driverService.getDashboard(tenantId, driverId);
   }

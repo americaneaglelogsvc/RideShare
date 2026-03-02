@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Admin Portal - Luxury Ride Platform',
-  description: 'Administration dashboard for the luxury rideshare platform',
+  title: 'Admin Portal - UrWay Dispatch',
+  description: 'Administration dashboard for the urwaydispatch.com rideshare platform',
 };
 
 export default function RootLayout({

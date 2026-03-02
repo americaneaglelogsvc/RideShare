@@ -2,7 +2,7 @@
 
 ## Overview
 
-UrWay Dispatch is a luxury rideshare platform that connects discerning passengers with professional drivers operating premium vehicles. Built with enterprise-grade reliability and modern web technologies, UrWay Dispatch provides a seamless experience for riders, drivers, and administrators.
+UrWay Dispatch is a multi-tenant rideshare platform that connects passengers with professional drivers operating premium vehicles. Built with enterprise-grade reliability and modern web technologies, UrWay Dispatch provides a seamless experience for riders, drivers, and administrators.
 
 ### Key Features
 - **Premium Vehicle Categories**: Black Sedan, Black SUV, Black EV

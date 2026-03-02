@@ -361,7 +361,7 @@ export function PaymentForm({ amount, onPaymentSubmit, loading = false }: Paymen
       {/* Security Notice */}
       <div className="mt-4 p-3 bg-gray-50 rounded-lg">
         <p className="text-xs text-gray-600 text-center">
-          Your payment information is encrypted and processed securely by Fluidpay.
+          Your payment information is encrypted and processed securely by PaySurity.
           We never store your complete payment details.
         </p>
       </div>

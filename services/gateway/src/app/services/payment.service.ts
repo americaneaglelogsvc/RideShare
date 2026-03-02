@@ -407,4 +407,28 @@ export class PaymentService {
       .update({ status })
       .eq('fluidpay_payout_id', fluidpayPayoutId);
   }
+
+  async handleSettlementCompleted(transactionId: string): Promise<void> {
+    const supabase = this.supabaseService.getClient();
+    await supabase
+      .from('driver_payouts')
+      .update({ settlement_status: 'BANK_SETTLED' })
+      .eq('fluidpay_payout_id', transactionId);
+  }
+
+  async handleSettlementFailed(transactionId: string): Promise<void> {
+    const supabase = this.supabaseService.getClient();
+    await supabase
+      .from('driver_payouts')
+      .update({ settlement_status: 'FAILED' })
+      .eq('fluidpay_payout_id', transactionId);
+  }
+
+  async handlePayoutCompleted(transactionId: string): Promise<void> {
+    const supabase = this.supabaseService.getClient();
+    await supabase
+      .from('driver_payouts')
+      .update({ settlement_status: 'PAID' })
+      .eq('fluidpay_payout_id', transactionId);
+  }
 }

@@ -14,9 +14,36 @@ import {
 import { SupabaseService } from './supabase.service';
 import { v4 as uuidv4 } from 'uuid';
 
+function maskPhone(phone: string | null | undefined): string {
+  if (!phone) return '';
+  if (phone.length <= 6) return '••••••';
+  return phone.slice(0, 4) + '••••' + phone.slice(-2);
+}
+
 @Injectable()
 export class DriverService {
   constructor(private readonly supabaseService: SupabaseService) {}
+
+  private async resolveProfileId(tenantId: string, authUserId: string): Promise<string> {
+    const supabase = this.supabaseService.getClient();
+    const { data: identity } = await supabase
+      .from('driver_identities')
+      .select('id')
+      .eq('auth_user_id', authUserId)
+      .single();
+
+    if (!identity) throw new NotFoundException('Driver identity not found');
+
+    const { data: profile } = await supabase
+      .from('driver_profiles')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('driver_identity_id', identity.id)
+      .single();
+
+    if (!profile) throw new NotFoundException('Driver profile not found for this tenant');
+    return profile.id;
+  }
 
   async login(tenantId: string, loginDto: DriverAuthDto) {
     const supabase = this.supabaseService.getClient();
@@ -32,12 +59,20 @@ export class DriverService {
         throw new UnauthorizedException('Invalid credentials');
       }
 
-      // Get driver profile from database
+      // Resolve identity -> tenant profile
+      const { data: identity } = await supabase
+        .from('driver_identities')
+        .select('id')
+        .eq('auth_user_id', authData.user.id)
+        .single();
+
+      if (!identity) throw new NotFoundException('Driver identity not found');
+
       const { data: driver, error: profileError } = await supabase
-        .from('drivers')
+        .from('driver_profiles')
         .select('*')
         .eq('tenant_id', tenantId)
-        .eq('id', authData.user.id)
+        .eq('driver_identity_id', identity.id)
         .single();
 
       if (profileError || !driver) {
@@ -76,12 +111,39 @@ export class DriverService {
         throw new BadRequestException('Registration failed: ' + authError?.message);
       }
 
-      // Create driver profile in database
+      // Create or get global driver identity
+      const { data: existingIdentity } = await supabase
+        .from('driver_identities')
+        .select('id')
+        .eq('auth_user_id', authData.user.id)
+        .single();
+
+      let identityId: string;
+      if (existingIdentity) {
+        identityId = existingIdentity.id;
+      } else {
+        const { data: newIdentity, error: identityError } = await supabase
+          .from('driver_identities')
+          .insert({
+            auth_user_id: authData.user.id,
+            email: registrationDto.email,
+          })
+          .select()
+          .single();
+
+        if (identityError || !newIdentity) {
+          await supabase.auth.admin.deleteUser(authData.user.id);
+          throw new BadRequestException('Failed to create driver identity');
+        }
+        identityId = newIdentity.id;
+      }
+
+      // Create tenant-scoped profile
       const { data: driver, error: profileError } = await supabase
-        .from('drivers')
+        .from('driver_profiles')
         .insert({
           tenant_id: tenantId,
-          id: authData.user.id,
+          driver_identity_id: identityId,
           first_name: registrationDto.firstName,
           last_name: registrationDto.lastName,
           email: registrationDto.email,
@@ -90,15 +152,13 @@ export class DriverService {
           rating: 0,
           total_trips: 0,
           status: DriverStatus.OFFLINE,
-          is_active: false, // Requires onboarding completion
+          is_active: false,
         })
         .select()
         .single();
 
       if (profileError) {
-        // Clean up auth user if profile creation fails
-        await supabase.auth.admin.deleteUser(authData.user.id);
-        throw new BadRequestException('Failed to create driver profile');
+        throw new BadRequestException('Failed to create driver profile for this tenant');
       }
 
       return {
@@ -118,15 +178,17 @@ export class DriverService {
     const supabase = this.supabaseService.getClient();
 
     try {
+      const profileId = await this.resolveProfileId(tenantId, driverId);
+
       // Get driver profile with vehicle information
       const { data: driver, error: driverError } = await supabase
-        .from('drivers')
+        .from('driver_profiles')
         .select(`
           *,
           vehicles (*)
         `)
         .eq('tenant_id', tenantId)
-        .eq('id', driverId)
+        .eq('id', profileId)
         .single();
 
       if (driverError || !driver) {
@@ -184,17 +246,19 @@ export class DriverService {
 
     try {
       const updateData: any = {};
-      
+
       if (profileData.firstName) updateData.first_name = profileData.firstName;
       if (profileData.lastName) updateData.last_name = profileData.lastName;
       if (profileData.phone) updateData.phone = profileData.phone;
       if (profileData.address) updateData.address = profileData.address;
 
+      const profileId = await this.resolveProfileId(tenantId, driverId);
+
       const { data: driver, error } = await supabase
-        .from('drivers')
+        .from('driver_profiles')
         .update(updateData)
         .eq('tenant_id', tenantId)
-        .eq('id', driverId)
+        .eq('id', profileId)
         .select()
         .single();
 
@@ -218,12 +282,14 @@ export class DriverService {
     const supabase = this.supabaseService.getClient();
 
     try {
+      const profileId = await this.resolveProfileId(tenantId, driverId);
+
       // Update driver status
       const { error: statusError } = await supabase
-        .from('drivers')
+        .from('driver_profiles')
         .update({ status: statusUpdate.status })
         .eq('tenant_id', tenantId)
-        .eq('id', driverId);
+        .eq('id', profileId);
 
       if (statusError) {
         throw new BadRequestException('Failed to update status');
@@ -305,7 +371,7 @@ export class DriverService {
         tripId: offer.trip_id,
         riderId: 'rider_123', // This would come from the trips table in a full implementation
         riderName: offer.rider_name,
-        riderPhone: offer.rider_phone,
+        riderPhone: maskPhone(offer.rider_phone),
         pickup: {
           address: offer.pickup_address,
           lat: offer.pickup_lat,
@@ -361,12 +427,12 @@ export class DriverService {
       }
 
       if (response.accepted) {
-        // Update driver status to busy
+        const profileId = await this.resolveProfileId(tenantId, driverId);
         await supabase
-          .from('drivers')
+          .from('driver_profiles')
           .update({ status: DriverStatus.EN_ROUTE_PICKUP })
           .eq('tenant_id', tenantId)
-          .eq('id', driverId);
+          .eq('id', profileId);
 
         return {
           success: true,
@@ -491,12 +557,14 @@ export class DriverService {
     const supabase = this.supabaseService.getClient();
 
     try {
+      const profileId = await this.resolveProfileId(tenantId, driverId);
+
       // Get driver info
       const { data: driver, error: driverError } = await supabase
-        .from('drivers')
+        .from('driver_profiles')
         .select('*')
         .eq('tenant_id', tenantId)
-        .eq('id', driverId)
+        .eq('id', profileId)
         .single();
 
       if (driverError || !driver) {

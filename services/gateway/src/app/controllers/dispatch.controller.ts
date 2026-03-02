@@ -1,9 +1,12 @@
-import { Controller, Post, Body, Get, Param, Put, Request } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Post, Body, Get, Param, Put, Request, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { DispatchService } from '../services/dispatch.service';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @ApiTags('dispatch')
 @Controller('dispatch')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class DispatchController {
   constructor(private readonly dispatchService: DispatchService) {}
 

@@ -73,10 +73,11 @@ export class DispatchService {
 
     try {
       const { data: drivers, error } = await supabase
-        .from('drivers')
+        .from('driver_profiles')
         .select(`
           id,
           rating,
+          driver_identity_id,
           vehicles!inner (
             category
           ),
@@ -174,8 +175,8 @@ export class DispatchService {
           dropoff_lng: rideRequest.dropoff.lng,
           distance_miles: tripDistanceMiles,
           fare_cents: estimatedFareCents,
-          net_payout_cents: Math.floor(estimatedFareCents * 0.8),
-          commission_cents: Math.floor(estimatedFareCents * 0.2),
+          net_payout_cents: 0,
+          commission_cents: 0,
           status: TripStatus.REQUESTED,
           special_instructions: rideRequest.specialInstructions
         })
@@ -340,10 +341,24 @@ export class DispatchService {
         return { success: false, message: 'Trip cannot be completed in its current state' };
       }
 
+      const fees = await this.calculateTenantFees(tenantId, updatedTrip.fare_cents);
+
+      await supabase
+        .from('trips')
+        .update({
+          net_payout_cents: fees.driverPayoutCents,
+          commission_cents: fees.platformFeeCents,
+        })
+        .eq('id', tripId);
+
       await this.ledgerService.recordTripFare({
         tripId,
+        tenantId,
         driverId: updatedTrip.driver_id,
         fareCents: updatedTrip.fare_cents,
+        platformFeeCents: fees.platformFeeCents,
+        tenantNetCents: fees.tenantNetCents,
+        driverPayoutCents: fees.driverPayoutCents,
       });
 
       await this.realtimeService.emitTripStateChanged({
@@ -405,7 +420,7 @@ export class DispatchService {
         .eq('id', offer.trip_id);
 
       await supabase
-        .from('drivers')
+        .from('driver_profiles')
         .update({ status: 'en_route_pickup' })
         .eq('tenant_id', tenantId)
         .eq('id', driverId);
@@ -422,6 +437,31 @@ export class DispatchService {
       console.error('Error accepting ride offer:', error);
       return false;
     }
+  }
+
+  private async calculateTenantFees(tenantId: string, fareCents: number): Promise<{
+    platformFeeCents: number;
+    tenantNetCents: number;
+    driverPayoutCents: number;
+  }> {
+    const supabase = this.supabaseService.getClient();
+
+    const { data: onboarding } = await supabase
+      .from('tenant_onboarding')
+      .select('revenue_share_bps, per_ride_fee_cents, min_platform_fee_cents')
+      .eq('tenant_id', tenantId)
+      .single();
+
+    const revenueShareBps = onboarding?.revenue_share_bps ?? 500;
+    const perRideFeeCents = onboarding?.per_ride_fee_cents ?? 100;
+    const minPlatformFeeCents = onboarding?.min_platform_fee_cents ?? 250;
+
+    const calculatedFee = Math.floor(fareCents * revenueShareBps / 10000) + perRideFeeCents;
+    const platformFeeCents = Math.max(calculatedFee, minPlatformFeeCents);
+    const tenantNetCents = fareCents - platformFeeCents;
+    const driverPayoutCents = tenantNetCents;
+
+    return { platformFeeCents, tenantNetCents, driverPayoutCents };
   }
 
   private calculateDistanceMiles(lat1: number, lng1: number, lat2: number, lng2: number): number {

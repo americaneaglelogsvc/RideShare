@@ -61,7 +61,7 @@ export default function HomePage() {
             Admin Portal
           </h1>
           <p className="text-gray-600 mb-6">
-            Welcome to the Luxury Ride Platform administration dashboard.
+            Welcome to the UrWay Dispatch administration dashboard.
           </p>
           <div className="space-y-3">
             <div className="bg-slate-50 p-4 rounded-lg text-left">

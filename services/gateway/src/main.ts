@@ -17,6 +17,12 @@ async function bootstrap() {
       'http://localhost:4200',
       'http://localhost:4300',
       'http://localhost:4400',
+      'https://urwaydispatch.com',
+      'https://www.urwaydispatch.com',
+      'https://admin.urwaydispatch.com',
+      'https://driver.urwaydispatch.com',
+      'https://rider.urwaydispatch.com',
+      /\.urwaydispatch\.com$/,
     ],
     credentials: true,
   });
