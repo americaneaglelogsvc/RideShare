@@ -34,6 +34,8 @@ import { ConsentService } from './services/consent.service';
 import { IdempotencyGuard, IdempotencyInterceptor } from './guards/idempotency.guard';
 import { TenantAnalyticsService } from './services/tenant-analytics.service';
 import { VipAnalyticsService } from './services/vip-analytics.service';
+import { GlobalMonitorService } from './services/global-monitor.service';
+import { ReferralDistributionService } from './services/referral-distribution.service';
 import { HealthController } from './controllers/health.controller';
 import { DriverController } from './controllers/driver.controller';
 import { DispatchController } from './controllers/dispatch.controller';
@@ -102,6 +104,8 @@ import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.
     IdempotencyInterceptor,
     TenantAnalyticsService,
     VipAnalyticsService,
+    GlobalMonitorService,
+    ReferralDistributionService,
     DriverSocketGateway,
     TenantContextMiddleware,
     JwtAuthGuard,

@@ -140,8 +140,10 @@ export class OfferService {
   }
 
   /**
-   * First-Accept-Wins: Atomically accept an offer using optimistic concurrency.
+   * First-Accept-Wins: Atomically accept an offer using PostgreSQL FOR UPDATE
+   * row-level locking via the atomic_assign_trip RPC.
    * Only the first driver to hit ACCEPT for a trip_id wins.
+   * Losers receive an immediate `offer_unavailable` WebSocket event.
    */
   async acceptInstantOffer(
     tenantId: string,
@@ -172,26 +174,25 @@ export class OfferService {
         return { success: false, message: 'Offer has expired' };
       }
 
-      // Step 2: Atomic trip assignment — first-accept-wins via optimistic lock
-      const { data: assignedTrip, error: assignError } = await supabase
-        .from('trips')
-        .update({
-          driver_id: driverId,
-          status: 'assigned',
-        })
-        .eq('tenant_id', tenantId)
-        .eq('id', offer.trip_id)
-        .eq('status', 'requested')
-        .is('driver_id', null)
-        .select('id')
-        .single();
+      // Step 2: Atomic trip assignment via FOR UPDATE row-level lock
+      const { data: lockResult, error: lockError } = await supabase.rpc('atomic_assign_trip', {
+        p_tenant_id: tenantId,
+        p_trip_id: offer.trip_id,
+        p_driver_id: driverId,
+      });
 
-      if (assignError || !assignedTrip) {
-        // Another driver already won this trip
+      const assignment = lockResult?.[0] || lockResult;
+      const assigned = assignment?.assigned === true;
+
+      if (lockError || !assigned) {
+        // Another driver already won this trip — mark offer as declined
         await supabase
           .from('ride_offers')
           .update({ status: 'declined' })
           .eq('id', offerId);
+
+        // Emit offer_unavailable to this driver immediately
+        await this.emitOfferUnavailable(tenantId, driverId, offerId, offer.trip_id);
 
         return { success: false, message: 'Trip already assigned to another driver' };
       }
@@ -202,6 +203,15 @@ export class OfferService {
         .update({ status: 'accepted' })
         .eq('id', offerId);
 
+      // Get all losing driver IDs before declining their offers
+      const { data: losingOffers } = await supabase
+        .from('ride_offers')
+        .select('id, driver_id')
+        .eq('tenant_id', tenantId)
+        .eq('trip_id', offer.trip_id)
+        .neq('id', offerId)
+        .eq('status', 'pending');
+
       await supabase
         .from('ride_offers')
         .update({ status: 'declined' })
@@ -210,14 +220,19 @@ export class OfferService {
         .neq('id', offerId)
         .eq('status', 'pending');
 
-      // Step 4: Update driver profile status for THIS tenant only
+      // Step 4: Notify all losing drivers with offer_unavailable
+      for (const loser of losingOffers || []) {
+        await this.emitOfferUnavailable(tenantId, loser.driver_id, loser.id, offer.trip_id);
+      }
+
+      // Step 5: Update driver profile status for THIS tenant only
       await supabase
         .from('driver_profiles')
         .update({ status: 'en_route_pickup' })
         .eq('tenant_id', tenantId)
         .eq('id', driverId);
 
-      // Step 5: Emit realtime event
+      // Step 6: Emit realtime event
       await this.realtimeService.emitTripStateChanged({
         tripId: offer.trip_id,
         status: 'assigned',
@@ -225,7 +240,7 @@ export class OfferService {
       });
 
       this.logger.log(
-        `M7.2: Driver ${driverId} won trip ${offer.trip_id} (tenant ${tenantId}) — first-accept-wins`,
+        `M1.5: Driver ${driverId} won trip ${offer.trip_id} (tenant ${tenantId}) — FOR UPDATE atomic lock`,
       );
 
       return {
@@ -267,6 +282,42 @@ export class OfferService {
       }, 5000);
     } catch (err: any) {
       this.logger.warn(`Failed to emit instant offer: ${err.message}`);
+    }
+  }
+
+  /**
+   * M1.5: Emit offer_unavailable to a losing driver so their UI immediately
+   * clears the stale offer instead of showing a frustrating "accept" button.
+   */
+  private async emitOfferUnavailable(
+    tenantId: string,
+    driverId: string,
+    offerId: string,
+    tripId: string,
+  ): Promise<void> {
+    try {
+      const supabase = this.supabaseService.getClient();
+      const channelName = `tenant:${tenantId}:driver:${driverId}`;
+
+      const channel = supabase.channel(channelName).subscribe();
+
+      await channel.send({
+        type: 'broadcast',
+        event: 'offer_unavailable',
+        payload: {
+          offerId,
+          tripId,
+          tenantId,
+          reason: 'Trip assigned to another driver',
+          timestamp: new Date().toISOString(),
+        },
+      });
+
+      setTimeout(() => {
+        channel.unsubscribe().catch(() => {});
+      }, 5000);
+    } catch (err: any) {
+      this.logger.warn(`Failed to emit offer_unavailable: ${err.message}`);
     }
   }
 

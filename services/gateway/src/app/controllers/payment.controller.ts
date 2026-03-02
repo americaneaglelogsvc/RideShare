@@ -1,6 +1,7 @@
-import { Controller, Post, Get, Body, Param, Headers, RawBodyRequest, Req } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Headers, RawBodyRequest, Req, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { PaymentService, PaymentRequest, PayoutRequest } from '../services/payment.service';
+import { IdempotencyGuard, IdempotencyInterceptor } from '../guards/idempotency.guard';
 
 @ApiTags('payments')
 @Controller('payments')
@@ -8,6 +9,8 @@ export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post('process')
+  @UseGuards(IdempotencyGuard)
+  @UseInterceptors(IdempotencyInterceptor)
   @ApiOperation({ summary: 'Process payment for a trip' })
   @ApiResponse({ status: 200, description: 'Payment processed successfully' })
   @ApiBearerAuth()
@@ -16,6 +19,8 @@ export class PaymentController {
   }
 
   @Post('payout')
+  @UseGuards(IdempotencyGuard)
+  @UseInterceptors(IdempotencyInterceptor)
   @ApiOperation({ summary: 'Process payout to driver' })
   @ApiResponse({ status: 200, description: 'Payout processed successfully' })
   @ApiBearerAuth()
@@ -32,6 +37,8 @@ export class PaymentController {
   }
 
   @Post(':paymentId/refund')
+  @UseGuards(IdempotencyGuard)
+  @UseInterceptors(IdempotencyInterceptor)
   @ApiOperation({ summary: 'Refund a payment' })
   @ApiResponse({ status: 200, description: 'Refund processed successfully' })
   @ApiBearerAuth()

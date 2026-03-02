@@ -819,3 +819,96 @@ All materialized views have UNIQUE indexes for CONCURRENTLY refresh support.
 M9.7 (Analytics) -> M9.8 (VIP) -> M9.9 (Map) -> M11.8 (Alerts) -> M5.10 (Commercial) -> AI Agent
 
 All milestones completed. Zero TypeScript errors. All wired into AppModule.
+
+---
+
+## FINAL LAUNCH HARDENING — PRODUCTION READINESS
+
+### M1.5: "New Year's Eve" Concurrency Audit — COMPLETED
+
+Files: offer.service.ts, dispatch.service.ts, 1007_launch_hardening.sql
+
+- **`atomic_assign_trip` RPC**: PostgreSQL `SELECT ... FOR UPDATE SKIP LOCKED` prevents two drivers from accepting the same trip at the exact same millisecond
+- **Bug Fix**: `DispatchService.acceptRideOffer` had NO guard against double-assignment — now uses atomic RPC
+- **Bug Fix**: `DispatchService.acceptOffer` upgraded from optimistic WHERE clause to `atomic_assign_trip` RPC
+- **Bug Fix**: `OfferService.acceptInstantOffer` upgraded from optimistic WHERE clause to `atomic_assign_trip` RPC
+- **`offer_unavailable` WebSocket Event**: Losing drivers receive immediate notification so their UI clears the stale "Accept" button
+- **All state changes are now atomic** — single PostgreSQL transaction with row-level lock
+
+### M1.4: Global "Miles & USD" Final Integrity Scan — COMPLETED
+
+- **Zero imperial debt**: No `kilometer`, `km_to`, `radiusKm`, `distanceKm`, `per_km` references remain in gateway/src
+- **`MILES_TO_METERS = 1609.34`** only used for PostGIS conversion (inside RPCs and dispatch.service.ts)
+- **All dashboard labels**: `{ currency: 'USD ($)', distance: 'Miles' }`
+- **AI Agent**: All natural language answers use "$X.XX USD" and "miles" terminology
+- **All revenue displays**: Pull from `integer_cents` and divide by 100 for USD display
+- **`R = 3959`** (Earth radius in miles) in haversine — confirmed correct
+
+### M9.10: System Health Pulse & Alerting — COMPLETED
+
+Files: global-monitor.service.ts, health.controller.ts, 1007_launch_hardening.sql
+
+- **`/health/detailed`** endpoint (internal only) tracks:
+  - DB Pool Saturation: Estimated from query latency (warning 70%, critical 90%)
+  - Socket Latency: Heartbeat delay (warning 500ms, critical 2000ms)
+  - AI Agent Response Time: LLM call latency (warning 3s, critical 10s)
+  - Error Rate: % of failed requests (warning 5%, critical 15%)
+  - Active Trips and Active Drivers counts
+- **`/health/history`**: Historical snapshots for the last N minutes
+- **Cron**: Captures snapshot every minute, persists to `system_health_snapshots`
+- **PagerDuty Integration**: Critical alerts fire to PagerDuty Events API v2
+- **Auto-Cleanup**: Old snapshots purged after 7 days via `cleanup_old_health_snapshots` RPC
+
+### M5.11: Commercial Profile Config Enforcement — COMPLETED
+
+Files: referral-distribution.service.ts, 1007_launch_hardening.sql
+
+- **4-Way Referral Split** for Subsidized VIP Spill-Over rides:
+  1. Platform Fee (`platform_fee_bps` applied FIRST on gross fare)
+  2. Marketplace Surcharge (`marketplace_surcharge_bps` credited to UrWay platform)
+  3. Origin Tenant Referral Fee (`referral_fee_bps` for sending the ride)
+  4. Fulfilling Tenant Net → Driver Payout (remainder)
+- **Invariant**: `platform_fee + surcharge + referral + fulfilling_net = gross_fare`
+- **Subsidy Budget Guard**: Debits from `max_subsidy_limit_cents`, capped at remaining budget
+- **Idempotent**: Duplicate split requests return cached result
+- New table: `referral_distribution_splits` with UNIQUE on `trip_id`
+- New columns: `marketplace_surcharge_bps`, `referral_fee_bps` on `tenant_onboarding`
+
+### M12.4: Automated Deployment Readiness — COMPLETED
+
+File: scripts/blue-green-deploy.ps1
+
+- **Blue/Green Zero-Downtime Deployment**:
+  1. Pre-flight: TypeScript compilation check, git status check
+  2. DB migrations: Additive only (CREATE IF NOT EXISTS, ALTER ADD IF NOT EXISTS)
+  3. Build Green artifact
+  4. Start Green instance on standby port
+  5. Health-check Green (/health + /health/detailed)
+  6. Traffic swap: Blue → Green (load balancer / DNS)
+  7. Drain Blue (wait for in-flight requests, configurable timeout)
+- **RPC Safety**: PostgreSQL `CREATE OR REPLACE FUNCTION` is atomic — active trips using old RPC signature are not interrupted
+- **Rollback**: Blue instance kept alive for 5 minutes for instant rollback
+
+### Cross-Cutting Verifications — COMPLETED
+
+- **Idempotency**: All 3 payment POST endpoints (`/payments/process`, `/payments/payout`, `/payments/:id/refund`) now use `@UseGuards(IdempotencyGuard)` + `@UseInterceptors(IdempotencyInterceptor)`
+- **MV CONCURRENTLY**: All 4 materialized views have UNIQUE indexes enabling `REFRESH MATERIALIZED VIEW CONCURRENTLY` — dashboard remains readable during refresh
+- **Privacy Guard**: `get_tenant_map_drivers` RPC strictly filters by `p_tenant_id` and only returns "Ghost" data for spill-over partner drivers
+
+### Schema Migration 1007 — COMPLETED
+
+File: supabase/migrations/1007_launch_hardening.sql
+
+New RPC: `atomic_assign_trip` (FOR UPDATE SKIP LOCKED)
+New table: `referral_distribution_splits`
+New table: `system_health_snapshots`
+New RPC: `cleanup_old_health_snapshots`
+New columns on `tenant_onboarding`: `marketplace_surcharge_bps`, `referral_fee_bps`
+
+---
+
+## LAUNCH HARDENING IMPLEMENTATION SEQUENCE
+
+M1.5 (Concurrency) -> M1.4 (Miles Scan) -> M9.10 (Health) -> M5.11 (Referral Split) -> M12.4 (Blue/Green) -> Cross-Cutting
+
+All milestones completed. Zero TypeScript errors. All wired into AppModule.

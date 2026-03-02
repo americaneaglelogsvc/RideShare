@@ -302,25 +302,29 @@ export class DispatchService {
     const supabase = this.supabaseService.getClient();
 
     try {
-      const { data: updatedTrip, error } = await supabase
-        .from('trips')
-        .update({
-          driver_id: driverId,
-          status: TripStatus.ASSIGNED,
-        })
-        .eq('tenant_id', tenantId)
-        .eq('id', tripId)
-        .eq('status', TripStatus.REQUESTED)
-        .is('driver_id', null)
-        .select('*')
-        .single();
+      // M1.5: Use atomic_assign_trip RPC with FOR UPDATE row-level locking
+      const { data: lockResult, error: lockError } = await supabase.rpc('atomic_assign_trip', {
+        p_tenant_id: tenantId,
+        p_trip_id: tripId,
+        p_driver_id: driverId,
+      });
 
-      if (error || !updatedTrip) {
+      const assignment = lockResult?.[0] || lockResult;
+      const assigned = assignment?.assigned === true;
+
+      if (lockError || !assigned) {
         return {
           success: false,
           message: 'Trip is no longer available to accept',
         };
       }
+
+      // Fetch the updated trip
+      const { data: updatedTrip } = await supabase
+        .from('trips')
+        .select('*')
+        .eq('id', tripId)
+        .single();
 
       await this.realtimeService.emitTripStateChanged({
         tripId,
@@ -435,16 +439,34 @@ export class DispatchService {
         return false;
       }
 
-      const { error: updateError } = await supabase
+      // M1.5: Use atomic_assign_trip RPC with FOR UPDATE row-level locking
+      // This prevents the race condition where two drivers accept simultaneously
+      const { data: lockResult, error: lockError } = await supabase.rpc('atomic_assign_trip', {
+        p_tenant_id: tenantId,
+        p_trip_id: offer.trip_id,
+        p_driver_id: driverId,
+      });
+
+      const assignment = lockResult?.[0] || lockResult;
+      const assigned = assignment?.assigned === true;
+
+      if (lockError || !assigned) {
+        // This driver lost the race — mark their offer as declined
+        await supabase
+          .from('ride_offers')
+          .update({ status: 'declined' })
+          .eq('id', offerId);
+        return false;
+      }
+
+      // Winner: mark offer as accepted
+      await supabase
         .from('ride_offers')
         .update({ status: 'accepted' })
         .eq('tenant_id', tenantId)
         .eq('id', offerId);
 
-      if (updateError) {
-        return false;
-      }
-
+      // Decline all other pending offers for this trip
       await supabase
         .from('ride_offers')
         .update({ status: 'declined' })
@@ -452,15 +474,6 @@ export class DispatchService {
         .eq('trip_id', offer.trip_id)
         .neq('id', offerId)
         .eq('status', 'pending');
-
-      await supabase
-        .from('trips')
-        .update({ 
-          driver_id: driverId,
-          status: TripStatus.ASSIGNED
-        })
-        .eq('tenant_id', tenantId)
-        .eq('id', offer.trip_id);
 
       await supabase
         .from('driver_profiles')
