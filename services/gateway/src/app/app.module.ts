@@ -1,6 +1,7 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 import { SupabaseService } from './services/supabase.service';
 import { RealtimeService } from './services/realtime.service';
@@ -14,6 +15,9 @@ import { PaymentService } from './services/payment.service';
 import { PricingService } from './services/pricing.service';
 import { ReservationsService } from './services/reservations.service';
 import { AdminService } from './services/admin.service';
+import { BillingCronService } from './services/billing-cron.service';
+import { NotificationService } from './services/notification.service';
+import { HeartbeatService } from './services/heartbeat.service';
 import { HealthController } from './controllers/health.controller';
 import { DriverController } from './controllers/driver.controller';
 import { DispatchController } from './controllers/dispatch.controller';
@@ -23,12 +27,14 @@ import { AdminController } from './controllers/admin.controller';
 import { PaysurityWebhookController } from './controllers/paysurity-webhook.controller';
 import { TenantContextMiddleware } from './tenant-context.middleware';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.guard';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     HttpModule,
   ],
   controllers: [
@@ -45,23 +51,28 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     RealtimeService,
     DispatchService,
     LedgerService,
-    DriverService,
     IdentityService,
     TenantService,
+    DriverService,
     FluidpayService,
     PaymentService,
     PricingService,
     ReservationsService,
     AdminService,
+    BillingCronService,
+    NotificationService,
+    HeartbeatService,
     TenantContextMiddleware,
     JwtAuthGuard,
+    AdminRateLimitGuard,
+    WebhookRateLimitGuard,
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(TenantContextMiddleware)
-      .exclude('health', 'api/(.*)', 'tenants', 'webhooks/(.*)')
+      .exclude('health', 'api/(.*)', 'tenants', 'webhooks/(.*)', 'admin/(.*)')
       .forRoutes('*');
   }
 }

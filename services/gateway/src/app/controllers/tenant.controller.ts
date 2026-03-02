@@ -6,6 +6,8 @@ import {
   UpdateOnboardingChecklistRequest,
   SetCommercialTermsRequest,
   StaffReviewDecision,
+  UploadBrandingAssetsRequest,
+  SubmitACHAuthorizationRequest,
 } from '../services/tenant.service';
 import { TenantRequest } from '../tenant-context.middleware';
 
@@ -95,5 +97,47 @@ export class TenantController {
     @Body() body: { host: string }
   ) {
     return this.tenantService.addDomainMapping(tenantId, body.host);
+  }
+
+  @Post('onboarding-links/generate')
+  @ApiOperation({ summary: 'Generate a secure onboarding link for a prospect' })
+  @ApiResponse({ status: 201, description: 'Onboarding link generated' })
+  @ApiBearerAuth()
+  async generateOnboardingLink(
+    @Body() body: { email: string; company_name?: string }
+  ) {
+    return this.tenantService.generateOnboardingLink(body.email, body.company_name);
+  }
+
+  @Post('onboarding-links/:token/claim')
+  @ApiOperation({ summary: 'Claim an onboarding link and create a tenant' })
+  @ApiResponse({ status: 201, description: 'Tenant created from onboarding link' })
+  async claimOnboardingLink(
+    @Param('token') token: string,
+    @Body() body: CreateTenantRequest
+  ) {
+    return this.tenantService.claimOnboardingLink(token, body);
+  }
+
+  @Put(':tenantId/branding')
+  @ApiOperation({ summary: 'Upload branding assets (SVG logos, hex colors)' })
+  @ApiResponse({ status: 200, description: 'Branding assets saved' })
+  @ApiBearerAuth()
+  async uploadBranding(
+    @Param('tenantId') tenantId: string,
+    @Body() assets: UploadBrandingAssetsRequest
+  ) {
+    return this.tenantService.uploadBrandingAssets(tenantId, assets);
+  }
+
+  @Post(':tenantId/ach-authorization')
+  @ApiOperation({ summary: 'Submit ACH debit authorization for subscription billing' })
+  @ApiResponse({ status: 200, description: 'ACH authorization recorded' })
+  @ApiBearerAuth()
+  async submitACHAuthorization(
+    @Param('tenantId') tenantId: string,
+    @Body() body: SubmitACHAuthorizationRequest
+  ) {
+    return this.tenantService.submitACHAuthorization(tenantId, body);
   }
 }

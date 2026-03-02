@@ -398,11 +398,88 @@ COMMIT STRATEGY (5 groups):
 
 ## IMPLEMENTATION SEQUENCE
 
-M1 (Security) -> M2 (Schema) -> M3 (Wire AppModule) -> M4 (Core Concurrency) -> M5 (Fees) -> M6 (PII) -> M7 (Realtime) -> M8 (Kill-Switch) -> M9 (Ops Center) -> M10 (PaySurity) -> M11 (Frontend) -> M12 (Brand/Cleanup)
+**Phase 1 (Core Architecture) — COMPLETED**
 
-M1 + M2 + M3 are hard prerequisites for everything else.
-M4 is the single most critical change (non-blocking concurrency).
-M8-M10 can be parallelized after M4.
-M11-M12 are independent and can run anytime.
+M1 (Security) -> M2 (Schema) -> M3 (Wire AppModule) -> M4 (Core Concurrency) -> M5/M5.1 (Fees) -> M6 (PII) -> M8 (Kill-Switch) -> M10 (PaySurity Webhook) -> M12 (Brand Scrub)
 
-The Requirements/UWD_Grand_Implementation_Plan.md standalone artifact will be generated during M1 execution.
+All 5 Compliance Smoke Tests PASSED.
+
+---
+
+## PHASE 2: OPERATIONAL AUTOMATION & ADVANCED REPORTING
+
+### M5.2: Automated Subscription & Advance Billing — COMPLETED
+
+**Files: billing-cron.service.ts, notification.service.ts, 1002_phase2_billing_onboarding.sql**
+
+- BillingCronService runs daily at 06:00 UTC via @nestjs/schedule
+- Identifies tenants with `next_billing_date` exactly 7 days away
+- Reads `base_monthly_fee_cents_prepaid` from `tenant_onboarding`
+- Initiates ACH Debit via mandate_reference (PaySurity integration point)
+- **Success Path**: Updates `next_billing_date` + 1 month, records `SUBSCRIPTION_BILLING` ledger entry
+- **Failure Path**: Sets `billing_status = 'BILLING_FAILED'`, fires `BILLING_FAILED` notification, flags in AdminService
+- Admin can manually retry via `POST /admin/ops/billing/:tenantId/retry`
+- New tables: `billing_events` (audit trail)
+
+### M11.2: Self-Service Tenant Onboarding & Branding — COMPLETED
+
+**Files: tenant.service.ts, tenant.controller.ts, 1002_phase2_billing_onboarding.sql**
+
+- **Link Generator**: `POST /tenants/onboarding-links/generate` — creates secure UUID-based invitation link (7-day expiry)
+- **Link Claim**: `POST /tenants/onboarding-links/:token/claim` — validates token, creates tenant, marks link claimed
+- **Branding Upload**: `PUT /tenants/:tenantId/branding` — accepts SVG logo URLs + hex color codes, upserts to `tenant_profiles`
+- **ACH Authorization**: `POST /tenants/:tenantId/ach-authorization` — stores mandate_reference + bank_last4
+- **Activation Integration**: `activateTenant()` now auto-fires welcome email, sets `next_billing_date` +30 days, creates domain mapping
+- New tables: `onboarding_links`, `tenant_profiles`
+
+### M11.2b: NotificationService + Tenant Welcome Email — COMPLETED
+
+**File: notification.service.ts**
+
+- `dispatch()` — generic notification event handler, logs to `notification_log`
+- `sendTenantWelcomeEmail()` — fires on TENANT_ACTIVATED with full onboarding guide
+- `sendBillingFailedEmail()` — fires on BILLING_FAILED with amount + reason
+- Template includes: dashboard URL, fleet config, billing tier, non-blocking driver explanation, BANK_SETTLED policy
+- New table: `notification_log`
+
+### M9.1: Advanced Internal Ops Dashboard — COMPLETED
+
+**Files: admin.service.ts, admin.controller.ts**
+
+- **Parallel Session Monitor** (`GET /admin/ops/parallel-sessions`): Groups `driver_profiles` by `driver_identity_id`, sorted by simultaneous active tenant sessions descending
+- **Liquidity Report** (`GET /admin/ops/liquidity?date=&tenant_id=`): Daily Total_Fares vs UrWay_Platform_Fees vs Tenant_Net_Revenue vs Driver_Payouts vs Subscription_Revenue, broken down by tenant
+- **Settlement Aging** (`GET /admin/ops/settlement-aging`): Buckets PENDING_BANK_SETTLEMENT payouts into <24h, 24-48h, >48h, >72h (critical)
+- **Billing Overview** (`GET /admin/ops/billing`): Shows failed + upcoming 7-day billing tenants
+
+### M1.2: Global State Recovery & Heartbeat — COMPLETED
+
+**Files: heartbeat.service.ts, 1002_phase2_billing_onboarding.sql**
+
+- Drivers ping `heartbeat.ping(profileId, tenantId)` every 15-30 seconds per active tenant session
+- Cron sweep every 30 seconds: if `last_ping_at > 60s stale` → set that specific `driver_profile` to OFFLINE
+- **Tenant B isolation**: Only the stale profile is affected; healthy sessions on other tenants remain ONLINE
+- `disconnect()` — explicit disconnect for clean session teardown
+- New table: `driver_heartbeats` (keyed on `driver_profile_id`)
+
+### M12.1: Technical Hardening — COMPLETED
+
+**Files: rate-limit.guard.ts, package.json**
+
+- **Rate Limiting**: `AdminRateLimitGuard` (30 req/min per IP) applied to `/admin/*`; `WebhookRateLimitGuard` (100 req/min per IP) applied to `/webhooks/*`
+- In-memory sliding window with periodic cleanup; production path → Redis-backed @nestjs/throttler
+- **Dependencies**: Added `@nestjs/schedule` ^4.0.0, `@nestjs/throttler` ^5.1.1
+
+### Schema Migration 1002 — COMPLETED
+
+**File: supabase/migrations/1002_phase2_billing_onboarding.sql**
+
+New tables: `tenant_profiles`, `onboarding_links`, `billing_events`, `notification_log`, `driver_heartbeats`
+New columns: `tenants.next_billing_date`, `tenants.billing_status`, `tenant_onboarding.ach_mandate_reference`, `tenant_onboarding.ach_bank_last4`
+
+---
+
+## PHASE 2 IMPLEMENTATION SEQUENCE
+
+M5.2 (Billing Cron) -> M11.2 (Onboarding) -> M11.2b (Notifications) -> M9.1 (Ops Dashboard) -> M1.2 (Heartbeat) -> M12.1 (Hardening)
+
+All milestones completed. All wired into AppModule with ScheduleModule.

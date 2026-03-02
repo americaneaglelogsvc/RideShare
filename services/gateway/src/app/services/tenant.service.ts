@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
+import { NotificationService } from './notification.service';
 
 export interface CreateTenantRequest {
   name: string;
@@ -38,9 +39,25 @@ export interface StaffReviewDecision {
   rejection_reason?: string;
 }
 
+export interface UploadBrandingAssetsRequest {
+  primary_hex: string;
+  secondary_hex: string;
+  logo_svg_url?: string;
+  app_icon_url?: string;
+  welcome_message?: string;
+}
+
+export interface SubmitACHAuthorizationRequest {
+  mandate_reference: string;
+  bank_last4: string;
+}
+
 @Injectable()
 export class TenantService {
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   // ── Create tenant + bootstrap onboarding record ──────────────────
   async createTenant(request: CreateTenantRequest) {
@@ -267,15 +284,34 @@ export class TenantService {
 
     if (onbErr) throw new BadRequestException(onbErr.message);
 
-    // Mark tenant as active
+    // Mark tenant as active and set initial billing date (30 days from now)
+    const nextBillingDate = new Date();
+    nextBillingDate.setDate(nextBillingDate.getDate() + 30);
+
     const { error: tenErr } = await supabase
       .from('tenants')
-      .update({ is_active: true })
+      .update({
+        is_active: true,
+        next_billing_date: nextBillingDate.toISOString().split('T')[0],
+        billing_status: 'CURRENT',
+      })
       .eq('id', tenantId);
 
     if (tenErr) throw new BadRequestException(tenErr.message);
 
-    return { tenant_id: tenantId, status: 'ACTIVE', is_active: true };
+    // Fire welcome email (non-blocking)
+    this.notificationService.sendTenantWelcomeEmail(tenantId).catch((err) => {
+      console.error('Failed to send welcome email:', err);
+    });
+
+    // Auto-create domain mapping: {slug}.urwaydispatch.com
+    try {
+      await this.addDomainMapping(tenantId, `${onboarding.tenant_id ? '' : ''}${(await supabase.from('tenants').select('slug').eq('id', tenantId).single()).data?.slug}.urwaydispatch.com`);
+    } catch {
+      // Domain mapping may already exist; non-critical
+    }
+
+    return { tenant_id: tenantId, status: 'ACTIVE', is_active: true, next_billing_date: nextBillingDate.toISOString().split('T')[0] };
   }
 
   // ── Add domain mapping ───────────────────────────────────────────
@@ -297,6 +333,162 @@ export class TenantService {
     }
 
     return data;
+  }
+
+  // ── Generate onboarding link (M11.2) ──────────────────────────────
+  async generateOnboardingLink(email: string, companyName?: string) {
+    const supabase = this.supabaseService.getClient();
+
+    // Check for existing unexpired link
+    const { data: existing } = await supabase
+      .from('onboarding_links')
+      .select('id, token, expires_at')
+      .eq('email', email)
+      .eq('status', 'PENDING')
+      .gte('expires_at', new Date().toISOString())
+      .maybeSingle();
+
+    if (existing) {
+      return {
+        token: existing.token,
+        link: `https://urwaydispatch.com/onboard/${existing.token}`,
+        expires_at: existing.expires_at,
+        message: 'Existing active link returned.',
+      };
+    }
+
+    const { data, error } = await supabase
+      .from('onboarding_links')
+      .insert({
+        email,
+        company_name: companyName,
+        status: 'PENDING',
+      })
+      .select('id, token, expires_at')
+      .single();
+
+    if (error) throw new BadRequestException('Failed to generate onboarding link: ' + error.message);
+
+    return {
+      token: data.token,
+      link: `https://urwaydispatch.com/onboard/${data.token}`,
+      expires_at: data.expires_at,
+    };
+  }
+
+  // ── Claim onboarding link ─────────────────────────────────────────
+  async claimOnboardingLink(token: string, tenantRequest: CreateTenantRequest) {
+    const supabase = this.supabaseService.getClient();
+
+    const { data: link, error: linkErr } = await supabase
+      .from('onboarding_links')
+      .select('id, email, status, expires_at')
+      .eq('token', token)
+      .single();
+
+    if (linkErr || !link) {
+      throw new NotFoundException('Onboarding link not found or invalid.');
+    }
+
+    if (link.status !== 'PENDING') {
+      throw new ForbiddenException('This onboarding link has already been claimed.');
+    }
+
+    if (new Date(link.expires_at) < new Date()) {
+      throw new ForbiddenException('This onboarding link has expired.');
+    }
+
+    // Create the tenant
+    const result = await this.createTenant({
+      ...tenantRequest,
+      owner_email: link.email,
+    });
+
+    // Mark link as claimed
+    await supabase
+      .from('onboarding_links')
+      .update({
+        status: 'CLAIMED',
+        claimed_at: new Date().toISOString(),
+        tenant_id: result.tenant_id,
+      })
+      .eq('id', link.id);
+
+    return { ...result, onboarding_link_claimed: true };
+  }
+
+  // ── Upload branding assets (M11.2) ─────────────────────────────────
+  async uploadBrandingAssets(tenantId: string, assets: UploadBrandingAssetsRequest) {
+    const supabase = this.supabaseService.getClient();
+
+    // Validate hex codes
+    const hexPattern = /^#([0-9A-Fa-f]{6})$/;
+    if (assets.primary_hex && !hexPattern.test(assets.primary_hex)) {
+      throw new BadRequestException('primary_hex must be a valid 6-digit hex color (e.g. #1E40AF).');
+    }
+    if (assets.secondary_hex && !hexPattern.test(assets.secondary_hex)) {
+      throw new BadRequestException('secondary_hex must be a valid 6-digit hex color.');
+    }
+
+    // Upsert into tenant_profiles
+    const { data: existing } = await supabase
+      .from('tenant_profiles')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
+
+    if (existing) {
+      const { data, error } = await supabase
+        .from('tenant_profiles')
+        .update({ ...assets, updated_at: new Date().toISOString() })
+        .eq('tenant_id', tenantId)
+        .select()
+        .single();
+
+      if (error) throw new BadRequestException(error.message);
+      return data;
+    } else {
+      const { data, error } = await supabase
+        .from('tenant_profiles')
+        .insert({ tenant_id: tenantId, ...assets })
+        .select()
+        .single();
+
+      if (error) throw new BadRequestException(error.message);
+      return data;
+    }
+  }
+
+  // ── Submit ACH authorization (M11.2) ───────────────────────────────
+  async submitACHAuthorization(tenantId: string, ach: SubmitACHAuthorizationRequest) {
+    const supabase = this.supabaseService.getClient();
+
+    if (!ach.mandate_reference || ach.mandate_reference.trim().length === 0) {
+      throw new BadRequestException('ACH mandate_reference is required.');
+    }
+    if (!ach.bank_last4 || !/^\d{4}$/.test(ach.bank_last4)) {
+      throw new BadRequestException('bank_last4 must be exactly 4 digits.');
+    }
+
+    const { data, error } = await supabase
+      .from('tenant_onboarding')
+      .update({
+        ach_mandate_reference: ach.mandate_reference,
+        ach_bank_last4: ach.bank_last4,
+        ach_authorized_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('tenant_id', tenantId)
+      .select()
+      .single();
+
+    if (error) throw new BadRequestException(error.message);
+
+    return {
+      success: true,
+      message: `ACH authorization recorded. Bank account ending in ${ach.bank_last4}.`,
+      ach_authorized_at: data.ach_authorized_at,
+    };
   }
 
   // ── List all tenants (admin) ─────────────────────────────────────

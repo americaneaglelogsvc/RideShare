@@ -3,9 +3,12 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PaymentService } from '../services/payment.service';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
+import { UseGuards } from '@nestjs/common';
+import { WebhookRateLimitGuard } from '../guards/rate-limit.guard';
 
 @ApiTags('webhooks')
 @Controller('webhooks')
+@UseGuards(WebhookRateLimitGuard)
 export class PaysurityWebhookController {
   constructor(
     private readonly paymentService: PaymentService,
