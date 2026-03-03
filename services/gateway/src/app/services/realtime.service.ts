@@ -86,6 +86,7 @@ export class RealtimeService implements OnModuleInit {
     tripId: string;
     status: string;
     driverId?: string;
+    tenantId?: string;
   }) {
     const supabase = this.supabaseService.getClient();
 
@@ -95,7 +96,9 @@ export class RealtimeService implements OnModuleInit {
     }
 
     try {
-      const channelName = `trip-${event.tripId}`;
+      // G11: Tenant-scoped channel name prevents cross-tenant event leakage
+      const tenantPrefix = event.tenantId ? `t-${event.tenantId}-` : '';
+      const channelName = `${tenantPrefix}trip-${event.tripId}`;
       let channel = this.channels.get(channelName);
 
       if (!channel) {
@@ -113,11 +116,12 @@ export class RealtimeService implements OnModuleInit {
     }
   }
 
-  async subscribeToDriverUpdates(driverId: string, callback: (data: any) => void) {
+  async subscribeToDriverUpdates(tenantId: string, driverId: string, callback: (data: any) => void) {
     const supabase = this.supabaseService.getClient();
     
+    // G11: Tenant-scoped channel name
     const channel = supabase
-      .channel(`driver-${driverId}`)
+      .channel(`t-${tenantId}-driver-${driverId}`)
       .on('postgres_changes',
         { 
           event: '*', 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Car, MapPin, Clock, DollarSign, ArrowLeft } from 'lucide-react';
+import { riderApiService } from '../services/api.service';
 
 interface QuoteData {
   total_cents: number;

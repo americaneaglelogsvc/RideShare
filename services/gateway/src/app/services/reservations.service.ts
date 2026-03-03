@@ -101,7 +101,7 @@ export class ReservationsService {
     }
   }
 
-  async getBookingStatus(bookingId: string) {
+  async getBookingStatus(bookingId: string, tenantId: string) {
     const supabase = this.supabaseService.getClient();
 
     try {
@@ -111,7 +111,7 @@ export class ReservationsService {
           *,
           trips (
             *,
-            drivers (
+            driver_profiles (
               first_name,
               last_name,
               phone,
@@ -126,6 +126,7 @@ export class ReservationsService {
           )
         `)
         .eq('id', bookingId)
+        .eq('tenant_id', tenantId)
         .single();
 
       if (error || !booking) {
@@ -133,7 +134,7 @@ export class ReservationsService {
       }
 
       const trip = booking.trips;
-      const driver = trip?.drivers;
+      const driver = trip?.driver_profiles;
 
       return {
         booking_id: booking.id,
@@ -141,7 +142,7 @@ export class ReservationsService {
         trip_status: trip?.status,
         driver_info: driver ? {
           name: `${driver.first_name} ${driver.last_name}`,
-          phone: driver.phone,
+          phone: driver.phone ? driver.phone.slice(0, 4) + '••••' + driver.phone.slice(-2) : '',
           vehicle: `${driver.vehicles[0]?.year} ${driver.vehicles[0]?.make} ${driver.vehicles[0]?.model}`,
           license_plate: driver.vehicles[0]?.license_plate
         } : null
@@ -153,15 +154,27 @@ export class ReservationsService {
     }
   }
 
-  async cancelBooking(bookingId: string) {
+  async cancelBooking(bookingId: string, tenantId: string) {
     const supabase = this.supabaseService.getClient();
 
     try {
       // Update booking status
+      const { data: bookingCheck } = await supabase
+        .from('bookings')
+        .select('trip_id')
+        .eq('id', bookingId)
+        .eq('tenant_id', tenantId)
+        .single();
+
+      if (!bookingCheck) {
+        throw new Error('Booking not found');
+      }
+
       const { error: bookingError } = await supabase
         .from('bookings')
         .update({ status: 'cancelled' })
-        .eq('id', bookingId);
+        .eq('id', bookingId)
+        .eq('tenant_id', tenantId);
 
       if (bookingError) {
         throw new Error('Failed to cancel booking');
@@ -172,18 +185,21 @@ export class ReservationsService {
         .from('bookings')
         .select('trip_id')
         .eq('id', bookingId)
+        .eq('tenant_id', tenantId)
         .single();
 
       if (booking?.trip_id) {
         await supabase
           .from('trips')
           .update({ status: 'cancelled' })
-          .eq('id', booking.trip_id);
+          .eq('id', booking.trip_id)
+          .eq('tenant_id', tenantId);
 
         await supabase
           .from('ride_offers')
           .update({ status: 'cancelled' })
-          .eq('trip_id', booking.trip_id);
+          .eq('trip_id', booking.trip_id)
+          .eq('status', 'pending');
       }
 
       return {

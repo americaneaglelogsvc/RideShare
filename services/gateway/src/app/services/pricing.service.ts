@@ -5,6 +5,7 @@ interface QuoteRequest {
   pickup: { lat: number; lng: number };
   dropoff: { lat: number; lng: number };
   category: string;
+  tenantId?: string;
 }
 
 interface QuoteResponse {
@@ -35,10 +36,11 @@ export class PricingService {
       
       const estimatedDuration = Math.ceil(distance * 2.5); // 2.5 minutes per mile average
       
-      // Get current surge multiplier from database
+      // G17: Get tenant-scoped surge multiplier from database
       const surgeMultiplier = await this.getCurrentSurgeMultiplier(
         request.pickup.lat,
-        request.pickup.lng
+        request.pickup.lng,
+        request.tenantId
       );
 
       // Base pricing structure
@@ -100,16 +102,22 @@ export class PricingService {
     }
   }
 
-  private async getCurrentSurgeMultiplier(lat: number, lng: number): Promise<number> {
+  private async getCurrentSurgeMultiplier(lat: number, lng: number, tenantId?: string): Promise<number> {
     const supabase = this.supabaseService.getClient();
 
     try {
-      // Get demand data from recent trip requests in the area
-      const { data: recentTrips, error } = await supabase
+      // G17: Tenant-scoped demand query — only count trips for this tenant
+      let query = supabase
         .from('trips')
         .select('created_at')
         .gte('created_at', new Date(Date.now() - 30 * 60 * 1000).toISOString()) // Last 30 minutes
         .order('created_at', { ascending: false });
+
+      if (tenantId) {
+        query = query.eq('tenant_id', tenantId);
+      }
+
+      const { data: recentTrips, error } = await query;
 
       if (error || !recentTrips) {
         return 1.0; // Default no surge

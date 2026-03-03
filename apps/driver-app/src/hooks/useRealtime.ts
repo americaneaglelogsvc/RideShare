@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../services/supabase.service';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 export interface RideOffer {
   id: string;
   trip_id: string;
@@ -87,11 +89,12 @@ export const useRealtime = (driverId: string | null) => {
 
   const acceptOffer = async (offerId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/driver/offers/${offerId}/respond`, {
+      const response = await fetch(`${API_BASE_URL}/driver/offers/${offerId}/respond`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('driver_token')}`
+          'Authorization': `Bearer ${localStorage.getItem('driver_token')}`,
+          'x-tenant-id': localStorage.getItem('tenant_id') || '',
         },
         body: JSON.stringify({
           offerId,
@@ -112,11 +115,12 @@ export const useRealtime = (driverId: string | null) => {
 
   const declineOffer = async (offerId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/driver/offers/${offerId}/respond`, {
+      const response = await fetch(`${API_BASE_URL}/driver/offers/${offerId}/respond`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('driver_token')}`
+          'Authorization': `Bearer ${localStorage.getItem('driver_token')}`,
+          'x-tenant-id': localStorage.getItem('tenant_id') || '',
         },
         body: JSON.stringify({
           offerId,

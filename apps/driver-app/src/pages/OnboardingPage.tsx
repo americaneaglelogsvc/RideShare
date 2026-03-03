@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Car, FileText, Camera, CheckCircle, Upload, User, Phone, Mail } from 'lucide-react';
+import { apiService } from '../services/api.service';
 
 export function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -554,10 +555,25 @@ export function OnboardingPage() {
               </button>
             ) : (
               <button
-                onClick={() => {
-                  // TODO: Submit application
-                  console.log('Submitting application:', formData);
-                  alert('Application submitted successfully!');
+                onClick={async () => {
+                  try {
+                    const result = await apiService.register({
+                      email: formData.email,
+                      password: '', // Will be set via auth flow
+                      firstName: formData.firstName,
+                      lastName: formData.lastName,
+                      phone: formData.phone,
+                      address: formData.address,
+                    });
+                    if (result.success) {
+                      alert('Application submitted successfully! You will be notified once approved.');
+                    } else {
+                      alert(result.message || 'Submission failed. Please try again.');
+                    }
+                  } catch (err: any) {
+                    console.error('Onboarding submission error:', err);
+                    alert('Submission failed. Please check your connection and try again.');
+                  }
                 }}
                 className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
               >

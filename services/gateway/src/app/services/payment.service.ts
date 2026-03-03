@@ -142,9 +142,9 @@ export class PaymentService {
     const supabase = this.supabaseService.getClient();
 
     try {
-      // Get driver information
+      // Get driver information (tenant-scoped via driver_profiles)
       const { data: driver, error: driverError } = await supabase
-        .from('drivers')
+        .from('driver_profiles')
         .select('*')
         .eq('id', request.driver_id)
         .single();
