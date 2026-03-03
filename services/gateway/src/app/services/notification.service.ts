@@ -1,5 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
+import { EmailService, TenantBranding } from './email.service';
+import { SmsService } from './sms.service';
 
 export interface NotificationPayload {
   tenantId: string;
@@ -13,7 +15,11 @@ export interface NotificationPayload {
 export class NotificationService {
   private readonly logger = new Logger(NotificationService.name);
 
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    @Optional() private readonly emailService?: EmailService,
+    @Optional() private readonly smsService?: SmsService,
+  ) {}
 
   /**
    * Dispatch a notification event. Logs to notification_log and,
@@ -45,15 +51,33 @@ export class NotificationService {
       throw error;
     }
 
-    // In production: call email API here, then update status to SENT
-    // For now, mark as SENT since we've logged it
+    // Send real email via EmailService if configured
+    let deliveryStatus = 'LOGGED';
+    if (this.emailService) {
+      try {
+        const branding = await this.getTenantBranding(payload.tenantId);
+        const html = this.emailService.buildBrandedHtml(branding, `<div>${body.replace(/\n/g, '<br>')}</div>`);
+        await this.emailService.send({
+          to: payload.recipientEmail,
+          subject: payload.subject,
+          html,
+          tenantId: payload.tenantId,
+          eventType: payload.eventType,
+        });
+        deliveryStatus = 'SENT';
+      } catch (emailErr: any) {
+        this.logger.error(`Email delivery failed: ${emailErr.message}`);
+        deliveryStatus = 'DELIVERY_FAILED';
+      }
+    }
+
     await supabase
       .from('notification_log')
-      .update({ status: 'SENT', sent_at: new Date().toISOString() })
+      .update({ status: deliveryStatus, sent_at: deliveryStatus === 'SENT' ? new Date().toISOString() : null })
       .eq('id', data.id);
 
-    this.logger.log(`Notification [${payload.eventType}] sent to ${payload.recipientEmail}`);
-    return { id: data.id, status: 'SENT' };
+    this.logger.log(`Notification [${payload.eventType}] ${deliveryStatus} to ${payload.recipientEmail}`);
+    return { id: data.id, status: deliveryStatus };
   }
 
   /**
@@ -178,5 +202,112 @@ Reason: ${d.failure_reason}
 Please update your ACH authorization or contact us at ${d.support_email} to resolve this issue promptly.
 
 The UrWay Dispatch Team`;
+  }
+
+  // ── Phase 7.0: Tenant Branding Resolver ────────────────────────────────
+
+  async getTenantBranding(tenantId: string): Promise<TenantBranding> {
+    const supabase = this.supabaseService.getClient();
+
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('name, owner_email')
+      .eq('id', tenantId)
+      .single();
+
+    const { data: onboarding } = await supabase
+      .from('tenant_onboarding')
+      .select('logo_svg_url, primary_hex, secondary_hex, welcome_message')
+      .eq('tenant_id', tenantId)
+      .single();
+
+    return {
+      tenantName: tenant?.name || 'UrWay Dispatch',
+      logoUrl: onboarding?.logo_svg_url || '',
+      primaryHex: onboarding?.primary_hex || '#1a1a2e',
+      secondaryHex: onboarding?.secondary_hex || '#16213e',
+      supportEmail: tenant?.owner_email || 'support@urwaydispatch.com',
+    };
+  }
+
+  // ── Phase 7.0: Ride-Lifecycle Notifications ────────────────────────────
+
+  async sendRideConfirmationSms(
+    tenantId: string,
+    riderPhone: string,
+    driverName: string,
+    eta: string,
+  ) {
+    if (!this.smsService) return;
+    return this.smsService.sendRideConfirmation(tenantId, riderPhone, driverName, eta);
+  }
+
+  async sendDriverArrivingSms(
+    tenantId: string,
+    riderPhone: string,
+    driverName: string,
+    minutesAway: number,
+  ) {
+    if (!this.smsService) return;
+    return this.smsService.sendDriverArriving(tenantId, riderPhone, driverName, minutesAway);
+  }
+
+  async sendTripReceiptNotification(
+    tenantId: string,
+    riderEmail: string,
+    riderPhone: string,
+    data: { tripId: string; fareDollars: string; driverName: string; pickupAddress: string; dropoffAddress: string; dateTime: string },
+  ) {
+    // Send email receipt with branding
+    if (this.emailService && riderEmail) {
+      try {
+        const branding = await this.getTenantBranding(tenantId);
+        await this.emailService.sendRideReceipt(tenantId, riderEmail, branding, data);
+      } catch (err: any) {
+        this.logger.error(`Receipt email failed: ${err.message}`);
+      }
+    }
+
+    // Send SMS receipt
+    if (this.smsService && riderPhone) {
+      await this.smsService.sendTripReceipt(tenantId, riderPhone, data.fareDollars, data.tripId);
+    }
+  }
+
+  async sendTripCancelledNotification(
+    tenantId: string,
+    riderPhone: string,
+    driverPhone: string,
+    cancelledBy: string,
+  ) {
+    if (!this.smsService) return;
+    if (riderPhone) await this.smsService.sendTripCancelled(tenantId, riderPhone, cancelledBy);
+    if (driverPhone) await this.smsService.sendTripCancelled(tenantId, driverPhone, cancelledBy);
+  }
+
+  async sendPayoutNotification(
+    tenantId: string,
+    driverEmail: string,
+    driverPhone: string,
+    amountDollars: string,
+    estimatedArrival: string,
+  ) {
+    // Email
+    if (this.emailService && driverEmail) {
+      try {
+        const branding = await this.getTenantBranding(tenantId);
+        await this.emailService.sendPayoutConfirmation(tenantId, driverEmail, branding, {
+          amountDollars,
+          estimatedArrival,
+        });
+      } catch (err: any) {
+        this.logger.error(`Payout email failed: ${err.message}`);
+      }
+    }
+
+    // SMS
+    if (this.smsService && driverPhone) {
+      await this.smsService.sendPayoutCompleted(tenantId, driverPhone, amountDollars);
+    }
   }
 }

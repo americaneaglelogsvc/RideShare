@@ -1,5 +1,6 @@
-import { Controller, Post, Get, Put, Patch, Body, Param, Req } from '@nestjs/common';
+import { Controller, Post, Get, Put, Patch, Body, Param, Req, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard, Public } from '../guards/jwt-auth.guard';
 import {
   TenantService,
   CreateTenantRequest,
@@ -13,9 +14,12 @@ import { TenantRequest } from '../tenant-context.middleware';
 
 @ApiTags('tenants')
 @Controller('tenants')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class TenantController {
   constructor(private readonly tenantService: TenantService) {}
 
+  @Public()
   @Post()
   @ApiOperation({ summary: 'Create a new tenant (self-service)' })
   @ApiResponse({ status: 201, description: 'Tenant created with DRAFT onboarding' })
@@ -109,6 +113,7 @@ export class TenantController {
     return this.tenantService.generateOnboardingLink(body.email, body.company_name);
   }
 
+  @Public()
   @Post('onboarding-links/:token/claim')
   @ApiOperation({ summary: 'Claim an onboarding link and create a tenant' })
   @ApiResponse({ status: 201, description: 'Tenant created from onboarding link' })

@@ -6,6 +6,8 @@ import { firstValueFrom } from 'rxjs';
 export interface FluidpayPaymentRequest {
   amount: number; // Amount in cents
   currency: string;
+  tenant_id?: string;          // Phase 7.0: Multi-tenant routing
+  sub_merchant_id?: string;    // Phase 7.0: Per-tenant sub-merchant
   customer: {
     name: string;
     email?: string;
@@ -81,14 +83,16 @@ export class FluidpayService {
   }
 
   async createPayment(request: FluidpayPaymentRequest): Promise<FluidpayPaymentResponse> {
+    // Phase 7.0: Enrich metadata with tenant routing info
+    const enrichedRequest = this.enrichWithTenantMetadata(request);
+
     if (!this.apiKey) {
-      // Return mock response for development
-      return this.createMockPaymentResponse(request);
+      return this.createMockPaymentResponse(enrichedRequest);
     }
 
     try {
       const response: any = await firstValueFrom(
-        this.httpService.post(`${this.baseUrl}/payments`, request, {
+        this.httpService.post(`${this.baseUrl}/payments`, enrichedRequest, {
           headers: this.getHeaders()
         })
       );
@@ -121,13 +125,15 @@ export class FluidpayService {
   }
 
   async createPayout(request: FluidpayPayoutRequest): Promise<any> {
+    // Phase 7.0: Enrich metadata with tenant routing info
+    const enrichedRequest = this.enrichPayoutWithTenantMetadata(request);
+
     if (!this.apiKey) {
-      // Return mock response for development
       return {
         id: `payout_${Date.now()}`,
         status: 'pending',
-        amount: request.amount,
-        currency: request.currency,
+        amount: enrichedRequest.amount,
+        currency: enrichedRequest.currency,
         created_at: new Date().toISOString(),
         estimated_arrival: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days
       };
@@ -135,7 +141,7 @@ export class FluidpayService {
 
     try {
       const response: any = await firstValueFrom(
-        this.httpService.post(`${this.baseUrl}/payouts`, request, {
+        this.httpService.post(`${this.baseUrl}/payouts`, enrichedRequest, {
           headers: this.getHeaders()
         })
       );
@@ -182,6 +188,31 @@ export class FluidpayService {
       currency: request.currency || 'USD',
       created_at: new Date().toISOString(),
       receipt_url: `https://receipts.fluidpay.com/mock_${Date.now()}`
+    };
+  }
+
+  // Phase 7.0: Multi-tenant metadata enrichment
+  private enrichWithTenantMetadata(request: FluidpayPaymentRequest): FluidpayPaymentRequest {
+    return {
+      ...request,
+      metadata: {
+        ...request.metadata,
+        tenant_id: request.tenant_id || request.metadata?.tenant_id || 'unknown',
+        sub_merchant_id: request.sub_merchant_id || request.metadata?.sub_merchant_id,
+        platform: 'urway_dispatch',
+        api_version: '7.0',
+      },
+    };
+  }
+
+  private enrichPayoutWithTenantMetadata(request: FluidpayPayoutRequest): FluidpayPayoutRequest {
+    return {
+      ...request,
+      metadata: {
+        ...request.metadata,
+        platform: 'urway_dispatch',
+        api_version: '7.0',
+      },
     };
   }
 

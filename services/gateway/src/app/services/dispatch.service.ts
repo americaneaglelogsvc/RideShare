@@ -8,6 +8,7 @@ export enum TripStatus {
   ASSIGNED = 'assigned',
   ACTIVE = 'active',
   COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
 }
 
 const DEFAULT_MAX_DISTANCE_MILES = 5;
@@ -326,6 +327,15 @@ export class DispatchService {
         .eq('id', tripId)
         .single();
 
+      // H1: Record TRIP_ASSIGNED ledger event for audit trail
+      await this.ledgerService.recordLedgerEvent({
+        eventType: 'TRIP_ASSIGNED',
+        tripId,
+        tenantId,
+        driverId,
+        fareCents: updatedTrip?.fare_cents || 0,
+      });
+
       await this.realtimeService.emitTripStateChanged({
         tripId,
         status: TripStatus.ASSIGNED,
@@ -356,6 +366,15 @@ export class DispatchService {
       if (error || !updatedTrip) {
         return { success: false, message: 'Trip cannot be started in its current state' };
       }
+
+      // H1: Record TRIP_STARTED ledger event for audit trail
+      await this.ledgerService.recordLedgerEvent({
+        eventType: 'TRIP_STARTED',
+        tripId,
+        tenantId,
+        driverId: updatedTrip.driver_id,
+        fareCents: updatedTrip.fare_cents || 0,
+      });
 
       await this.realtimeService.emitTripStateChanged({
         tripId,
@@ -492,6 +511,109 @@ export class DispatchService {
     } catch (error) {
       console.error('Error accepting ride offer:', error);
       return false;
+    }
+  }
+
+  // C4: Cancel a trip — supports rider, driver, or system cancellation
+  async cancelTrip(
+    tenantId: string,
+    tripId: string,
+    cancelledBy: 'rider' | 'driver' | 'system',
+    reason?: string,
+  ): Promise<{ success: boolean; trip?: any; cancellationFeeCents?: number; message?: string }> {
+    const supabase = this.supabaseService.getClient();
+
+    try {
+      // Fetch current trip state
+      const { data: trip, error: fetchError } = await supabase
+        .from('trips')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('id', tripId)
+        .single();
+
+      if (fetchError || !trip) {
+        return { success: false, message: 'Trip not found' };
+      }
+
+      // Can only cancel trips that are requested, assigned, or active
+      if (![TripStatus.REQUESTED, TripStatus.ASSIGNED, TripStatus.ACTIVE].includes(trip.status as TripStatus)) {
+        return { success: false, message: `Trip cannot be cancelled in '${trip.status}' state` };
+      }
+
+      // Calculate cancellation fee: apply fee if trip is ASSIGNED or ACTIVE and cancelled by rider
+      let cancellationFeeCents = 0;
+      if (cancelledBy === 'rider' && trip.status !== TripStatus.REQUESTED) {
+        // Late cancel penalty: $5.00 flat + 10% of estimated fare
+        const lateCancelFlat = 500;
+        const lateCancelPct = Math.floor((trip.fare_cents || 0) * 0.10);
+        cancellationFeeCents = lateCancelFlat + lateCancelPct;
+      }
+
+      // Update trip to cancelled
+      const { data: updatedTrip, error: updateError } = await supabase
+        .from('trips')
+        .update({
+          status: TripStatus.CANCELLED,
+          cancelled_by: cancelledBy,
+          cancellation_reason: reason || null,
+          cancellation_fee_cents: cancellationFeeCents,
+          cancelled_at: new Date().toISOString(),
+        })
+        .eq('id', tripId)
+        .eq('tenant_id', tenantId)
+        .select('*')
+        .single();
+
+      if (updateError || !updatedTrip) {
+        return { success: false, message: 'Failed to cancel trip' };
+      }
+
+      // Release driver back to available if assigned
+      if (trip.driver_id) {
+        await supabase
+          .from('driver_profiles')
+          .update({ status: 'online' })
+          .eq('tenant_id', tenantId)
+          .eq('id', trip.driver_id);
+      }
+
+      // Decline all pending offers for this trip
+      await supabase
+        .from('ride_offers')
+        .update({ status: 'declined' })
+        .eq('tenant_id', tenantId)
+        .eq('trip_id', tripId)
+        .eq('status', 'pending');
+
+      // Record TRIP_CANCELLED ledger event
+      await this.ledgerService.recordLedgerEvent({
+        eventType: 'TRIP_CANCELLED',
+        tripId,
+        tenantId,
+        driverId: trip.driver_id || null,
+        fareCents: cancellationFeeCents,
+        metadata: { cancelled_by: cancelledBy, reason },
+      });
+
+      await this.realtimeService.emitTripStateChanged({
+        tripId,
+        status: TripStatus.CANCELLED as any,
+        driverId: trip.driver_id,
+      });
+
+      return {
+        success: true,
+        trip: updatedTrip,
+        cancellationFeeCents,
+        message: cancellationFeeCents > 0
+          ? `Trip cancelled. Cancellation fee: $${(cancellationFeeCents / 100).toFixed(2)} USD.`
+          : 'Trip cancelled. No fee applied.',
+      };
+
+    } catch (e: any) {
+      console.error('cancelTrip failed:', e?.message || e);
+      return { success: false, message: 'cancelTrip failed' };
     }
   }
 

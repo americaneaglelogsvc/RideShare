@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AdminService } from '../services/admin.service';
 import { BillingCronService } from '../services/billing-cron.service';
@@ -14,6 +14,7 @@ import { GeoZoneService } from '../services/geozone.service';
 import { ConsentService } from '../services/consent.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { AdminRateLimitGuard } from '../guards/rate-limit.guard';
+import { IdempotencyGuard, IdempotencyInterceptor } from '../guards/idempotency.guard';
 
 @ApiTags('admin')
 @Controller('admin')
@@ -127,6 +128,8 @@ export class AdminController {
   }
 
   @Post('ops/billing/:tenantId/retry')
+  @UseGuards(IdempotencyGuard)
+  @UseInterceptors(IdempotencyInterceptor)
   @ApiOperation({ summary: 'M5.2: Retry failed billing for a tenant' })
   @ApiResponse({ status: 200, description: 'Billing retry initiated' })
   async retryBilling(@Param('tenantId') tenantId: string) {
@@ -160,6 +163,8 @@ export class AdminController {
   }
 
   @Post('refunds')
+  @UseGuards(IdempotencyGuard)
+  @UseInterceptors(IdempotencyInterceptor)
   @ApiOperation({ summary: 'M5.3: Initiate a multi-step refund' })
   @ApiResponse({ status: 200, description: 'Refund processed' })
   async initiateRefund(
@@ -230,6 +235,8 @@ export class AdminController {
   // ── M5.4: Distribution ───────────────────────────────────────────────
 
   @Post('distribution/settle')
+  @UseGuards(IdempotencyGuard)
+  @UseInterceptors(IdempotencyInterceptor)
   @ApiOperation({ summary: 'M5.4: Execute settlement split for a trip' })
   @ApiResponse({ status: 200, description: 'Settlement split executed' })
   async executeSettlementSplit(
@@ -311,6 +318,8 @@ export class AdminController {
   }
 
   @Post('disputes/:disputeId/resolve')
+  @UseGuards(IdempotencyGuard)
+  @UseInterceptors(IdempotencyInterceptor)
   @ApiOperation({ summary: 'M5.5: Resolve a dispute (won/lost/expired)' })
   @ApiResponse({ status: 200, description: 'Dispute resolved' })
   async resolveDispute(

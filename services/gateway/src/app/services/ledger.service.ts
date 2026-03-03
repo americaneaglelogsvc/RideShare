@@ -34,4 +34,39 @@ export class LedgerService {
 
     return { success: true };
   }
+
+  /**
+   * Phase 7.0: Generic ledger event recorder for trip lifecycle events.
+   * Supports: TRIP_ASSIGNED, TRIP_STARTED, TRIP_CANCELLED, and any future event types.
+   */
+  async recordLedgerEvent(event: {
+    eventType: string;
+    tripId: string;
+    tenantId: string;
+    driverId: string | null;
+    fareCents: number;
+    metadata?: Record<string, any>;
+  }) {
+    const supabase = this.supabaseService.getClient();
+
+    const { error } = await supabase.from('ledger_entries').insert({
+      event_type: event.eventType,
+      trip_id: event.tripId,
+      tenant_id: event.tenantId,
+      driver_id: event.driverId,
+      fare_cents: event.fareCents,
+      platform_fee_cents: 0,
+      tenant_net_cents: 0,
+      driver_payout_cents: 0,
+      created_at: new Date().toISOString(),
+      metadata: event.metadata || null,
+    });
+
+    if (error) {
+      // Non-blocking: log but don't throw for lifecycle events
+      console.error(`Ledger event [${event.eventType}] insert failed: ${error.message || JSON.stringify(error)}`);
+    }
+
+    return { success: !error };
+  }
 }

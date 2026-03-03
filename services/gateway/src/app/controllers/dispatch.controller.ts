@@ -128,4 +128,15 @@ export class DispatchController {
     const tenantId = req.tenantId as string;
     return this.dispatchService.completeTrip(tenantId, request.trip_id);
   }
+
+  @Put('cancel-trip')
+  @ApiOperation({ summary: 'Cancel a trip (REQUESTED/ASSIGNED/ACTIVE -> CANCELLED) with optional fee' })
+  @ApiResponse({ status: 200, description: 'Trip cancelled' })
+  async cancelTrip(
+    @Req() req: ExpressRequest & { tenantId?: string },
+    @Body() request: { trip_id: string; cancelled_by: 'rider' | 'driver' | 'system'; reason?: string },
+  ) {
+    const tenantId = req.tenantId as string;
+    return this.dispatchService.cancelTrip(tenantId, request.trip_id, request.cancelled_by, request.reason);
+  }
 }

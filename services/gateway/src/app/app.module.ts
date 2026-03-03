@@ -36,6 +36,12 @@ import { TenantAnalyticsService } from './services/tenant-analytics.service';
 import { VipAnalyticsService } from './services/vip-analytics.service';
 import { GlobalMonitorService } from './services/global-monitor.service';
 import { ReferralDistributionService } from './services/referral-distribution.service';
+import { S3Service } from './services/s3.service';
+import { SmsService } from './services/sms.service';
+import { EmailService } from './services/email.service';
+import { SkinningService } from './services/skinning.service';
+import { BrandingInvoiceService } from './services/branding-invoice.service';
+import { MarketplaceLiquidityService } from './services/marketplace-liquidity.service';
 import { HealthController } from './controllers/health.controller';
 import { DriverController } from './controllers/driver.controller';
 import { DispatchController } from './controllers/dispatch.controller';
@@ -46,6 +52,7 @@ import { PaysurityWebhookController } from './controllers/paysurity-webhook.cont
 import { DeveloperController } from './controllers/developer.controller';
 import { ComplianceController } from './controllers/compliance.controller';
 import { TenantDashboardController } from './controllers/tenant-dashboard.controller';
+import { SeoController } from './controllers/seo.controller';
 import { DriverSocketGateway } from './gateways/driver-socket.gateway';
 import { TenantContextMiddleware } from './tenant-context.middleware';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -70,6 +77,7 @@ import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.
     DeveloperController,
     ComplianceController,
     TenantDashboardController,
+    SeoController,
   ],
   providers: [
     SupabaseService,
@@ -106,6 +114,12 @@ import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.
     VipAnalyticsService,
     GlobalMonitorService,
     ReferralDistributionService,
+    S3Service,
+    SmsService,
+    EmailService,
+    SkinningService,
+    BrandingInvoiceService,
+    MarketplaceLiquidityService,
     DriverSocketGateway,
     TenantContextMiddleware,
     JwtAuthGuard,

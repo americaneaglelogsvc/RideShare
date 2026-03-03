@@ -66,6 +66,31 @@ export class TenantContextMiddleware implements NestMiddleware {
       // If tenant lookup fails (e.g. Supabase unavailable), allow request to proceed
     }
 
+    // C3: Compliance Gatekeeper — block dispatch if tenant onboarding is not ACTIVE
+    const dispatchPaths = ['/dispatch/dispatch-ride', '/dispatch/find-drivers'];
+    const isDispatchRoute = dispatchPaths.some(p => req.path.startsWith(p));
+
+    if (isDispatchRoute) {
+      try {
+        const supabase = this.supabaseService.getClient();
+        const { data: onboarding } = await supabase
+          .from('tenant_onboarding')
+          .select('status')
+          .eq('tenant_id', tenantId)
+          .single();
+
+        if (!onboarding || onboarding.status !== 'ACTIVE') {
+          throw new HttpException(
+            `Dispatch blocked: tenant onboarding status is '${onboarding?.status || 'UNKNOWN'}'. Only ACTIVE tenants may dispatch rides.`,
+            HttpStatus.FORBIDDEN,
+          );
+        }
+      } catch (e) {
+        if (e instanceof HttpException) throw e;
+        // If lookup fails, allow request (fail-open for availability)
+      }
+    }
+
     req.tenantId = tenantId;
     next();
   }

@@ -2,9 +2,12 @@ import { Controller, Post, Get, Body, Param, Headers, RawBodyRequest, Req, UseGu
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { PaymentService, PaymentRequest, PayoutRequest } from '../services/payment.service';
 import { IdempotencyGuard, IdempotencyInterceptor } from '../guards/idempotency.guard';
+import { JwtAuthGuard, Public } from '../guards/jwt-auth.guard';
 
 @ApiTags('payments')
 @Controller('payments')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
@@ -13,7 +16,6 @@ export class PaymentController {
   @UseInterceptors(IdempotencyInterceptor)
   @ApiOperation({ summary: 'Process payment for a trip' })
   @ApiResponse({ status: 200, description: 'Payment processed successfully' })
-  @ApiBearerAuth()
   async processPayment(@Body() request: PaymentRequest) {
     return this.paymentService.processPayment(request);
   }
@@ -23,7 +25,6 @@ export class PaymentController {
   @UseInterceptors(IdempotencyInterceptor)
   @ApiOperation({ summary: 'Process payout to driver' })
   @ApiResponse({ status: 200, description: 'Payout processed successfully' })
-  @ApiBearerAuth()
   async processDriverPayout(@Body() request: PayoutRequest) {
     return this.paymentService.processDriverPayout(request);
   }
@@ -31,7 +32,6 @@ export class PaymentController {
   @Get(':paymentId/status')
   @ApiOperation({ summary: 'Get payment status' })
   @ApiResponse({ status: 200, description: 'Payment status retrieved' })
-  @ApiBearerAuth()
   async getPaymentStatus(@Param('paymentId') paymentId: string) {
     return this.paymentService.getPaymentStatus(paymentId);
   }
@@ -41,7 +41,6 @@ export class PaymentController {
   @UseInterceptors(IdempotencyInterceptor)
   @ApiOperation({ summary: 'Refund a payment' })
   @ApiResponse({ status: 200, description: 'Refund processed successfully' })
-  @ApiBearerAuth()
   async refundPayment(
     @Param('paymentId') paymentId: string,
     @Body() body: { amount?: number }
@@ -49,6 +48,7 @@ export class PaymentController {
     return this.paymentService.refundPayment(paymentId, body.amount);
   }
 
+  @Public()
   @Post('webhook')
   @ApiOperation({ summary: 'Handle Fluidpay webhooks' })
   @ApiResponse({ status: 200, description: 'Webhook processed successfully' })
