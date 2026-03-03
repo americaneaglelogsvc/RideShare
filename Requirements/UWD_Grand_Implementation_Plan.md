@@ -911,4 +911,75 @@ New columns on `tenant_onboarding`: `marketplace_surcharge_bps`, `referral_fee_b
 
 M1.5 (Concurrency) -> M1.4 (Miles Scan) -> M9.10 (Health) -> M5.11 (Referral Split) -> M12.4 (Blue/Green) -> Cross-Cutting
 
-All milestones completed. Zero TypeScript errors. All wired into AppModule.
+All Launch Hardening milestones completed. Zero TypeScript errors. All wired into AppModule.
+
+---
+
+## PHASE 7.0: IRON SHIELD & GLASS UI (Final Integration)
+
+### I. Infrastructure & Security ("Safe-Room")
+
+| ID | Milestone | Status |
+|----|-----------|--------|
+| 7.1.1 | Git Push (8 commits) + 90+ stale branch pruning | DONE |
+| 7.1.2 | C1: JwtAuthGuard on PaymentController | DONE |
+| 7.1.3 | C2: JwtAuthGuard on TenantController + @Public on self-service | DONE |
+| 7.1.4 | C6: RLS on 13 missing tables (migration 1008) | DONE |
+| 7.1.5 | H2: IdempotencyGuard on admin financial POSTs (settle, refund, billing, dispute) | DONE |
+| 7.1.6 | SEO: SeoController (robots.txt, sitemap.xml, tenant meta-tags) | DONE |
+
+### II. Environmental Wiring (Twilio, S3, SMTP)
+
+| ID | Milestone | Status |
+|----|-----------|--------|
+| 7.2.1 | S3Service — tenant-scoped file storage (logos, compliance docs, receipts) | DONE |
+| 7.2.2 | SmsService — Twilio SMS (ride confirmation, ETA, receipt, cancellation, payout) | DONE |
+| 7.2.3 | EmailService — SendGrid branded HTML emails (receipts, invoices, security alerts) | DONE |
+| 7.2.4 | NotificationService upgraded — wired to EmailService + SmsService + tenant branding | DONE |
+| 7.2.5 | H5: FluidPay tenant_id + sub_merchant_id metadata enrichment | DONE |
+| 7.2.6 | .env.example updated with all 20+ environment variables | DONE |
+
+### III. Financial & Logic Repairs ("Deep Wiring")
+
+| ID | Milestone | Status |
+|----|-----------|--------|
+| 7.3.1 | C4: cancelTrip() — rider/driver/system cancellation + late-cancel fee ($5 + 10%) | DONE |
+| 7.3.2 | PUT /dispatch/cancel-trip endpoint wired | DONE |
+| 7.3.3 | H1: TRIP_ASSIGNED ledger event in acceptOffer | DONE |
+| 7.3.4 | H1: TRIP_STARTED ledger event in startTrip | DONE |
+| 7.3.5 | TRIP_CANCELLED ledger event in cancelTrip | DONE |
+| 7.3.6 | LedgerService.recordLedgerEvent() — generic lifecycle event recorder | DONE |
+| 7.3.7 | C3: Compliance Gatekeeper — blocks dispatch if onboarding.status != ACTIVE | DONE |
+
+### IV. Branding, Skinning & Invoicing ("Product")
+
+| ID | Milestone | Status |
+|----|-----------|--------|
+| 7.4.1 | SkinningService — CSS variable architecture (--primary, --accent, 15+ vars) | DONE |
+| 7.4.2 | Tenant skin cache (5-min TTL) + invalidation on branding update | DONE |
+| 7.4.3 | BrandingInvoiceService — $5K/$2.5K fee schedule, approval workflow | DONE |
+| 7.4.4 | branding_requests table + RLS (migration 1008) | DONE |
+| 7.4.5 | Automated PDF invoice email on Super-Admin approval | DONE |
+
+### V. AI Marketplace Liquidity ("Intelligent Bourse")
+
+| ID | Milestone | Status |
+|----|-----------|--------|
+| 7.5.1 | MarketplaceLiquidityService — Silent Handshake spill-over (30s cron) | DONE |
+| 7.5.2 | Cross-tenant driver matching within 5-mile radius | DONE |
+| 7.5.3 | spill_over_enabled + custom_css_json columns on tenant_onboarding | DONE |
+| 7.5.4 | Marketplace status endpoint (unfulfilled trips, active spill-overs) | DONE |
+
+### VI. Database Migration 1008 Summary
+
+File: supabase/migrations/1008_phase7_iron_shield.sql
+
+RLS on 14 tables, trip cancellation columns, branding_requests table, ledger metadata column, spill_over_enabled + custom_css_json on tenant_onboarding, idx_tenant_onboarding_status index.
+
+---
+
+## PHASE 7.0 IMPLEMENTATION SEQUENCE
+
+7.1 (Security) -> 7.2 (Environmental) -> 7.3 (Financial) -> 7.4 (Skinning) -> 7.5 (AI Marketplace)
+
+All 24 milestones completed. Committed as 17222a7. Pushed to GitHub.
