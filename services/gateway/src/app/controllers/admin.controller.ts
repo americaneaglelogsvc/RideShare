@@ -15,10 +15,12 @@ import { ConsentService } from '../services/consent.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { AdminRateLimitGuard } from '../guards/rate-limit.guard';
 import { IdempotencyGuard, IdempotencyInterceptor } from '../guards/idempotency.guard';
+import { RolesGuard, Roles } from '../guards/roles.guard';
 
 @ApiTags('admin')
 @Controller('admin')
-@UseGuards(JwtAuthGuard, AdminRateLimitGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, AdminRateLimitGuard)
+@Roles('PLATFORM_SUPER_ADMIN', 'PLATFORM_OPS')
 @ApiBearerAuth()
 export class AdminController {
   constructor(

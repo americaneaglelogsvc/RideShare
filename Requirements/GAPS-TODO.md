@@ -1,20 +1,14 @@
-# GAPS TODO (Agentic Backlog)
+# GAPS TODO
 
-req_id: GOV-GAPS-0001
+Generated: 2026-03-03T10:27:00Z | 4 ❌ Not Started = 4 gaps (all Phase 16 — native mobile)
 
-## P0 (Critical)
+## Remaining Gaps
 
-- Dispatch & realtime (state machines, no double assignment, queues) – not yet implemented.
-- Pricing & quoting engine (surge, fees, taxes, baggage) – not yet implemented.
-- Payments, ledger, and reconciliation (PaySurity integration, double-entry ledger) – not yet implemented.
-- Reliability harness (k6, chaos, DLQ/replay) and GO/NO-GO evaluator – not yet implemented.
+| req_id | Title | Phase |
+| --- | --- | --- |
+| DRV-MOB-0001 | Driver mobile app (iOS + Android) | 16 |
+| RID-MOB-0001 | Rider mobile app (iOS + Android) | 16 |
+| DRV-APP-SYNC-010 | Driver app cross-device sync | 16 |
+| RIDE-APP-SYNC-010 | Rider app cross-device sync | 16 |
 
-## P1 (High)
-
-- Policy Center backend and admin UI (versioned policies, precedence, publish/rollback).
-- Full coverage for rider/driver apps and tenant/platform consoles.
-
-## P2 (Medium)
-
-- Extended observability dashboards and runbooks.
-- Optional feature-gated expansions (marketplace/ads, events ingestion, etc.).
+All other req_ids (70/74) are now ✅ Implemented with service + controller + migration evidence.

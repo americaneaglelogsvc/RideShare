@@ -1,0 +1,72 @@
+# Cloud Armor WAF Policy for RideShare Gateway
+# §18 Security hardening — rate limiting, geo-blocking, OWASP rules
+
+resource:
+  type: compute.googleapis.com/SecurityPolicy
+  name: rideshare-waf-policy
+
+rules:
+  # Rule 1: Rate limit — 100 req/min per IP
+  - action: rate_based_ban
+    priority: 1000
+    description: "Rate limit: 100 requests per minute per IP"
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges: ["*"]
+    rateLimitOptions:
+      rateLimitThreshold:
+        count: 100
+        intervalSec: 60
+      banThresholdCount: 500
+      banDurationSec: 600
+      conformAction: allow
+      exceedAction: deny(429)
+
+  # Rule 2: Block known bad user agents
+  - action: deny(403)
+    priority: 2000
+    description: "Block scanner/bot user agents"
+    match:
+      expr:
+        expression: >
+          request.headers['user-agent'].matches('(?i)(sqlmap|nikto|nessus|openvas|w3af|acunetix)')
+
+  # Rule 3: OWASP ModSecurity Core Rule Set
+  - action: deny(403)
+    priority: 3000
+    description: "OWASP CRS — SQL injection"
+    match:
+      expr:
+        expression: "evaluatePreconfiguredExpr('sqli-v33-stable')"
+
+  - action: deny(403)
+    priority: 3001
+    description: "OWASP CRS — Cross-site scripting"
+    match:
+      expr:
+        expression: "evaluatePreconfiguredExpr('xss-v33-stable')"
+
+  - action: deny(403)
+    priority: 3002
+    description: "OWASP CRS — Remote file inclusion"
+    match:
+      expr:
+        expression: "evaluatePreconfiguredExpr('rfi-v33-stable')"
+
+  # Rule 4: Geo-restriction (US-only for initial launch)
+  - action: deny(403)
+    priority: 9000
+    description: "Geo-restrict to US (initial launch)"
+    match:
+      expr:
+        expression: "origin.region_code != 'US'"
+
+  # Default rule: Allow
+  - action: allow
+    priority: 2147483647
+    description: "Default allow"
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges: ["*"]

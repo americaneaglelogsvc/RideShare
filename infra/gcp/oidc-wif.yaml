@@ -1,0 +1,83 @@
+# GCP-AUTH-0001: OIDC + Workload Identity Federation for GitHub Actions → GCP
+# Eliminates long-lived service account keys in CI/CD
+
+# Step 1: Create Workload Identity Pool
+workload_identity_pool:
+  name: github-actions-pool
+  display_name: "GitHub Actions Pool"
+  description: "WIF pool for GitHub Actions CI/CD"
+  project: rideoo-487904
+  location: global
+
+# Step 2: Create OIDC Provider within the pool
+oidc_provider:
+  name: github-oidc
+  display_name: "GitHub OIDC Provider"
+  issuer_uri: "https://token.actions.githubusercontent.com"
+  attribute_mapping:
+    "google.subject": "assertion.sub"
+    "attribute.actor": "assertion.actor"
+    "attribute.repository": "assertion.repository"
+    "attribute.repository_owner": "assertion.repository_owner"
+  attribute_condition: >
+    assertion.repository_owner == 'your-org'
+
+# Step 3: Service Account bindings
+service_accounts:
+  - name: rideshare-deployer
+    email: rideshare-deployer@rideoo-487904.iam.gserviceaccount.com
+    description: "Deploys Cloud Run services from CI/CD"
+    roles:
+      - roles/run.admin
+      - roles/iam.serviceAccountUser
+      - roles/artifactregistry.writer
+      - roles/secretmanager.secretAccessor
+    wif_binding:
+      pool: github-actions-pool
+      provider: github-oidc
+      attribute: "attribute.repository/your-org/RideShare"
+
+  - name: rideshare-gateway-sa
+    email: rideshare-gateway-sa@rideoo-487904.iam.gserviceaccount.com
+    description: "Runtime identity for Gateway Cloud Run service"
+    roles:
+      - roles/secretmanager.secretAccessor
+      - roles/cloudsql.client
+      - roles/storage.objectAdmin
+      - roles/cloudtasks.enqueuer
+      - roles/monitoring.metricWriter
+
+# Step 4: GitHub Actions workflow integration
+github_actions_config:
+  # Add to .github/workflows/deploy_staging.yml:
+  permissions:
+    id-token: write
+    contents: read
+  steps:
+    - name: "Authenticate to GCP"
+      uses: "google-github-actions/auth@v2"
+      with:
+        workload_identity_provider: "projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/github-actions-pool/providers/github-oidc"
+        service_account: "rideshare-deployer@rideoo-487904.iam.gserviceaccount.com"
+
+# gcloud commands to provision (run once):
+provisioning_commands:
+  - |
+    gcloud iam workload-identity-pools create github-actions-pool \
+      --project="rideoo-487904" \
+      --location="global" \
+      --display-name="GitHub Actions Pool"
+  - |
+    gcloud iam workload-identity-pools providers create-oidc github-oidc \
+      --project="rideoo-487904" \
+      --location="global" \
+      --workload-identity-pool="github-actions-pool" \
+      --issuer-uri="https://token.actions.githubusercontent.com" \
+      --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
+      --attribute-condition="assertion.repository_owner=='your-org'"
+  - |
+    gcloud iam service-accounts add-iam-policy-binding \
+      rideshare-deployer@rideoo-487904.iam.gserviceaccount.com \
+      --project="rideoo-487904" \
+      --role="roles/iam.workloadIdentityUser" \
+      --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/your-org/RideShare"

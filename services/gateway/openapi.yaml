@@ -1,0 +1,171 @@
+openapi: 3.0.3
+info:
+  title: RideShare Gateway API
+  description: |
+    Multi-tenant rideshare platform API. All endpoints require JWT auth unless marked public.
+    Tenant isolation enforced via RLS + middleware.
+  version: 1.0.0
+  contact:
+    name: PaySurity Engineering
+servers:
+  - url: http://localhost:3000
+    description: Local dev
+  - url: https://api.staging.rideshare.paysurity.com
+    description: Staging
+  - url: https://api.rideshare.paysurity.com
+    description: Production
+
+tags:
+  - name: health
+    description: Health check endpoints
+  - name: tenants
+    description: Tenant lifecycle + onboarding
+  - name: drivers
+    description: Driver management + onboarding
+  - name: dispatch
+    description: Trip dispatch, offers, GrabBoard, airport queue
+  - name: payments
+    description: Payments, payouts, billing
+  - name: policy
+    description: Tenant policy center
+  - name: rider
+    description: Rider features — disputes, consent, antifraud, retention
+  - name: corporate
+    description: Corporate accounts + trip approvals
+  - name: microsites
+    description: Tenant microsites + booking widgets
+  - name: faq
+    description: FAQ categories + articles
+  - name: webhooks
+    description: Inbound webhooks (PaySurity/Fluidpay)
+  - name: admin
+    description: Platform admin endpoints
+  - name: compliance
+    description: Compliance + consent management
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Basic health check (public)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  /health/detailed:
+    get:
+      tags: [health]
+      summary: Detailed system health (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Detailed health metrics
+
+  /tenants:
+    post:
+      tags: [tenants]
+      summary: Create a new tenant
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, slug]
+              properties:
+                name:
+                  type: string
+                slug:
+                  type: string
+      responses:
+        '201':
+          description: Tenant created
+
+  /dispatch/grab-board:
+    get:
+      tags: [dispatch]
+      summary: Get available trips on GrabBoard (§6.2)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tenantId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: lat
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: lng
+          in: query
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: List of claimable trips
+
+  /dispatch/airport-queue:
+    post:
+      tags: [dispatch]
+      summary: Enter airport queue (§6.3)
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Entered queue
+
+  /rider/disputes:
+    post:
+      tags: [rider]
+      summary: Create a rider dispute
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Dispute created
+
+  /corporate/accounts:
+    post:
+      tags: [corporate]
+      summary: Create a corporate ride account
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Account created
+
+  /faq/categories:
+    get:
+      tags: [faq]
+      summary: List FAQ categories (public)
+      responses:
+        '200':
+          description: Category list
+
+  /webhooks/paysurity:
+    post:
+      tags: [webhooks]
+      summary: Handle PaySurity/Fluidpay settlement webhooks
+      responses:
+        '200':
+          description: Webhook processed
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

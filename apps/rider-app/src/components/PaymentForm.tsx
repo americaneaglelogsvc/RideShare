@@ -204,6 +204,8 @@ export function PaymentForm({ amount, onPaymentSubmit, loading = false }: Paymen
                   Month
                 </label>
                 <select
+                  id="expMonth"
+                  aria-label="Expiration month"
                   name="expMonth"
                   value={formData.expMonth}
                   onChange={handleInputChange}
@@ -224,6 +226,8 @@ export function PaymentForm({ amount, onPaymentSubmit, loading = false }: Paymen
                   Year
                 </label>
                 <select
+                  id="expYear"
+                  aria-label="Expiration year"
                   name="expYear"
                   value={formData.expYear}
                   onChange={handleInputChange}
@@ -322,6 +326,8 @@ export function PaymentForm({ amount, onPaymentSubmit, loading = false }: Paymen
                 Account Type
               </label>
               <select
+                id="accountType"
+                aria-label="Account type"
                 name="accountType"
                 value={formData.accountType}
                 onChange={handleInputChange}
@@ -337,13 +343,14 @@ export function PaymentForm({ amount, onPaymentSubmit, loading = false }: Paymen
         {/* Save Payment Method */}
         <div className="flex items-center">
           <input
+            id="savePaymentMethod"
             type="checkbox"
             name="savePaymentMethod"
             checked={formData.savePaymentMethod}
             onChange={handleInputChange}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
           />
-          <label className="ml-2 block text-sm text-gray-700">
+          <label htmlFor="savePaymentMethod" className="ml-2 block text-sm text-gray-700">
             Save this payment method for future use
           </label>
         </div>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { MapPin, Navigation, Phone, MessageCircle, Clock, DollarSign, User, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { MapPin, Navigation, Phone, MessageCircle, Clock, DollarSign, User, ExternalLink, Timer, Star } from 'lucide-react';
 
 function openGoogleMapsNav(lat: number, lng: number, address?: string) {
   const dest = address ? encodeURIComponent(address) : `${lat},${lng}`;
@@ -44,6 +44,27 @@ export function TripPage() {
   const [tripStatus, setTripStatus] = useState('no_trip'); // no_trip, offer_received, en_route_pickup, arrived_pickup, en_route_dropoff, completed
   const [currentTrip, setCurrentTrip] = useState<TripData | null>(null);
   const [offerTimer, setOfferTimer] = useState(0);
+  const [waitSeconds, setWaitSeconds] = useState(0);
+  const [ratingScore, setRatingScore] = useState(0);
+  const waitRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Wait timer for arrived_pickup
+  useEffect(() => {
+    if (tripStatus === 'arrived_pickup') {
+      setWaitSeconds(0);
+      waitRef.current = setInterval(() => setWaitSeconds(s => s + 1), 1000);
+    } else if (waitRef.current) {
+      clearInterval(waitRef.current);
+      waitRef.current = null;
+    }
+    return () => { if (waitRef.current) clearInterval(waitRef.current); };
+  }, [tripStatus]);
+
+  const formatWait = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
 
   // Mock trip data
   useEffect(() => {
@@ -306,6 +327,11 @@ export function TripPage() {
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                 <p className="text-green-800 font-medium">You've arrived at the pickup location</p>
                 <p className="text-green-700 text-sm mt-1">Wait for the passenger to get in the vehicle</p>
+                <div className="flex items-center mt-2">
+                  <Timer className={`w-5 h-5 mr-2 ${waitSeconds >= 300 ? 'text-red-600' : 'text-green-600'}`} />
+                  <span className={`text-lg font-bold ${waitSeconds >= 300 ? 'text-red-600' : 'text-green-900'}`}>{formatWait(waitSeconds)}</span>
+                  {waitSeconds >= 300 && <span className="ml-2 text-xs text-red-600 font-medium">No-show eligible</span>}
+                </div>
               </div>
 
               <div className="flex items-center justify-between mb-6">

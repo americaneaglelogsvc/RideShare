@@ -1,0 +1,84 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: rideshare-gateway
+  labels:
+    cloud.googleapis.com/location: us-central1
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "10"
+        run.googleapis.com/cpu-throttling: "false"
+        run.googleapis.com/startup-cpu-boost: "true"
+        run.googleapis.com/cloudsql-instances: "rideoo-487904:us-central1:rideshare-db"
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      serviceAccountName: rideshare-gateway-sa@rideoo-487904.iam.gserviceaccount.com
+      containers:
+        - image: us-central1-docker.pkg.dev/rideoo-487904/rideshare/gateway:${TAG}
+          ports:
+            - name: http1
+              containerPort: 3000
+          resources:
+            limits:
+              cpu: "2"
+              memory: 1Gi
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "3000"
+            - name: SUPABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-url
+                  key: latest
+            - name: SUPABASE_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-service-key
+                  key: latest
+            - name: FLUIDPAY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fluidpay-api-key
+                  key: latest
+            - name: FLUIDPAY_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: fluidpay-webhook-secret
+                  key: latest
+            - name: AWS_S3_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: s3-bucket
+                  key: latest
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: s3-access-key
+                  key: latest
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: s3-secret-key
+                  key: latest
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            periodSeconds: 30
+            failureThreshold: 3

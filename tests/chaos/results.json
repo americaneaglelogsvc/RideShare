@@ -1,0 +1,12 @@
+{
+  "scenarios": [
+    {
+      "passed": true,
+      "ended_utc": "2026-03-03T18:17:56.1255603Z",
+      "name": "instance-kill",
+      "after_revision": "rideshare-gateway-staging-00004-vgf",
+      "health_after": 200,
+      "before_revision": "rideshare-gateway-staging-00003-n9m"
+    }
+  ]
+}

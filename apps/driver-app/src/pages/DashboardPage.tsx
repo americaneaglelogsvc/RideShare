@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useRealtime } from '../hooks/useRealtime';
@@ -13,7 +13,9 @@ import {
   Power,
   Bell,
   Navigation,
-  Plane
+  Plane,
+  Calendar,
+  Compass
 } from 'lucide-react';
 
 export function DashboardPage() {
@@ -23,6 +25,8 @@ export function DashboardPage() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentLocation, setCurrentLocation] = useState('Downtown Chicago');
+  const [destinationMode, setDestinationMode] = useState(false);
+  const [destinationAddress, setDestinationAddress] = useState('');
 
   useEffect(() => {
     loadDashboardData();
@@ -115,9 +119,36 @@ export function DashboardPage() {
           </div>
           
           {isOnline && (
-            <div className="mt-4 flex items-center text-green-600">
-              <Navigation className="w-4 h-4 mr-2" />
-              <span className="text-sm">Current location: {currentLocation}</span>
+            <div className="mt-4 space-y-3">
+              <div className="flex items-center text-green-600">
+                <Navigation className="w-4 h-4 mr-2" />
+                <span className="text-sm">Current location: {currentLocation}</span>
+              </div>
+              <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                <div className="flex items-center">
+                  <Compass className={`w-5 h-5 mr-2 ${destinationMode ? 'text-blue-600' : 'text-gray-400'}`} />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Destination Mode</p>
+                    <p className="text-xs text-gray-500">Only receive rides heading your way</p>
+                  </div>
+                </div>
+                <button
+                  aria-label="Toggle destination mode"
+                  onClick={() => setDestinationMode(!destinationMode)}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${destinationMode ? 'bg-blue-600' : 'bg-gray-300'}`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${destinationMode ? 'translate-x-6' : ''}`} />
+                </button>
+              </div>
+              {destinationMode && (
+                <input
+                  type="text"
+                  placeholder="Enter your destination address..."
+                  value={destinationAddress}
+                  onChange={(e) => setDestinationAddress(e.target.value)}
+                  className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              )}
             </div>
           )}
         </div>
@@ -177,6 +208,14 @@ export function DashboardPage() {
             >
               <DollarSign className="w-8 h-8 text-green-600 mb-2" />
               <span className="text-sm font-medium">Earnings</span>
+            </Link>
+
+            <Link 
+              to="/scheduled-rides" 
+              className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Calendar className="w-8 h-8 text-orange-600 mb-2" />
+              <span className="text-sm font-medium">Scheduled Rides</span>
             </Link>
 
             <Link 

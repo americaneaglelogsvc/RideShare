@@ -1,22 +1,129 @@
-name: deploy-staging (staging)
+name: deploy-staging
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
+  id-token: write
   contents: read
 
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: us-central1
+  SERVICE: rideshare-gateway
+  REGISTRY: us-central1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/rideshare
+
 jobs:
-  deploy:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP (OIDC/WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/${{ vars.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions-pool/providers/github-oidc
+          service_account: rideshare-deployer@${{ vars.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/gateway
+          tags: |
+            type=sha,prefix=staging-
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/gateway
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-canary:
+    needs: build
     runs-on: ubuntu-latest
     environment: staging
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy stub
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/${{ vars.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions-pool/providers/github-oidc
+          service_account: rideshare-deployer@${{ vars.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+
+      - name: Deploy canary (10% traffic)
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE }}
+          region: ${{ env.REGION }}
+          image: ${{ needs.build.outputs.image_tag }}
+          tag: canary
+          no_traffic: true
+
+      - name: Route 10% traffic to canary
         run: |
-          echo "Deploy stub. Configure provider-specific steps."
-          echo "See docs/DEPLOY_VERCEL_RAILWAY.md"
-      - name: Smoke tests stub
+          gcloud run services update-traffic ${{ env.SERVICE }} \
+            --region=${{ env.REGION }} \
+            --to-tags=canary=10
+
+      - name: Smoke test canary
         run: |
-          echo "Smoke tests stub. Replace with real smoke tests against staging URL."
-    if: ${{ (github.event_name != 'push' || !(contains(github.event.head_commit.message, '[skip ci]') || contains(github.event.head_commit.message, '[ci skip]'))) && (github.event_name != 'pull_request' || !(contains(github.event.pull_request.title, '[skip ci]') || contains(github.event.pull_request.title, '[ci skip]'))) }}
+          CANARY_URL=$(gcloud run services describe ${{ env.SERVICE }} --region=${{ env.REGION }} --format='value(status.traffic[0].url)')
+          echo "Testing canary at: $CANARY_URL"
+          for i in 1 2 3; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$CANARY_URL/health")
+            if [ "$STATUS" != "200" ]; then
+              echo "Health check failed (attempt $i): HTTP $STATUS"
+              if [ "$i" -eq 3 ]; then
+                echo "::error::Canary health check failed — rolling back"
+                gcloud run services update-traffic ${{ env.SERVICE }} --region=${{ env.REGION }} --to-revisions=LATEST=100
+                exit 1
+              fi
+              sleep 10
+            else
+              echo "Health check passed (attempt $i)"
+              break
+            fi
+          done
+
+  promote-canary:
+    needs: deploy-canary
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/${{ vars.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions-pool/providers/github-oidc
+          service_account: rideshare-deployer@${{ vars.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+
+      - name: Promote canary to 100%
+        run: |
+          gcloud run services update-traffic ${{ env.SERVICE }} \
+            --region=${{ env.REGION }} \
+            --to-tags=canary=100
+
+      - name: Post-deploy verification
+        run: |
+          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE }} --region=${{ env.REGION }} --format='value(status.url)')
+          echo "Verifying production traffic at: $SERVICE_URL"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$SERVICE_URL/health")
+          echo "Health: HTTP $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Post-promotion health check failed"
+            exit 1
+          fi

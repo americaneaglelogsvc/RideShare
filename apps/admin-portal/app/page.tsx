@@ -90,9 +90,17 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-            <button className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-              Access Dashboard
-            </button>
+            <div className="space-y-2">
+              <a href="/ops-console" className="block w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium text-center">
+                Ops Console
+              </a>
+              <a href="/owner-console" className="block w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors font-medium text-center">
+                Owner Console
+              </a>
+              <a href="/platform-admin" className="block w-full bg-gray-700 text-white py-3 px-4 rounded-lg hover:bg-gray-800 transition-colors font-medium text-center">
+                Platform Admin
+              </a>
+            </div>
           </div>
         </div>
       </div>

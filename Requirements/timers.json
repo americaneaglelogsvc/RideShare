@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "generated": "2026-03-03T08:28:00Z",
+  "note": "Timer registry per §13. Populated from known code; will be extended in Phase 8 (state machines) and Phase 15 (reliability).",
+  "timers": [
+    {
+      "name": "offer_expiry",
+      "description": "Time window for driver to accept/decline a ride offer before it expires",
+      "default_seconds": 30,
+      "configurable_per_tenant": true,
+      "source": "offer.service.ts (expires_at on ride_offers)"
+    },
+    {
+      "name": "heartbeat_stale_threshold",
+      "description": "Time since last heartbeat before a driver is marked stale/offline",
+      "default_seconds": 120,
+      "configurable_per_tenant": false,
+      "source": "heartbeat.service.ts"
+    },
+    {
+      "name": "idempotency_key_ttl",
+      "description": "Time-to-live for idempotency keys before cleanup",
+      "default_seconds": 86400,
+      "configurable_per_tenant": false,
+      "source": "idempotency.guard.ts, cleanup_expired_idempotency_keys RPC"
+    },
+    {
+      "name": "billing_cron_interval",
+      "description": "Interval for billing cron to check for billing-due tenants",
+      "default_seconds": 86400,
+      "configurable_per_tenant": false,
+      "source": "billing-cron.service.ts"
+    },
+    {
+      "name": "health_snapshot_retention",
+      "description": "How long health snapshots are retained before cleanup",
+      "default_seconds": 604800,
+      "configurable_per_tenant": false,
+      "source": "cleanup_old_health_snapshots RPC"
+    },
+    {
+      "name": "pii_mask_age_days",
+      "description": "Days after trip completion before PII is masked",
+      "default_seconds": 7776000,
+      "configurable_per_tenant": true,
+      "source": "mask_old_trip_pii RPC"
+    }
+  ]
+}

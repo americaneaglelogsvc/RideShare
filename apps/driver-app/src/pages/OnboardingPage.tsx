@@ -74,10 +74,11 @@ export function OnboardingPage() {
             <h3 className="text-xl font-semibold text-gray-900">Personal Information</h3>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
                   First Name
                 </label>
                 <input
+                  id="firstName"
                   type="text"
                   name="firstName"
                   value={formData.firstName}
@@ -87,10 +88,11 @@ export function OnboardingPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
                   Last Name
                 </label>
                 <input
+                  id="lastName"
                   type="text"
                   name="lastName"
                   value={formData.lastName}
@@ -100,10 +102,11 @@ export function OnboardingPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-2">
                   Date of Birth
                 </label>
                 <input
+                  id="dateOfBirth"
                   type="date"
                   name="dateOfBirth"
                   value={formData.dateOfBirth}
@@ -113,10 +116,11 @@ export function OnboardingPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                   Phone Number
                 </label>
                 <input
+                  id="phone"
                   type="tel"
                   name="phone"
                   value={formData.phone}
@@ -126,10 +130,11 @@ export function OnboardingPage() {
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                   Email Address
                 </label>
                 <input
+                  id="email"
                   type="email"
                   name="email"
                   value={formData.email}
@@ -139,10 +144,11 @@ export function OnboardingPage() {
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
                   Address
                 </label>
                 <input
+                  id="address"
                   type="text"
                   name="address"
                   value={formData.address}
@@ -152,10 +158,11 @@ export function OnboardingPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
                   City
                 </label>
                 <input
+                  id="city"
                   type="text"
                   name="city"
                   value={formData.city}
@@ -165,15 +172,17 @@ export function OnboardingPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
                   State
                 </label>
                 <select
+                  id="state"
                   name="state"
                   value={formData.state}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
+                  aria-label="State"
                 >
                   <option value="">Select State</option>
                   <option value="IL">Illinois</option>
@@ -191,10 +200,11 @@ export function OnboardingPage() {
             <h3 className="text-xl font-semibold text-gray-900">Vehicle Information</h3>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="vehicleMake" className="block text-sm font-medium text-gray-700 mb-2">
                   Make
                 </label>
                 <input
+                  id="vehicleMake"
                   type="text"
                   name="vehicleMake"
                   value={formData.vehicleMake}
@@ -205,10 +215,11 @@ export function OnboardingPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="vehicleModel" className="block text-sm font-medium text-gray-700 mb-2">
                   Model
                 </label>
                 <input
+                  id="vehicleModel"
                   type="text"
                   name="vehicleModel"
                   value={formData.vehicleModel}
@@ -219,10 +230,11 @@ export function OnboardingPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="vehicleYear" className="block text-sm font-medium text-gray-700 mb-2">
                   Year
                 </label>
                 <input
+                  id="vehicleYear"
                   type="number"
                   name="vehicleYear"
                   value={formData.vehicleYear}
@@ -234,10 +246,11 @@ export function OnboardingPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="vehicleColor" className="block text-sm font-medium text-gray-700 mb-2">
                   Color
                 </label>
                 <input
+                  id="vehicleColor"
                   type="text"
                   name="vehicleColor"
                   value={formData.vehicleColor}
@@ -248,10 +261,11 @@ export function OnboardingPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="licensePlate" className="block text-sm font-medium text-gray-700 mb-2">
                   License Plate
                 </label>
                 <input
+                  id="licensePlate"
                   type="text"
                   name="licensePlate"
                   value={formData.licensePlate}
@@ -261,10 +275,12 @@ export function OnboardingPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="vehicleCategory" className="block text-sm font-medium text-gray-700 mb-2">
                   Vehicle Category
                 </label>
                 <select
+                  id="vehicleCategory"
+                  aria-label="Vehicle Category"
                   name="vehicleCategory"
                   value={formData.vehicleCategory}
                   onChange={handleInputChange}

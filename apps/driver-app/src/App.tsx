@@ -7,8 +7,11 @@ import { TripPage } from './pages/TripPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { EarningsPage } from './pages/EarningsPage';
 import { AirportQueuePage } from './pages/AirportQueuePage';
+import { ScheduledRidesPage } from './pages/ScheduledRidesPage';
 import { AuthPage } from './pages/AuthPage';
 import { OnboardingPage } from './pages/OnboardingPage';
+import { FleetOwnerPage } from './pages/FleetOwnerPage';
+import { MessagingPage } from './pages/MessagingPage';
 
 function App() {
   return (
@@ -38,9 +41,24 @@ function App() {
                 <EarningsPage />
               </ProtectedRoute>
             } />
+            <Route path="/scheduled-rides" element={
+              <ProtectedRoute>
+                <ScheduledRidesPage />
+              </ProtectedRoute>
+            } />
             <Route path="/airport-queue" element={
               <ProtectedRoute>
                 <AirportQueuePage />
+              </ProtectedRoute>
+            } />
+            <Route path="/fleet" element={
+              <ProtectedRoute>
+                <FleetOwnerPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/messages" element={
+              <ProtectedRoute>
+                <MessagingPage />
               </ProtectedRoute>
             } />
           </Routes>

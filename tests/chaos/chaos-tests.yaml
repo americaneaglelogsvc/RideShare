@@ -1,0 +1,106 @@
+# Chaos Engineering Tests — RideShare Gateway
+# Target: GCP Cloud Run (rideoo-487904)
+#
+# Prerequisites:
+#   - gcloud CLI authenticated
+#   - Cloud Run service deployed
+#   - k6 installed for load generation during chaos
+#
+# Usage: Run each scenario manually or via CI
+
+project_id: rideoo-487904
+service_name: rideshare-gateway
+region: us-central1
+
+scenarios:
+  # ── Scenario 1: Single instance kill ──────────────────────────
+  - name: instance-kill
+    description: Kill one Cloud Run instance and verify auto-recovery
+    steps:
+      - action: record_baseline
+        command: |
+          curl -s https://${SERVICE_URL}/health | jq .
+      - action: kill_revision
+        command: |
+          gcloud run revisions list --service=rideshare-gateway --region=us-central1 --project=rideoo-487904 --format="value(name)" --limit=1 | xargs -I{} gcloud run revisions delete {} --region=us-central1 --project=rideoo-487904 --quiet
+      - action: verify_recovery
+        command: |
+          sleep 30
+          curl -s -o /dev/null -w "%{http_code}" https://${SERVICE_URL}/health
+        expected: "200"
+        timeout_seconds: 60
+
+  # ── Scenario 2: Traffic spike ─────────────────────────────────
+  - name: traffic-spike
+    description: Sudden 10x traffic spike to test autoscaling
+    steps:
+      - action: spike_traffic
+        command: |
+          k6 run --vus 200 --duration 60s tests/k6/load-test.js
+      - action: verify_autoscale
+        command: |
+          gcloud run services describe rideshare-gateway --region=us-central1 --project=rideoo-487904 --format="value(status.traffic[0].latestRevision)"
+      - action: verify_no_5xx
+        command: |
+          # Check Cloud Logging for 5xx errors during spike window
+          gcloud logging read "resource.type=cloud_run_revision AND httpRequest.status>=500 AND timestamp>=\"$(date -u -d '2 minutes ago' +%Y-%m-%dT%H:%M:%SZ)\"" --project=rideoo-487904 --limit=5 --format=json
+        expected: "[]"
+
+  # ── Scenario 3: Database connection failure ───────────────────
+  - name: db-connection-failure
+    description: Simulate Supabase unreachability
+    steps:
+      - action: block_db
+        description: |
+          Temporarily set SUPABASE_URL env var to invalid value.
+          This simulates a database outage.
+        command: |
+          gcloud run services update rideshare-gateway --region=us-central1 --project=rideoo-487904 --set-env-vars SUPABASE_URL=https://invalid.supabase.co
+      - action: verify_graceful_degradation
+        command: |
+          # Health endpoint should still respond (degraded mode)
+          curl -s -o /dev/null -w "%{http_code}" https://${SERVICE_URL}/health
+        expected: "200"
+      - action: restore_db
+        command: |
+          gcloud run services update rideshare-gateway --region=us-central1 --project=rideoo-487904 --set-env-vars SUPABASE_URL=${ORIGINAL_SUPABASE_URL}
+
+  # ── Scenario 4: Canary rollback ───────────────────────────────
+  - name: canary-rollback
+    description: Deploy bad revision, verify auto-rollback
+    steps:
+      - action: deploy_bad_canary
+        description: Deploy a revision that will fail health checks
+        command: |
+          # Tag current good revision
+          GOOD_REV=$(gcloud run revisions list --service=rideshare-gateway --region=us-central1 --project=rideoo-487904 --format="value(name)" --limit=1)
+          echo "Good revision: $GOOD_REV"
+      - action: verify_rollback
+        description: |
+          After the canary fails health checks, Cloud Run should
+          route 100% traffic back to the good revision.
+        command: |
+          gcloud run services describe rideshare-gateway --region=us-central1 --project=rideoo-487904 --format="value(status.traffic)"
+
+  # ── Scenario 5: Memory pressure ───────────────────────────────
+  - name: memory-pressure
+    description: Test behavior under memory constraints
+    steps:
+      - action: reduce_memory
+        command: |
+          gcloud run services update rideshare-gateway --region=us-central1 --project=rideoo-487904 --memory=128Mi
+      - action: load_test
+        command: |
+          k6 run --vus 50 --duration 30s tests/k6/load-test.js
+      - action: check_oom
+        command: |
+          gcloud logging read "resource.type=cloud_run_revision AND textPayload=~\"memory\" AND timestamp>=\"$(date -u -d '2 minutes ago' +%Y-%m-%dT%H:%M:%SZ)\"" --project=rideoo-487904 --limit=5
+      - action: restore_memory
+        command: |
+          gcloud run services update rideshare-gateway --region=us-central1 --project=rideoo-487904 --memory=512Mi
+
+pass_criteria:
+  - all_health_checks_pass: true
+  - max_5xx_rate_during_chaos: 0.10  # 10% max during chaos
+  - recovery_time_seconds: 60
+  - no_data_loss: true

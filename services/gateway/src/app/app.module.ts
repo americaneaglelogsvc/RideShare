@@ -57,6 +57,40 @@ import { DriverSocketGateway } from './gateways/driver-socket.gateway';
 import { TenantContextMiddleware } from './tenant-context.middleware';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { PolicyService } from './services/policy.service';
+import { PolicyController, JurisdictionTemplateController } from './controllers/policy.controller';
+import { DispatchSseController } from './controllers/dispatch-sse.controller';
+import { ConfigValidatorService } from './services/config-validator.service';
+import { PayoutService } from './services/payout.service';
+import { PayoutController } from './controllers/payout.controller';
+import { PushNotificationService } from './services/push-notification.service';
+import { RiderDisputeService } from './services/rider-dispute.service';
+import { LegalConsentService } from './services/legal-consent.service';
+import { BookingAntifraudService } from './services/booking-antifraud.service';
+import { MessageRetentionService } from './services/message-retention.service';
+import { RiderController } from './controllers/rider.controller';
+import { CorporateAccountService } from './services/corporate-account.service';
+import { CorporateController } from './controllers/corporate.controller';
+import { MicrositeService } from './services/microsite.service';
+import { FaqService } from './services/faq.service';
+import { MicrositeController, FaqController } from './controllers/microsite.controller';
+import { EnvValidationService } from './services/env-validation.service';
+import { TimezoneService } from './services/timezone.service';
+import { JobQueueService } from './services/job-queue.service';
+import { AuditService } from './services/audit.service';
+import { DataSubjectRequestService } from './services/data-subject-request.service';
+import { FeatureGateService } from './services/feature-gate.service';
+import { DispatchEnhancementsService } from './services/dispatch-enhancements.service';
+import { PricingPolicyService } from './services/pricing-policy.service';
+import { FlightAwarenessService } from './services/flight-awareness.service';
+import { EventsEngineService } from './services/events-engine.service';
+import { RatingService } from './services/rating.service';
+import { InTripMessagingService } from './services/in-trip-messaging.service';
+import { FleetOwnerService } from './services/fleet-owner.service';
+import { OcrDocumentService } from './services/ocr-document.service';
+import { SplitPayService } from './services/split-pay.service';
+import { HourlyBookingService } from './services/hourly-booking.service';
 
 @Module({
   imports: [
@@ -78,6 +112,14 @@ import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.
     ComplianceController,
     TenantDashboardController,
     SeoController,
+    PolicyController,
+    JurisdictionTemplateController,
+    DispatchSseController,
+    PayoutController,
+    RiderController,
+    CorporateController,
+    MicrositeController,
+    FaqController,
   ],
   providers: [
     SupabaseService,
@@ -125,6 +167,34 @@ import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.
     JwtAuthGuard,
     AdminRateLimitGuard,
     WebhookRateLimitGuard,
+    RolesGuard,
+    PolicyService,
+    ConfigValidatorService,
+    PayoutService,
+    PushNotificationService,
+    RiderDisputeService,
+    LegalConsentService,
+    BookingAntifraudService,
+    MessageRetentionService,
+    CorporateAccountService,
+    MicrositeService,
+    FaqService,
+    EnvValidationService,
+    TimezoneService,
+    JobQueueService,
+    AuditService,
+    DataSubjectRequestService,
+    FeatureGateService,
+    DispatchEnhancementsService,
+    PricingPolicyService,
+    FlightAwarenessService,
+    EventsEngineService,
+    RatingService,
+    InTripMessagingService,
+    FleetOwnerService,
+    OcrDocumentService,
+    SplitPayService,
+    HourlyBookingService,
   ],
 })
 export class AppModule implements NestModule {

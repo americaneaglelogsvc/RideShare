@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Car, MapPin, Clock, DollarSign, ArrowLeft } from 'lucide-react';
 import { riderApiService } from '../services/api.service';
@@ -153,6 +153,8 @@ export function BookingPage() {
                   Vehicle Category
                 </label>
                 <select
+                  id="vehicleCategory"
+                  aria-label="Vehicle Category"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"

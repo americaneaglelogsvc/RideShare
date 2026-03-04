@@ -1,11 +1,133 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://rideshare.blackravenia/requirements/schemas/tenant_policy_config.schema.json",
-  "title": "tenant_policy_config (CFG-JSON-0001, CFG-JSON-0002)",
+  "title": "Tenant Policy Config (TEN-POL-0004)",
+  "description": "Authoritative JSON schema for tenant policy config_json payloads. Each policy_type has a dedicated sub-schema.",
   "type": "object",
-  "properties": {
-    "schema_version": { "type": "string" },
-    "policies": { "type": "array" }
-  },
-  "additionalProperties": true
+  "oneOf": [
+    { "$ref": "#/$defs/cancellation" },
+    { "$ref": "#/$defs/surge_pricing" },
+    { "$ref": "#/$defs/no_show" },
+    { "$ref": "#/$defs/wait_time" },
+    { "$ref": "#/$defs/driver_payout" },
+    { "$ref": "#/$defs/tipping" },
+    { "$ref": "#/$defs/safety" },
+    { "$ref": "#/$defs/dispute_resolution" },
+    { "$ref": "#/$defs/data_retention" },
+    { "$ref": "#/$defs/accessibility" },
+    { "$ref": "#/$defs/custom" }
+  ],
+  "$defs": {
+    "cancellation": {
+      "type": "object",
+      "properties": {
+        "grace_period_seconds": { "type": "integer", "minimum": 0, "maximum": 600 },
+        "fee_after_grace_cents": { "type": "integer", "minimum": 0 },
+        "max_fee_cents": { "type": "integer", "minimum": 0 },
+        "driver_compensation_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "applies_to": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["grace_period_seconds", "fee_after_grace_cents"],
+      "additionalProperties": false
+    },
+    "surge_pricing": {
+      "type": "object",
+      "properties": {
+        "max_multiplier": { "type": "number", "minimum": 1.0, "maximum": 10.0 },
+        "disclosure_required": { "type": "boolean" },
+        "emergency_cap_multiplier": { "type": "number", "minimum": 1.0 },
+        "cooldown_minutes": { "type": "integer", "minimum": 0 },
+        "applies_to": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["max_multiplier", "disclosure_required"],
+      "additionalProperties": false
+    },
+    "no_show": {
+      "type": "object",
+      "properties": {
+        "wait_threshold_seconds": { "type": "integer", "minimum": 60, "maximum": 900 },
+        "fee_cents": { "type": "integer", "minimum": 0 },
+        "driver_compensation_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "applies_to": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["wait_threshold_seconds", "fee_cents"],
+      "additionalProperties": false
+    },
+    "wait_time": {
+      "type": "object",
+      "properties": {
+        "free_wait_seconds": { "type": "integer", "minimum": 0 },
+        "per_minute_cents": { "type": "integer", "minimum": 0 },
+        "max_wait_charge_cents": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["free_wait_seconds", "per_minute_cents"],
+      "additionalProperties": false
+    },
+    "driver_payout": {
+      "type": "object",
+      "properties": {
+        "payout_mode": { "type": "string", "enum": ["platform_triggered", "tenant_managed"] },
+        "schedule": { "type": "string", "enum": ["daily", "weekly", "biweekly", "monthly"] },
+        "minimum_balance_cents": { "type": "integer", "minimum": 0 },
+        "instant_payout_fee_cents": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["payout_mode", "schedule"],
+      "additionalProperties": false
+    },
+    "tipping": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "default_options_pct": { "type": "array", "items": { "type": "number" } },
+        "max_tip_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "platform_tip_share_pct": { "type": "number", "minimum": 0, "maximum": 100 }
+      },
+      "required": ["enabled"],
+      "additionalProperties": false
+    },
+    "safety": {
+      "type": "object",
+      "properties": {
+        "panic_button_enabled": { "type": "boolean" },
+        "trip_sharing_enabled": { "type": "boolean" },
+        "driver_photo_verification": { "type": "boolean" },
+        "speed_alert_threshold_mph": { "type": "number", "minimum": 0 }
+      },
+      "required": ["panic_button_enabled"],
+      "additionalProperties": false
+    },
+    "dispute_resolution": {
+      "type": "object",
+      "properties": {
+        "auto_refund_threshold_cents": { "type": "integer", "minimum": 0 },
+        "escalation_sla_hours": { "type": "integer", "minimum": 1 },
+        "resolution_sla_hours": { "type": "integer", "minimum": 1 }
+      },
+      "required": ["escalation_sla_hours"],
+      "additionalProperties": false
+    },
+    "data_retention": {
+      "type": "object",
+      "properties": {
+        "trip_pii_retention_days": { "type": "integer", "minimum": 30 },
+        "message_retention_days": { "type": "integer", "minimum": 7 },
+        "audit_log_retention_days": { "type": "integer", "minimum": 365 }
+      },
+      "required": ["trip_pii_retention_days"],
+      "additionalProperties": false
+    },
+    "accessibility": {
+      "type": "object",
+      "properties": {
+        "wheelchair_accessible_required": { "type": "boolean" },
+        "service_animal_policy": { "type": "string", "enum": ["always_allow", "tenant_discretion"] },
+        "hearing_impaired_support": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "custom": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
 }

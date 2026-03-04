@@ -1,34 +1,73 @@
-# AS-IS REPORT (Agentic Snapshot)
+# AS-IS REPORT
 
-req_id: GOV-ASIS-0001
+Generated: 2026-03-03T08:24:00Z
 
-## 1. Scope
+## 1. Repository
 
-This report summarizes the current repository state for the urwaydispatch.com RideShare platform as of the latest agentic scan, focusing on structures that support CANONICAL requirements.
+- **Location:** `americaneaglelogsvc/RideShare`
+- **Backend:** NestJS 10 (TypeScript) — `services/gateway/`
+- **Frontend:** React+Vite (driver-app, rider-app), Next.js (admin-portal) — `apps/`
+- **Database:** Supabase (PostgreSQL + PostGIS) — 12 migrations in `supabase/migrations/`
+- **CI/CD:** GitHub Actions — `.github/workflows/`
 
-## 2. Repository overview
+## 2. Backend inventory
 
-- Location: `americaneaglelogsvc/RideShare`
-- Key top-level areas (non-exhaustive):
-  - `Requirements/` – canonical spec, schemas, governance.
-  - `apps/` – front-end applications (rider, driver, admin, etc.).
-  - `services/` – backend services (gateway, enterprise-service, etc.).
-  - `scripts/` – validation, scanning, and evidence automation.
-  - `.github/workflows/` – CI/CD and agentic workflows.
+| Category | Count | Key items |
+| --- | --- | --- |
+| Services | 37 | dispatch, driver, payment, offer, ledger, billing-cron, geozone, identity, etc. |
+| Controllers | 10 | admin, compliance, developer, dispatch, driver, health, payment, paysurity-webhook, seo, tenant-dashboard |
+| Guards | 2 | JwtAuthGuard, IdempotencyGuard |
+| Middleware | 1 | TenantContextMiddleware (with compliance gatekeeper) |
+| WebSocket | 1 | DriverSocketGateway |
+| Migrations | 12 | jade_sea (initial) through 1008_phase7_iron_shield |
 
-## 3. Foundations present (high-level)
+**Missing from backend:** RolesGuard, @Roles() decorator, RiderController, PolicyService, PolicyController, FcmService, JobQueueService.
 
-- Tenancy + RBAC + auth model artifacts exist under `Requirements/` and are validated by `test:requirements` and `test:foundation`.
-- Config schemas and example configs exist for `platform_config` and `tenant_config` under `Requirements/schemas/` and `config/`.
-- PII minimization, messaging retention, and audit taxonomy artifacts exist under `Requirements/`.
-- i18n foundations are present under `locales/en/`.
+## 3. Frontend inventory
 
-## 4. Evidence automation
+| App | Framework | State |
+| --- | --- | --- |
+| Driver App | React + Vite | Auth, dashboard, trip, earnings, onboarding pages. Incomplete flows. |
+| Rider App | React + Vite | BookingPage, PaymentForm. Incomplete flows. |
+| Admin Portal | Next.js | Health check + basic stats page. Minimal. |
 
-- `scripts/agentic_scan_runner.py` generates `AgentOutput/requirements_status.jsonl` based on code/test/ci evidence.
-- `scripts/update_requirements_status_from_foundation.mjs` and `config/foundation_requirements_map.json` inject foundation evidence for key canonical ids.
+## 4. Coverage snapshot
 
-## 5. Gaps snapshot (to be refined)
+| Status | Count | % |
+| --- | --- | --- |
+| ✅ Implemented | 11 | 14.9% |
+| 🟡 Partial | 27 | 36.5% |
+| ❌ Not Started | 36 | 48.6% |
+| **Total** | **74** | |
 
-- Many runtime domains (dispatch, pricing, payments, reliability) are still `Not Started` in `requirements_status.jsonl`.
-- Governance artifacts like `COVERAGE-TABLE.md`, `coverage.json`, and detailed gap lists are only partially implemented and will be expanded in subsequent chunks.
+## 5. What works (Phases 1–7.0 completed per UWD_Grand_Implementation_Plan.md)
+
+- Multi-tenant isolation (RLS on 14+ tables, tenant_id everywhere)
+- Driver identity resolution (global → tenant-scoped profiles)
+- Conflict-safe offer claiming (atomic_assign_trip with FOR UPDATE SKIP LOCKED)
+- Dispatch with nearest-driver PostGIS queries
+- Payment processing with FluidPay integration and bank_settled gating
+- Ledger service (trip fare recording)
+- Billing cron (daily ACH autopull)
+- Tenant dashboard (16-module analytics + materialized views)
+- Branding invoice generation
+- S3 document storage
+- Observability (metrics, global monitor, health endpoints)
+- Rate limiting on admin + webhook endpoints
+- Compliance gatekeeper middleware
+
+## 6. What does NOT work / is missing
+
+- **No test files** — zero *.spec.ts or *.test.ts anywhere
+- **No RolesGuard** — all endpoints accessible to any authenticated user
+- **No Policy Center** — entire §7.5 unimplemented
+- **No RiderController** — ReservationsService is orphaned
+- **No FCM push** — no device_tokens table or FcmService
+- **No formal state machines** — trip/offer transitions are implicit in code
+- **No CI/CD staging pipeline** — GitHub Actions exist but no auto-deploy
+- **No job queue or DLQ** — background tasks are inline
+- **36 of 74 req_ids have zero implementation**
+
+## 7. Key RPCs (PostgreSQL)
+
+`atomic_assign_trip`, `find_nearest_drivers`, `find_geo_zone`, `get_driver_density_per_sq_mile`, `check_driver_compliance`, `detect_parallel_sessions`, `refresh_dashboard_materialized_views`, `get_tenant_map_drivers`, `detect_at_risk_vips`, `mask_old_trip_pii`, `cleanup_expired_idempotency_keys`, `cleanup_old_health_snapshots`

@@ -1,0 +1,128 @@
+# §18 Backup & Disaster Recovery Configuration
+# RPO ≤ 15min, RTO ≤ 4h
+
+# Supabase/PostgreSQL Backup Strategy
+database:
+  provider: supabase
+  backup:
+    # Point-in-Time Recovery (PITR) — enabled via Supabase Pro plan
+    pitr:
+      enabled: true
+      retention_days: 7
+      wal_archiving: continuous
+      rpo_target_minutes: 15
+
+    # Daily automated snapshots
+    daily_snapshots:
+      enabled: true
+      retention_days: 30
+      schedule: "0 3 * * *"  # 3 AM UTC daily
+      storage_location: us-central1
+
+    # Weekly full backups exported to GCS
+    weekly_export:
+      enabled: true
+      schedule: "0 4 * * 0"  # 4 AM UTC Sunday
+      gcs_bucket: gs://rideshare-backups-${PROJECT_ID}/weekly/
+      retention_weeks: 12
+      encryption: CMEK  # Customer-Managed Encryption Key
+
+  restore:
+    rto_target_hours: 4
+    procedures:
+      - name: pitr_restore
+        description: "Restore to any point within 7 days"
+        estimated_time_minutes: 30
+        steps:
+          - "1. Navigate to Supabase Dashboard > Database > Backups"
+          - "2. Select target timestamp (within PITR window)"
+          - "3. Initiate restore to new project"
+          - "4. Verify data integrity with smoke tests"
+          - "5. Update DNS/connection strings to new instance"
+          - "6. Run migration verification: supabase db diff"
+
+      - name: snapshot_restore
+        description: "Restore from daily snapshot"
+        estimated_time_minutes: 60
+        steps:
+          - "1. List available snapshots in Supabase Dashboard"
+          - "2. Restore selected snapshot"
+          - "3. Apply any WAL segments since snapshot"
+          - "4. Verify and cutover"
+
+      - name: cold_restore
+        description: "Restore from weekly GCS export (worst case)"
+        estimated_time_minutes: 240
+        steps:
+          - "1. Download latest export from gs://rideshare-backups-*/weekly/"
+          - "2. Create new Supabase project"
+          - "3. Import SQL dump: psql < backup.sql"
+          - "4. Run all pending migrations"
+          - "5. Verify data, update connection strings"
+
+# Cloud Run Service Recovery
+compute:
+  gateway:
+    multi_region: false  # Single region for initial launch
+    region: us-central1
+    min_instances: 1
+    auto_recovery:
+      health_check_path: /health
+      health_check_interval_sec: 30
+      unhealthy_threshold: 3
+      restart_policy: automatic
+
+  # Traffic management for canary deployments
+  traffic:
+    canary:
+      enabled: true
+      initial_traffic_percent: 10
+      promotion_criteria:
+        error_rate_threshold: 0.01  # 1%
+        latency_p99_threshold_ms: 2000
+        min_observation_minutes: 15
+      auto_rollback:
+        enabled: true
+        trigger: error_rate > 0.05  # 5% errors → auto rollback
+
+# Storage Backup
+storage:
+  s3:
+    bucket: rideshare-assets
+    backup:
+      cross_region_replication: true
+      destination_region: us-east1
+      versioning: true
+      lifecycle:
+        transition_to_nearline_days: 90
+        transition_to_coldline_days: 365
+        delete_after_days: 730
+
+# Monitoring & Alerting for DR
+monitoring:
+  alerts:
+    - name: backup_failure
+      condition: "backup job exit code != 0"
+      severity: critical
+      channels: [pagerduty, slack]
+
+    - name: pitr_lag
+      condition: "replication lag > 15 minutes"
+      severity: critical
+      channels: [pagerduty]
+
+    - name: storage_replication_lag
+      condition: "cross-region replication lag > 1 hour"
+      severity: warning
+      channels: [slack]
+
+# DR Test Schedule
+testing:
+  quarterly_drill:
+    description: "Full DR failover drill every quarter"
+    checklist:
+      - "Verify PITR restore works within 30 minutes"
+      - "Verify Cloud Run canary rollback works"
+      - "Verify S3 cross-region read"
+      - "Measure actual RTO and compare to 4h target"
+      - "Document any deviations and remediation"

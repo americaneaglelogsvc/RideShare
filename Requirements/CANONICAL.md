@@ -710,8 +710,38 @@ The platform must implement a **Policy Center** as the authoritative system for 
 - DELETE `/policy-center/:type/drafts/:id`
 
 
+### 7.6 Dynamic pricing logic (zone-based + density surge) (mandatory)
+
+The platform must support zone-aware dynamic pricing combining PostGIS polygon zones with real-time driver density surge.
+
+**Zone pricing:**
+- `geo_zones` table with `GEOGRAPHY(POLYGON, 4326)` boundary, zone type (`standard`, `premium`, `airport`, `surge`), and configurable `price_multiplier`, `per_mile_rate_cents`, `base_fare_override_cents`.
+- `find_geo_zone(lat, lng)` RPC returns the matching zone with pricing overrides (GIST-indexed, <100ms).
+
+**Density-based surge:**
+- `get_driver_density_per_sq_mile(lat, lng, radius_miles)` RPC calculates online drivers per square mile.
+- Surge thresholds (configurable per tenant):
+  - Density < 0.5 drivers/sq mi → 2.0x surge
+  - Density < 1.0 → 1.8x
+  - Density < 2.0 → 1.5x
+  - Density < 3.0 → 1.3x
+  - Density < 5.0 → 1.1x
+  - Density ≥ 5.0 → 1.0x (no surge)
+- Zone `surge_floor` and `surge_cap` clamp the computed multiplier.
+
+**Composite formula:**
+```
+effective_multiplier = clamp(zone_multiplier * density_surge, surge_floor, surge_cap)
+fare = (base_fare + per_mile_rate * distance_miles) * effective_multiplier
+```
+
+**Acceptance:**
+- Given a pickup location inside a `premium` zone with density < 1.0, the quoted fare reflects both zone multiplier and 1.8x density surge, clamped by zone caps.
+
 ---
+
 - Optional policy (feature-gated): driver duty-hours caps and rest-period enforcement (configurable per tenant and jurisdiction).
+
 ## 8. Payments, ledger, payouts, and PaySurity integration
 
 
@@ -905,6 +935,33 @@ The platform must implement a **Policy Center** as the authoritative system for 
 - Tenant configures payout schedule and eligibility.
 - Drivers see unpaid balance and payout history under tenant branding.
 - Early payout requests supported with platform-configurable fees.
+
+### 8.6 Four-way referral split (spill-over marketplace) (mandatory)
+
+When a ride is fulfilled by a partner tenant via the Spill-Over Marketplace, the gross fare must be distributed using a 4-way split:
+
+**Split formula:**
+```
+platform_fee      = gross_fare * platform_fee_bps / 10000
+surcharge         = gross_fare * marketplace_surcharge_bps / 10000
+referral_fee      = gross_fare * referral_fee_bps / 10000
+fulfilling_net    = gross_fare - platform_fee - surcharge - referral_fee
+```
+
+**Invariant:** `platform_fee + surcharge + referral_fee + fulfilling_net = gross_fare` (enforced by DB CHECK constraint).
+
+**Fields (on `tenant_onboarding`):**
+- `marketplace_surcharge_bps` (integer, default 200 = 2%)
+- `referral_fee_bps` (integer, default 300 = 3%)
+- Existing: `revenue_share_bps`, `per_ride_fee_cents`, `min_platform_fee_cents`
+
+**Subsidy budget guard:** If origin tenant has `max_subsidy_limit_cents`, referral distributions debit from that budget. When budget is exhausted, spill-over for that tenant is paused.
+
+**Idempotency:** `UNIQUE INDEX` on `trip_id` in `referral_distribution_splits` prevents duplicate splits.
+
+**Acceptance:**
+- Given a spill-over ride completes, the 4-way split ledger entries sum exactly to gross_fare.
+- Given a tenant's subsidy budget is exhausted, no further spill-over referrals are created for that tenant.
 
 ---
 
@@ -1186,6 +1243,26 @@ Each policy block must support:
 - Trigger and view automated tests (single or grouped).
 - System health dashboard (metrics/logs/alerts) and root-cause surfacing.
 
+### 9.4 Branding fee schedules and approval workflow (mandatory)
+
+Tenants may request custom branding (logo, color scheme, typography, CSS overrides) for their microsite and rider/driver apps. Branding changes are fee-gated and require platform approval.
+
+**Fee schedule (configurable by Super Admin):**
+- Custom branding package (full design): $5,000
+- Template-based branding (choose + customize): $2,500
+
+**Workflow:**
+1. Tenant submits branding request via `POST /tenants/:tenantId/branding-requests` with assets + package type.
+2. Request enters `pending_review` status; platform ops notified.
+3. Super Admin reviews and approves/rejects via `PUT /admin/branding-requests/:id/approve` or `/reject`.
+4. On approval: system generates PDF invoice, sends via email, and auto-pulls fee per RIDE-PAY-030.
+5. On payment confirmation: branding assets are applied to tenant microsite + apps; `branding_requests` record updated to `completed`.
+
+**DB:** `branding_requests` table (id, tenant_id, package_type, fee_cents, status, assets_json, reviewer_id, reviewed_at, invoice_url, created_at).
+
+**Acceptance:**
+- Given a tenant submits a custom branding request, when Super Admin approves and fee is collected, then branding assets are applied and the request is marked completed with audit trail.
+
 ---
 
 ## 10. Public-facing website (platform marketing) â€” tenant acquisition
@@ -1404,77 +1481,79 @@ All requirements in Sources B and C have been incorporated into the authoritativ
 ---
 
 MACHINE_READABLE_JSONL
-{"req_id":"API-ERR-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":62,"dod_md":""}
-{"req_id":"API-IDEM-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":61,"dod_md":""}
-{"req_id":"AUD-EVT-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":57,"dod_md":""}
-{"req_id":"BILL-AUTO-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":53,"dod_md":""}
-{"req_id":"BILL-INV-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":52,"dod_md":""}
-{"req_id":"CFG-JSON-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":285,"dod_md":""}
-{"req_id":"CFG-JSON-0002","title":"","source":".\\Requirements\\CANONICAL.md","md_line":294,"dod_md":""}
-{"req_id":"CFG-PLAT-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":37,"dod_md":""}
-{"req_id":"CFG-TEN-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":36,"dod_md":""}
-{"req_id":"CORP-ACCT-010","title":"","source":".\\Requirements\\CANONICAL.md","md_line":1145,"dod_md":""}
-{"req_id":"CORP-ACCT-020","title":"","source":".\\Requirements\\CANONICAL.md","md_line":1153,"dod_md":""}
-{"req_id":"CORP-ACCT-030","title":"","source":".\\Requirements\\CANONICAL.md","md_line":1161,"dod_md":""}
-{"req_id":"CORP-ACCT-040","title":"","source":".\\Requirements\\CANONICAL.md","md_line":1169,"dod_md":""}
-{"req_id":"DIS-OFR-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":47,"dod_md":""}
-{"req_id":"DIS-REAL-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":46,"dod_md":""}
-{"req_id":"DOC-STO-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":56,"dod_md":""}
-{"req_id":"DRV-APP-SYNC-010","title":"","source":".\\Requirements\\CANONICAL.md","md_line":513,"dod_md":""}
-{"req_id":"DRV-MOB-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":45,"dod_md":""}
-{"req_id":"DRV-MULT-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":67,"dod_md":""}
-{"req_id":"DRV-WEB-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":44,"dod_md":""}
-{"req_id":"ENV-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":207,"dod_md":""}
-{"req_id":"GCP-ARCH-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":65,"dod_md":""}
-{"req_id":"GCP-ARCH-0002","title":"","source":".\\Requirements\\CANONICAL.md","md_line":66,"dod_md":""}
-{"req_id":"GCP-AUTH-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":228,"dod_md":""}
-{"req_id":"GCP-CD-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":233,"dod_md":""}
-{"req_id":"JOB-QUE-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":54,"dod_md":""}
-{"req_id":"MAP-GEO-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":63,"dod_md":""}
-{"req_id":"MIC-PUB-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":41,"dod_md":""}
-{"req_id":"MIC-WGT-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":40,"dod_md":""}
-{"req_id":"NOT-PUSH-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":55,"dod_md":""}
-{"req_id":"OBS-DASH-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":58,"dod_md":""}
-{"req_id":"PAY-ADJ-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":51,"dod_md":""}
-{"req_id":"PAY-FLOW-0100","title":"","source":".\\Requirements\\CANONICAL.md","md_line":49,"dod_md":""}
-{"req_id":"PAY-SETL-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":50,"dod_md":""}
-{"req_id":"PLAN-TO-100","title":"","source":".\\Requirements\\CANONICAL.md","md_line":139,"dod_md":""}
-{"req_id":"RIDE-APP-SYNC-010","title":"","source":".\\Requirements\\CANONICAL.md","md_line":456,"dod_md":""}
-{"req_id":"RIDE-BOOK-ANTI-010","title":"","source":".\\Requirements\\CANONICAL.md","md_line":379,"dod_md":""}
-{"req_id":"RIDE-DISC-010","title":"","source":".\\Requirements\\CANONICAL.md","md_line":723,"dod_md":""}
-{"req_id":"RIDE-LEGAL-010","title":"","source":".\\Requirements\\CANONICAL.md","md_line":358,"dod_md":""}
-{"req_id":"RIDE-LEGAL-020","title":"","source":".\\Requirements\\CANONICAL.md","md_line":364,"dod_md":""}
-{"req_id":"RIDE-PAY-010","title":"","source":".\\Requirements\\CANONICAL.md","md_line":731,"dod_md":""}
-{"req_id":"RIDE-PAY-020","title":"","source":".\\Requirements\\CANONICAL.md","md_line":736,"dod_md":""}
-{"req_id":"RIDE-PAY-030","title":"","source":".\\Requirements\\CANONICAL.md","md_line":740,"dod_md":""}
-{"req_id":"RIDE-PAY-040","title":"","source":".\\Requirements\\CANONICAL.md","md_line":757,"dod_md":""}
-{"req_id":"RIDE-PAY-050","title":"","source":".\\Requirements\\CANONICAL.md","md_line":768,"dod_md":""}
-{"req_id":"RIDE-PAYOUT-100","title":"","source":".\\Requirements\\CANONICAL.md","md_line":793,"dod_md":""}
-{"req_id":"RIDE-PAYOUT-101","title":"","source":".\\Requirements\\CANONICAL.md","md_line":799,"dod_md":""}
-{"req_id":"RIDE-PAYOUT-102","title":"","source":".\\Requirements\\CANONICAL.md","md_line":808,"dod_md":""}
-{"req_id":"RIDE-PAYOUT-103","title":"","source":".\\Requirements\\CANONICAL.md","md_line":822,"dod_md":""}
-{"req_id":"RIDE-PAYOUT-104","title":"","source":".\\Requirements\\CANONICAL.md","md_line":830,"dod_md":""}
-{"req_id":"RIDE-PAYOUT-105","title":"","source":".\\Requirements\\CANONICAL.md","md_line":838,"dod_md":""}
-{"req_id":"RIDE-PAYOUT-106","title":"","source":".\\Requirements\\CANONICAL.md","md_line":847,"dod_md":""}
-{"req_id":"RIDE-PAYOUT-108","title":"","source":".\\Requirements\\CANONICAL.md","md_line":854,"dod_md":""}
-{"req_id":"RIDE-PAYOUT-110","title":"","source":".\\Requirements\\CANONICAL.md","md_line":827,"dod_md":""}
-{"req_id":"RIDE-PAYOUT-111","title":"","source":".\\Requirements\\CANONICAL.md","md_line":868,"dod_md":""}
-{"req_id":"RIDE-PAYOUT-112","title":"","source":".\\Requirements\\CANONICAL.md","md_line":875,"dod_md":""}
-{"req_id":"RID-MOB-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":43,"dod_md":""}
-{"req_id":"RID-WEB-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":42,"dod_md":""}
-{"req_id":"TAX-1099-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":59,"dod_md":""}
-{"req_id":"TAX-1099-010","title":"","source":".\\Requirements\\CANONICAL.md","md_line":913,"dod_md":""}
-{"req_id":"TAX-1099-020","title":"","source":".\\Requirements\\CANONICAL.md","md_line":920,"dod_md":""}
-{"req_id":"TAX-1099-030","title":"","source":".\\Requirements\\CANONICAL.md","md_line":932,"dod_md":""}
-{"req_id":"TEN-BASE-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":34,"dod_md":""}
-{"req_id":"TEN-BASE-0002","title":"","source":".\\Requirements\\CANONICAL.md","md_line":35,"dod_md":""}
-{"req_id":"TEN-POL-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":38,"dod_md":""}
-{"req_id":"TEN-POL-0002","title":"","source":".\\Requirements\\CANONICAL.md","md_line":39,"dod_md":""}
-{"req_id":"TEN-POL-0003","title":"","source":".\\Requirements\\CANONICAL.md","md_line":993,"dod_md":""}
-{"req_id":"TEN-POL-0004","title":"","source":".\\Requirements\\CANONICAL.md","md_line":1000,"dod_md":""}
-{"req_id":"TEN-POL-0005","title":"","source":".\\Requirements\\CANONICAL.md","md_line":1129,"dod_md":""}
-{"req_id":"TIME-TZ-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":64,"dod_md":""}
-{"req_id":"TRP-STM-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":48,"dod_md":""}
-{"req_id":"UI-FAQ-0001","title":"","source":".\\Requirements\\CANONICAL.md","md_line":60,"dod_md":""}
+{"req_id":"API-ERR-0001","title":"Standard error code system","source":".\\Requirements\\CANONICAL.md","md_line":62,"dod_md":""}
+{"req_id":"API-IDEM-0001","title":"Idempotency keys on all writes","source":".\\Requirements\\CANONICAL.md","md_line":61,"dod_md":""}
+{"req_id":"AUD-EVT-0001","title":"Audit event taxonomy","source":".\\Requirements\\CANONICAL.md","md_line":57,"dod_md":""}
+{"req_id":"BILL-AUTO-0001","title":"Automated billing autopull","source":".\\Requirements\\CANONICAL.md","md_line":53,"dod_md":""}
+{"req_id":"BILL-INV-0001","title":"Invoice generation","source":".\\Requirements\\CANONICAL.md","md_line":52,"dod_md":""}
+{"req_id":"CFG-JSON-0001","title":"Platform config JSON schema validation","source":".\\Requirements\\CANONICAL.md","md_line":285,"dod_md":""}
+{"req_id":"CFG-JSON-0002","title":"Tenant config JSON schema validation","source":".\\Requirements\\CANONICAL.md","md_line":294,"dod_md":""}
+{"req_id":"CFG-PLAT-0001","title":"Platform config runtime object","source":".\\Requirements\\CANONICAL.md","md_line":37,"dod_md":""}
+{"req_id":"CFG-TEN-0001","title":"Tenant config runtime object","source":".\\Requirements\\CANONICAL.md","md_line":36,"dod_md":""}
+{"req_id":"CORP-ACCT-010","title":"Corporate account entity","source":".\\Requirements\\CANONICAL.md","md_line":1145,"dod_md":""}
+{"req_id":"CORP-ACCT-020","title":"Corporate booking controls","source":".\\Requirements\\CANONICAL.md","md_line":1153,"dod_md":""}
+{"req_id":"CORP-ACCT-030","title":"Corporate billing and receipts","source":".\\Requirements\\CANONICAL.md","md_line":1161,"dod_md":""}
+{"req_id":"CORP-ACCT-040","title":"Corporate admin UX","source":".\\Requirements\\CANONICAL.md","md_line":1169,"dod_md":""}
+{"req_id":"DIS-OFR-0001","title":"Offer state machine and conflict-safe claiming","source":".\\Requirements\\CANONICAL.md","md_line":47,"dod_md":""}
+{"req_id":"DIS-REAL-0001","title":"Real-time dispatch with SSE/poll fallback","source":".\\Requirements\\CANONICAL.md","md_line":46,"dod_md":""}
+{"req_id":"DOC-STO-0001","title":"Document storage (S3/GCS)","source":".\\Requirements\\CANONICAL.md","md_line":56,"dod_md":""}
+{"req_id":"DRV-APP-SYNC-010","title":"Driver app cross-device state sync","source":".\\Requirements\\CANONICAL.md","md_line":513,"dod_md":""}
+{"req_id":"DRV-MOB-0001","title":"Driver mobile app (iOS + Android)","source":".\\Requirements\\CANONICAL.md","md_line":45,"dod_md":""}
+{"req_id":"DRV-MULT-0001","title":"Multi-tenant driver concurrency","source":".\\Requirements\\CANONICAL.md","md_line":67,"dod_md":""}
+{"req_id":"DRV-WEB-0001","title":"Driver web app","source":".\\Requirements\\CANONICAL.md","md_line":44,"dod_md":""}
+{"req_id":"ENV-0001","title":"Dev/staging/prod environment isolation","source":".\\Requirements\\CANONICAL.md","md_line":207,"dod_md":""}
+{"req_id":"GCP-ARCH-0001","title":"GCP baseline infrastructure","source":".\\Requirements\\CANONICAL.md","md_line":65,"dod_md":""}
+{"req_id":"GCP-ARCH-0002","title":"Tenant microsite domain provisioning + TLS","source":".\\Requirements\\CANONICAL.md","md_line":66,"dod_md":""}
+{"req_id":"GCP-AUTH-0001","title":"OIDC + WIF for CI/CD to GCP","source":".\\Requirements\\CANONICAL.md","md_line":228,"dod_md":""}
+{"req_id":"GCP-CD-0001","title":"CI/CD pipeline with staging auto-deploy","source":".\\Requirements\\CANONICAL.md","md_line":233,"dod_md":""}
+{"req_id":"JOB-QUE-0001","title":"DB-backed job queue + DLQ","source":".\\Requirements\\CANONICAL.md","md_line":54,"dod_md":""}
+{"req_id":"MAP-GEO-0001","title":"Geospatial mapping (PostGIS)","source":".\\Requirements\\CANONICAL.md","md_line":63,"dod_md":""}
+{"req_id":"MIC-PUB-0001","title":"Tenant microsite static publish + CDN","source":".\\Requirements\\CANONICAL.md","md_line":41,"dod_md":""}
+{"req_id":"MIC-WGT-0001","title":"Tenant microsite booking/quote widget","source":".\\Requirements\\CANONICAL.md","md_line":40,"dod_md":""}
+{"req_id":"MSG-RET-0001","title":"Masked communications and messaging retention","source":".\\Requirements\\messaging_masking_and_retention.md","md_line":1,"dod_md":""}
+{"req_id":"NOT-PUSH-0001","title":"FCM push notifications","source":".\\Requirements\\CANONICAL.md","md_line":55,"dod_md":""}
+{"req_id":"OBS-DASH-0001","title":"Observability dashboards (metrics/logs/alerts)","source":".\\Requirements\\CANONICAL.md","md_line":58,"dod_md":""}
+{"req_id":"PAY-ADJ-0001","title":"Payment adjustments and clawbacks","source":".\\Requirements\\CANONICAL.md","md_line":51,"dod_md":""}
+{"req_id":"PAY-FLOW-0100","title":"Tenant payment flow consent (platform-triggered payouts)","source":".\\Requirements\\CANONICAL.md","md_line":49,"dod_md":""}
+{"req_id":"PAY-SETL-0001","title":"Settlement gating (bank_settled)","source":".\\Requirements\\CANONICAL.md","md_line":50,"dod_md":""}
+{"req_id":"PII-BASE-0001","title":"PII minimization and DSAR workflows","source":".\\Requirements\\pii_minimization.md","md_line":1,"dod_md":""}
+{"req_id":"PLAN-TO-100","title":"Plan to 100% coverage roadmap","source":".\\Requirements\\CANONICAL.md","md_line":139,"dod_md":""}
+{"req_id":"RIDE-APP-SYNC-010","title":"Rider app cross-device state sync","source":".\\Requirements\\CANONICAL.md","md_line":456,"dod_md":""}
+{"req_id":"RIDE-BOOK-ANTI-010","title":"Anti-duplicate booking","source":".\\Requirements\\CANONICAL.md","md_line":379,"dod_md":""}
+{"req_id":"RIDE-DISC-010","title":"Rider disclosure panel","source":".\\Requirements\\CANONICAL.md","md_line":723,"dod_md":""}
+{"req_id":"RIDE-LEGAL-010","title":"Legal documents system (T&Cs)","source":".\\Requirements\\CANONICAL.md","md_line":358,"dod_md":""}
+{"req_id":"RIDE-LEGAL-020","title":"Privacy policy and dispute routing","source":".\\Requirements\\CANONICAL.md","md_line":364,"dod_md":""}
+{"req_id":"RIDE-PAY-010","title":"Tenant direct settlement (default)","source":".\\Requirements\\CANONICAL.md","md_line":731,"dod_md":""}
+{"req_id":"RIDE-PAY-020","title":"PaySurity settlement (optional)","source":".\\Requirements\\CANONICAL.md","md_line":736,"dod_md":""}
+{"req_id":"RIDE-PAY-030","title":"Billing + autopull (invoices + schedule + triggers)","source":".\\Requirements\\CANONICAL.md","md_line":740,"dod_md":""}
+{"req_id":"RIDE-PAY-040","title":"Default fee schedule (Starter/Pro/Enterprise)","source":".\\Requirements\\CANONICAL.md","md_line":757,"dod_md":""}
+{"req_id":"RIDE-PAY-050","title":"Payout controls (bulk preview + confirm + audit)","source":".\\Requirements\\CANONICAL.md","md_line":768,"dod_md":""}
+{"req_id":"RIDE-PAYOUT-100","title":"Payout modes (tenant-managed vs platform-triggered)","source":".\\Requirements\\CANONICAL.md","md_line":793,"dod_md":""}
+{"req_id":"RIDE-PAYOUT-101","title":"Completely Settled truth (bank_settled)","source":".\\Requirements\\CANONICAL.md","md_line":799,"dod_md":""}
+{"req_id":"RIDE-PAYOUT-102","title":"On-demand cash-out request UX","source":".\\Requirements\\CANONICAL.md","md_line":808,"dod_md":""}
+{"req_id":"RIDE-PAYOUT-103","title":"Fee model (platform-controlled, tenant-visible)","source":".\\Requirements\\CANONICAL.md","md_line":822,"dod_md":""}
+{"req_id":"RIDE-PAYOUT-104","title":"Payout status + receipts (driver + tenant views)","source":".\\Requirements\\CANONICAL.md","md_line":830,"dod_md":""}
+{"req_id":"RIDE-PAYOUT-105","title":"Adjustments, reversals, and recovery","source":".\\Requirements\\CANONICAL.md","md_line":838,"dod_md":""}
+{"req_id":"RIDE-PAYOUT-106","title":"Ledger linkage + reconciliation","source":".\\Requirements\\CANONICAL.md","md_line":847,"dod_md":""}
+{"req_id":"RIDE-PAYOUT-108","title":"Regular payout schedule (tenant-configurable)","source":".\\Requirements\\CANONICAL.md","md_line":854,"dod_md":""}
+{"req_id":"RIDE-PAYOUT-110","title":"Paid by tenant presentation + receipt truth","source":".\\Requirements\\CANONICAL.md","md_line":827,"dod_md":""}
+{"req_id":"RIDE-PAYOUT-111","title":"Bulk payout preview + edit + confirm","source":".\\Requirements\\CANONICAL.md","md_line":868,"dod_md":""}
+{"req_id":"RIDE-PAYOUT-112","title":"Bulk payout execution + audit","source":".\\Requirements\\CANONICAL.md","md_line":875,"dod_md":""}
+{"req_id":"RID-MOB-0001","title":"Rider mobile app (iOS + Android)","source":".\\Requirements\\CANONICAL.md","md_line":43,"dod_md":""}
+{"req_id":"RID-WEB-0001","title":"Rider web app","source":".\\Requirements\\CANONICAL.md","md_line":42,"dod_md":""}
+{"req_id":"TAX-1099-0001","title":"Tax document generation baseline","source":".\\Requirements\\CANONICAL.md","md_line":59,"dod_md":""}
+{"req_id":"TAX-1099-010","title":"Earnings statements (tenant + driver scoped)","source":".\\Requirements\\CANONICAL.md","md_line":913,"dod_md":""}
+{"req_id":"TAX-1099-020","title":"1099-K style output with TIN vault","source":".\\Requirements\\CANONICAL.md","md_line":920,"dod_md":""}
+{"req_id":"TAX-1099-030","title":"Tax doc access controls and audit","source":".\\Requirements\\CANONICAL.md","md_line":932,"dod_md":""}
+{"req_id":"TEN-BASE-0001","title":"Multi-tenant isolation (tenant_id on all entities)","source":".\\Requirements\\CANONICAL.md","md_line":34,"dod_md":""}
+{"req_id":"TEN-BASE-0002","title":"RBAC with JWT + RolesGuard","source":".\\Requirements\\CANONICAL.md","md_line":35,"dod_md":""}
+{"req_id":"TEN-POL-0001","title":"Policy Center draft/validate/publish/rollback","source":".\\Requirements\\CANONICAL.md","md_line":38,"dod_md":""}
+{"req_id":"TEN-POL-0002","title":"Policy versioning and diff","source":".\\Requirements\\CANONICAL.md","md_line":39,"dod_md":""}
+{"req_id":"TEN-POL-0003","title":"Policy activation modes (enabled, manual_only, auto_apply)","source":".\\Requirements\\CANONICAL.md","md_line":993,"dod_md":""}
+{"req_id":"TEN-POL-0004","title":"Tenant policy config authoritative JSON schema","source":".\\Requirements\\CANONICAL.md","md_line":1000,"dod_md":""}
+{"req_id":"TEN-POL-0005","title":"Jurisdiction templates and disclaimers","source":".\\Requirements\\CANONICAL.md","md_line":1129,"dod_md":""}
+{"req_id":"TIME-TZ-0001","title":"Timezone handling (UTC storage + tenant-local display)","source":".\\Requirements\\CANONICAL.md","md_line":64,"dod_md":""}
+{"req_id":"TRP-STM-0001","title":"Trip state machine with allowed transitions","source":".\\Requirements\\CANONICAL.md","md_line":48,"dod_md":""}
+{"req_id":"UI-FAQ-0001","title":"FAQs page + bot training dataset","source":".\\Requirements\\CANONICAL.md","md_line":60,"dod_md":""}
 END_MACHINE_READABLE_JSONL
 

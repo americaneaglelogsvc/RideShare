@@ -1,74 +1,82 @@
 {
-  "version": 1,
-  "notes": "Machine-readable summary of canonical requirements coverage. This file will be progressively enriched from requirements_status.jsonl.",
-  "foundations": {
-    "TEN-BASE-0001": {
-      "status_hint": "InProgressOrBetter",
-      "artifacts": [
-        "Requirements/tenancy_isolation.md",
-        "Requirements/rbac_roles.json"
-      ]
-    },
-    "TEN-BASE-0002": {
-      "status_hint": "InProgressOrBetter",
-      "artifacts": [
-        "Requirements/auth_model.md",
-        "Requirements/rbac_matrix.md",
-        "Requirements/rbac_roles.json"
-      ]
-    },
-    "CFG-PLAT-0001": {
-      "status_hint": "InProgressOrBetter",
-      "artifacts": [
-        "Requirements/schemas/platform_config.schema.json",
-        "config/platform_config.example.json"
-      ]
-    },
-    "CFG-TEN-0001": {
-      "status_hint": "InProgressOrBetter",
-      "artifacts": [
-        "Requirements/schemas/tenant_config.schema.json",
-        "config/tenant_config.example.json"
-      ]
-    },
-    "CFG-JSON-0001": {
-      "status_hint": "InProgressOrBetter",
-      "artifacts": [
-        "Requirements/schemas/platform_config.schema.json",
-        "Requirements/schemas/tenant_config.schema.json",
-        "Requirements/schemas/tenant_policy_config.schema.json"
-      ]
-    },
-    "CFG-JSON-0002": {
-      "status_hint": "InProgressOrBetter",
-      "artifacts": [
-        "Requirements/schemas/platform_config.schema.json",
-        "Requirements/schemas/tenant_config.schema.json",
-        "Requirements/schemas/tenant_policy_config.schema.json",
-        "config/platform_config.example.json",
-        "config/tenant_config.example.json"
-      ]
-    },
-    "PII-BASE-0001": {
-      "status_hint": "InProgressOrBetter",
-      "artifacts": [
-        "Requirements/pii_minimization.md",
-        "Requirements/pii_catalog.json"
-      ]
-    },
-    "MSG-RET-0001": {
-      "status_hint": "InProgressOrBetter",
-      "artifacts": [
-        "Requirements/messaging_masking_and_retention.md",
-        "Requirements/messaging_retention_policy.json"
-      ]
-    },
-    "AUD-EVT-0001": {
-      "status_hint": "InProgressOrBetter",
-      "artifacts": [
-        "Requirements/audit_events.md",
-        "Requirements/audit_events.json"
-      ]
-    }
+  "version": 2,
+  "generated": "2026-03-03T12:00:00Z",
+  "total_req_ids": 74,
+  "summary": { "implemented": 70, "partial": 0, "not_started": 4 },
+  "requirements": {
+    "API-ERR-0001": { "status": "Implemented", "phase": null, "evidence": ["supabase/migrations/1016_phase15_reliability.sql", "services/gateway/src/app/services/payment.service.ts"] },
+    "API-IDEM-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/guards/idempotency.guard.ts", "supabase/migrations/1016_phase15_reliability.sql"] },
+    "AUD-EVT-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/audit.service.ts", "supabase/migrations/1017_phase17_final_hardening.sql"] },
+    "BILL-AUTO-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/billing-cron.service.ts"] },
+    "BILL-INV-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/payout.service.ts", "supabase/migrations/1011_phase10_payments_completeness.sql"] },
+    "CFG-JSON-0001": { "status": "Implemented", "phase": null, "evidence": ["Requirements/schemas/platform_config.schema.json", "services/gateway/src/app/services/config-validator.service.ts"] },
+    "CFG-JSON-0002": { "status": "Implemented", "phase": null, "evidence": ["Requirements/schemas/tenant_config.schema.json", "services/gateway/src/app/services/config-validator.service.ts"] },
+    "CFG-PLAT-0001": { "status": "Implemented", "phase": null, "evidence": ["config/platform_config.example.json", "services/gateway/src/app/services/config-validator.service.ts"] },
+    "CFG-TEN-0001": { "status": "Implemented", "phase": null, "evidence": ["config/tenant_config.example.json", "services/gateway/src/app/services/config-validator.service.ts", "services/gateway/src/app/services/pricing-policy.service.ts", "supabase/migrations/1019_phase9_pricing_policies.sql"] },
+    "CORP-ACCT-010": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/corporate-account.service.ts", "services/gateway/src/app/controllers/corporate.controller.ts", "supabase/migrations/1014_phase13_corporate_accounts.sql"] },
+    "CORP-ACCT-020": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/corporate-account.service.ts", "services/gateway/src/app/controllers/corporate.controller.ts", "supabase/migrations/1014_phase13_corporate_accounts.sql"] },
+    "CORP-ACCT-030": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/corporate-account.service.ts", "services/gateway/src/app/controllers/corporate.controller.ts", "supabase/migrations/1014_phase13_corporate_accounts.sql"] },
+    "CORP-ACCT-040": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/corporate-account.service.ts", "services/gateway/src/app/controllers/corporate.controller.ts", "supabase/migrations/1014_phase13_corporate_accounts.sql"] },
+    "DIS-OFR-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/offer.service.ts", "services/gateway/src/app/services/dispatch-enhancements.service.ts", "supabase/migrations/1000_independent_concurrency_onboarding.sql"] },
+    "DIS-REAL-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/gateways/driver-socket.gateway.ts", "services/gateway/src/app/controllers/dispatch-sse.controller.ts", "services/gateway/src/app/services/dispatch-enhancements.service.ts", "supabase/migrations/1018_phase8_dispatch_enhancements.sql"] },
+    "DOC-STO-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/s3.service.ts", "services/gateway/src/app/services/ocr-document.service.ts"] },
+    "DRV-APP-SYNC-010": { "status": "Not Started", "phase": 16, "evidence": [] },
+    "DRV-MOB-0001": { "status": "Not Started", "phase": 16, "evidence": [] },
+    "DRV-MULT-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/identity.service.ts", "services/gateway/src/app/services/parallel-session.service.ts"] },
+    "DRV-WEB-0001": { "status": "Implemented", "phase": null, "evidence": ["apps/driver-app/", "services/gateway/src/app/services/push-notification.service.ts", "services/gateway/src/app/services/fleet-owner.service.ts", "services/gateway/src/app/services/ocr-document.service.ts"] },
+    "ENV-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/env-validation.service.ts", "supabase/migrations/1016_phase15_reliability.sql"] },
+    "GCP-ARCH-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/feature-gate.service.ts", "services/gateway/src/app/services/flight-awareness.service.ts", "services/gateway/src/app/services/events-engine.service.ts", "supabase/migrations/1017_phase17_final_hardening.sql", "supabase/migrations/1020_phase17_expansions.sql", "infra/gcp/cloud-run-gateway.yaml", "infra/gcp/cloud-armor-policy.yaml"] },
+    "GCP-ARCH-0002": { "status": "Implemented", "phase": null, "evidence": ["supabase/migrations/1017_phase17_final_hardening.sql"] },
+    "GCP-AUTH-0001": { "status": "Implemented", "phase": null, "evidence": ["supabase/migrations/1016_phase15_reliability.sql", "infra/gcp/oidc-wif.yaml", ".github/workflows/deploy_staging.yml"] },
+    "GCP-CD-0001": { "status": "Implemented", "phase": null, "evidence": ["supabase/migrations/1016_phase15_reliability.sql", ".github/workflows/deploy_staging.yml", "infra/gcp/backup-dr.yaml"] },
+    "JOB-QUE-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/job-queue.service.ts", "supabase/migrations/1016_phase15_reliability.sql"] },
+    "MAP-GEO-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/geozone.service.ts", "supabase/migrations/1003_phase3_enterprise_scale.sql"] },
+    "MIC-PUB-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/microsite.service.ts", "services/gateway/src/app/controllers/microsite.controller.ts", "supabase/migrations/1015_phase14_microsites_faq.sql"] },
+    "MIC-WGT-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/microsite.service.ts", "services/gateway/src/app/controllers/microsite.controller.ts", "supabase/migrations/1015_phase14_microsites_faq.sql"] },
+    "MSG-RET-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/message-retention.service.ts", "services/gateway/src/app/services/in-trip-messaging.service.ts", "services/gateway/src/app/controllers/rider.controller.ts", "supabase/migrations/1013_phase12_rider_features.sql", "supabase/migrations/1021_phase11_12_missing_features.sql"] },
+    "NOT-PUSH-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/push-notification.service.ts", "supabase/migrations/1012_phase11_push_notifications.sql"] },
+    "OBS-DASH-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/metrics.service.ts", "services/gateway/src/app/services/global-monitor.service.ts", "apps/admin-portal/app/ops-console/page.tsx", "apps/admin-portal/app/platform-admin/page.tsx"] },
+    "PAY-ADJ-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/payout.service.ts", "services/gateway/src/app/services/refund.service.ts"] },
+    "PAY-FLOW-0100": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/payout.service.ts", "supabase/migrations/1011_phase10_payments_completeness.sql"] },
+    "PAY-SETL-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/payment.service.ts"] },
+    "PII-BASE-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/data-subject-request.service.ts", "services/gateway/src/app/services/consent.service.ts", "supabase/migrations/1017_phase17_final_hardening.sql"] },
+    "PLAN-TO-100": { "status": "Implemented", "phase": null, "evidence": ["Requirements/PLAN-TO-100.md", "Requirements/coverage.json"] },
+    "RIDE-APP-SYNC-010": { "status": "Not Started", "phase": 16, "evidence": [] },
+    "RIDE-BOOK-ANTI-010": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/booking-antifraud.service.ts", "services/gateway/src/app/controllers/rider.controller.ts", "supabase/migrations/1013_phase12_rider_features.sql"] },
+    "RIDE-DISC-010": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/rider-dispute.service.ts", "services/gateway/src/app/controllers/rider.controller.ts", "supabase/migrations/1013_phase12_rider_features.sql"] },
+    "RIDE-LEGAL-010": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/legal-consent.service.ts", "services/gateway/src/app/controllers/rider.controller.ts", "supabase/migrations/1013_phase12_rider_features.sql"] },
+    "RIDE-LEGAL-020": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/legal-consent.service.ts", "services/gateway/src/app/controllers/rider.controller.ts", "supabase/migrations/1013_phase12_rider_features.sql"] },
+    "RIDE-PAY-010": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/payment.service.ts", "services/gateway/src/app/controllers/payout.controller.ts"] },
+    "RIDE-PAY-020": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/fluidpay.service.ts", "services/gateway/src/app/services/payment.service.ts"] },
+    "RIDE-PAY-030": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/payout.service.ts", "supabase/migrations/1011_phase10_payments_completeness.sql"] },
+    "RIDE-PAY-040": { "status": "Implemented", "phase": null, "evidence": ["supabase/migrations/1011_phase10_payments_completeness.sql", "services/gateway/src/app/services/payout.service.ts"] },
+    "RIDE-PAY-050": { "status": "Implemented", "phase": null, "evidence": ["supabase/migrations/1011_phase10_payments_completeness.sql"] },
+    "RIDE-PAYOUT-100": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/payout.service.ts", "supabase/migrations/1011_phase10_payments_completeness.sql"] },
+    "RIDE-PAYOUT-101": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/payment.service.ts"] },
+    "RIDE-PAYOUT-102": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/payout.service.ts"] },
+    "RIDE-PAYOUT-103": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/dispatch.service.ts", "services/gateway/src/app/services/payout.service.ts"] },
+    "RIDE-PAYOUT-104": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/payout.service.ts", "services/gateway/src/app/controllers/payout.controller.ts"] },
+    "RIDE-PAYOUT-105": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/refund.service.ts", "services/gateway/src/app/services/payout.service.ts"] },
+    "RIDE-PAYOUT-106": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/payout.service.ts", "supabase/migrations/1011_phase10_payments_completeness.sql"] },
+    "RIDE-PAYOUT-108": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/payout.service.ts", "supabase/migrations/1011_phase10_payments_completeness.sql"] },
+    "RIDE-PAYOUT-110": { "status": "Implemented", "phase": null, "evidence": ["supabase/migrations/1011_phase10_payments_completeness.sql"] },
+    "RIDE-PAYOUT-111": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/payout.service.ts", "services/gateway/src/app/controllers/payout.controller.ts"] },
+    "RIDE-PAYOUT-112": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/payout.service.ts", "services/gateway/src/app/controllers/payout.controller.ts"] },
+    "RID-MOB-0001": { "status": "Not Started", "phase": 16, "evidence": [] },
+    "RID-WEB-0001": { "status": "Implemented", "phase": null, "evidence": ["apps/rider-app/", "services/gateway/src/app/controllers/rider.controller.ts", "services/gateway/src/app/services/rating.service.ts", "services/gateway/src/app/services/split-pay.service.ts", "services/gateway/src/app/services/hourly-booking.service.ts", "supabase/migrations/1013_phase12_rider_features.sql", "supabase/migrations/1021_phase11_12_missing_features.sql"] },
+    "TAX-1099-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/tax.service.ts", "services/gateway/src/app/services/payout.service.ts"] },
+    "TAX-1099-010": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/tax.service.ts", "services/gateway/src/app/services/payout.service.ts"] },
+    "TAX-1099-020": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/payout.service.ts", "supabase/migrations/1011_phase10_payments_completeness.sql"] },
+    "TAX-1099-030": { "status": "Implemented", "phase": null, "evidence": ["supabase/migrations/1011_phase10_payments_completeness.sql"] },
+    "TEN-BASE-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/tenant-context.middleware.ts", "supabase/migrations/1008_phase7_iron_shield.sql"] },
+    "TEN-BASE-0002": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/guards/jwt-auth.guard.ts", "services/gateway/src/app/guards/roles.guard.ts", "supabase/migrations/1009_phase72_rbac_roles.sql"] },
+    "TEN-POL-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/policy.service.ts", "services/gateway/src/app/controllers/policy.controller.ts", "supabase/migrations/1010_phase73_policy_center.sql"] },
+    "TEN-POL-0002": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/policy.service.ts"] },
+    "TEN-POL-0003": { "status": "Implemented", "phase": null, "evidence": ["supabase/migrations/1010_phase73_policy_center.sql"] },
+    "TEN-POL-0004": { "status": "Implemented", "phase": null, "evidence": ["Requirements/schemas/tenant_policy_config.schema.json"] },
+    "TEN-POL-0005": { "status": "Implemented", "phase": null, "evidence": ["supabase/migrations/1010_phase73_policy_center.sql"] },
+    "TIME-TZ-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/timezone.service.ts", "supabase/migrations/1016_phase15_reliability.sql"] },
+    "TRP-STM-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/trip-state-machine.ts", "services/gateway/src/app/services/trip-state-machine.spec.ts"] },
+    "UI-FAQ-0001": { "status": "Implemented", "phase": null, "evidence": ["services/gateway/src/app/services/faq.service.ts", "services/gateway/src/app/controllers/microsite.controller.ts", "supabase/migrations/1015_phase14_microsites_faq.sql", "public/faq.html"] }
   }
 }
