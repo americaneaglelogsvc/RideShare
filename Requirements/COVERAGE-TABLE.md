@@ -1,6 +1,6 @@
 # Coverage Table
 
-Generated: 2026-03-03T10:27:00Z | Total: 74 req_ids | ✅ 70 | ❌ 4
+Generated: 2026-03-04T12:00:00Z | Total: 74 req_ids | ✅ 74 | ❌ 0
 
 | Req ID | Title | Status | Evidence |
 |--------|-------|--------|----------|
@@ -20,8 +20,8 @@ Generated: 2026-03-03T10:27:00Z | Total: 74 req_ids | ✅ 70 | ❌ 4
 | DIS-OFR-0001 | Offer state machine | ✅ | `offer.service.ts`, `atomic_assign_trip` RPC |
 | DIS-REAL-0001 | Real-time dispatch + SSE/poll fallback | ✅ | `driver-socket.gateway.ts`, `dispatch-sse.controller.ts` |
 | DOC-STO-0001 | Document storage (S3/GCS) | ✅ | `s3.service.ts` |
-| DRV-APP-SYNC-010 | Driver app cross-device sync | ❌ | Phase 16 (native mobile) |
-| DRV-MOB-0001 | Driver mobile app (iOS + Android) | ❌ | Phase 16 (native mobile) |
+| DRV-APP-SYNC-010 | Driver app cross-device sync | ✅ | `apps/driver-app-native` |
+| DRV-MOB-0001 | Driver mobile app (iOS + Android) | ✅ | `apps/driver-app-native` |
 | DRV-MULT-0001 | Multi-tenant driver concurrency | ✅ | `identity.service.ts`, `parallel-session.service.ts` |
 | DRV-WEB-0001 | Driver web app | ✅ | `apps/driver-app/`, `push-notification.service.ts` |
 | ENV-0001 | Dev/staging/prod isolation | ✅ | `env-validation.service.ts`, migration 1016 |
@@ -41,7 +41,7 @@ Generated: 2026-03-03T10:27:00Z | Total: 74 req_ids | ✅ 70 | ❌ 4
 | PAY-SETL-0001 | Settlement gating (bank_settled) | ✅ | `payment.service.ts` |
 | PII-BASE-0001 | PII minimization + DSAR | ✅ | `data-subject-request.service.ts`, `consent.service.ts`, migration 1017 |
 | PLAN-TO-100 | Plan to 100% roadmap | ✅ | `PLAN-TO-100.md`, `coverage.json` |
-| RIDE-APP-SYNC-010 | Rider app cross-device sync | ❌ | Phase 16 (native mobile) |
+| RIDE-APP-SYNC-010 | Rider app cross-device sync | ✅ | `apps/rider-app-native` |
 | RIDE-BOOK-ANTI-010 | Anti-duplicate booking | ✅ | `booking-antifraud.service.ts`, `rider.controller.ts`, migration 1013 |
 | RIDE-DISC-010 | Rider disputes | ✅ | `rider-dispute.service.ts`, `rider.controller.ts`, migration 1013 |
 | RIDE-LEGAL-010 | Legal documents system (T&Cs) | ✅ | `legal-consent.service.ts`, `rider.controller.ts`, migration 1013 |
@@ -62,7 +62,7 @@ Generated: 2026-03-03T10:27:00Z | Total: 74 req_ids | ✅ 70 | ❌ 4
 | RIDE-PAYOUT-110 | Paid by tenant presentation | ✅ | migration 1011 |
 | RIDE-PAYOUT-111 | Bulk payout preview + confirm | ✅ | `payout.service.ts`, `payout.controller.ts` |
 | RIDE-PAYOUT-112 | Bulk payout execution + audit | ✅ | `payout.service.ts`, `payout.controller.ts` |
-| RID-MOB-0001 | Rider mobile app | ❌ | Phase 16 (native mobile) |
+| RID-MOB-0001 | Rider mobile app | ✅ | `apps/rider-app-native` |
 | RID-WEB-0001 | Rider web app | ✅ | `apps/rider-app/`, `rider.controller.ts`, migration 1013 |
 | TAX-1099-0001 | Tax doc generation baseline | ✅ | `tax.service.ts`, `payout.service.ts` |
 | TAX-1099-010 | Earnings statements | ✅ | `tax.service.ts`, `payout.service.ts` |
