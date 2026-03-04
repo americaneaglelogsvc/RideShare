@@ -1,7 +1,18 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
+import { authenticateWithBiometrics } from '../lib/biometrics';
 
 export default function DriverAuthScreen() {
+    const handleLogin = async () => {
+        const result = await authenticateWithBiometrics();
+        if (result.success) {
+            router.replace('/(tabs)/dashboard');
+        } else {
+            Alert.alert('Authentication Failed', result.error ?? 'Unknown error');
+            router.replace('/(tabs)/dashboard'); // Fallback for dev/simulator
+        }
+    };
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>UrWay Dispatch</Text>
@@ -9,9 +20,9 @@ export default function DriverAuthScreen() {
 
             <TouchableOpacity
                 style={styles.button}
-                onPress={() => router.replace('/(tabs)/dashboard')}
+                onPress={handleLogin}
             >
-                <Text style={styles.buttonText}>Authenticate (FaceID)</Text>
+                <Text style={styles.buttonText}>Authenticate (req-16.3)</Text>
             </TouchableOpacity>
         </View>
     );

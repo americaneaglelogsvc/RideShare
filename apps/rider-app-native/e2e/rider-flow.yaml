@@ -1,0 +1,15 @@
+appId: com.rideshare.rider
+---
+- clearState
+- launchApp
+- assertVisible: "UrWay Dispatch"
+- assertVisible: "Rider Application"
+- tapOn: "Login with FaceID (req-16.3)"
+# Simulating successful biometric auth and navigation
+- assertVisible: "Where to?"
+- tapOn: "Request Ride (req-16.1)"
+- assertVisible: "Trip update received" # Checking console log or snackbar simulation
+- tapOn: "Profile"
+- assertVisible: "John Doe"
+- tapOn: "Logout"
+- assertVisible: "UrWay Dispatch"

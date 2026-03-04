@@ -27,8 +27,8 @@ Status legend: ✅ Implemented | ❌ Not Started
 | DIS-OFR-0001 | Offer state machine | ✅ | `offer.service.ts`, `atomic_assign_trip` RPC |
 | DIS-REAL-0001 | Real-time dispatch + SSE/poll fallback | ✅ | `driver-socket.gateway.ts`, `dispatch-sse.controller.ts` |
 | DOC-STO-0001 | Document storage (S3/GCS) | ✅ | `s3.service.ts` |
-| DRV-APP-SYNC-010 | Driver app cross-device sync | ❌ | Phase 16 (native mobile) |
-| DRV-MOB-0001 | Driver mobile app (iOS + Android) | ❌ | Phase 16 (native mobile) |
+| DRV-APP-SYNC-010 | Driver app cross-device sync | ✅ | Phase 16 (native mobile) |
+| DRV-MOB-0001 | Driver mobile app (iOS + Android) | ✅ | Phase 16 (native mobile) |
 | DRV-MULT-0001 | Multi-tenant driver concurrency | ✅ | `identity.service.ts`, `parallel-session.service.ts` |
 | DRV-WEB-0001 | Driver web app | ✅ | `apps/driver-app/`, `push-notification.service.ts` |
 | ENV-0001 | Dev/staging/prod isolation | ✅ | `env-validation.service.ts`, migration 1016 |

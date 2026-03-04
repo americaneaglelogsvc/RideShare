@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useDriverSocket } from '../../hooks/useSocket';
+import { startBackgroundLocation } from '../../lib/location';
 
 export default function DriverDashboardScreen() {
     const [isOnline, setIsOnline] = useState(false);
@@ -11,6 +12,7 @@ export default function DriverDashboardScreen() {
     useEffect(() => {
         if (socket && isOnline) {
             socket.emit('driver_online', { driverId: user?.id });
+            startBackgroundLocation(); // req-16.2 & background tracking
 
             socket.on('new_trip_request', (data) => {
                 console.log('New trip request available:', data);

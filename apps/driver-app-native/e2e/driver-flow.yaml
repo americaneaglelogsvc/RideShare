@@ -1,0 +1,13 @@
+appId: com.rideshare.driver
+---
+- clearState
+- launchApp
+- assertVisible: "UrWay Dispatch"
+- tapOn: "Authenticate (req-16.3)"
+- assertVisible: "Status: OFFLINE"
+- tapOn: {id: "status-switch"} # Toggle online
+- assertVisible: "Status: ONLINE"
+- tapOn: "Settings"
+- assertVisible: "Vehicle Documents"
+- tapOn: "Logout"
+- assertVisible: "UrWay Dispatch"
