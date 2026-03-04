@@ -65,20 +65,20 @@ jobs:
           workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
           service_account: ${{ vars.GCP_SA_EMAIL }}
 
-      - name: Deploy canary (10% traffic)
+      - name: Deploy staging
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: ${{ env.SERVICE }}
+          metadata: infra/gcp/cloud-run-gateway.yaml
           region: ${{ env.REGION }}
           image: ${{ needs.build.outputs.image_tag }}
-          tag: canary
-          no_traffic: true
+          # tag: canary
+          # no_traffic: true
 
-      - name: Route 10% traffic to canary
+      - name: Route 100% traffic
         run: |
           gcloud run services update-traffic ${{ env.SERVICE }} \
             --region=${{ env.REGION }} \
-            --to-tags=canary=10
+            --to-latest
 
       - name: Smoke test canary
         run: |
