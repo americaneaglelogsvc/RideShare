@@ -13,7 +13,7 @@ env:
   PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
   REGION: us-central1
   SERVICE: rideshare-gateway
-  REGISTRY: us-central1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/rideshare
+  REGISTRY: us-central1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/rideoo-repo
 
 jobs:
   build:
