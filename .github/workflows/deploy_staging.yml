@@ -65,14 +65,24 @@ jobs:
           workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
           service_account: ${{ vars.GCP_SA_EMAIL }}
 
+      - name: Render YAML
+        run: |
+          IMAGE_TAG=${{ needs.build.outputs.image_tag }}
+          # Extract the actual tag from the full image string if necessary, 
+          # but our YAML expects the full path after /gateway:
+          # Wait, our YAML has: us-central1-docker.pkg.dev/rideoo-487904/rideoo-repo/gateway:${TAG}
+          # needs.build.outputs.image_tag is: us-central1-docker.pkg.dev/rideoo-487904/rideoo-repo/gateway:staging-67a307e
+          # So we need to extract 'staging-67a307e'
+          TAG_ONLY=$(echo ${{ needs.build.outputs.image_tag }} | cut -d':' -f2)
+          export TAG=$TAG_ONLY
+          envsubst < infra/gcp/cloud-run-gateway.yaml > infra/gcp/cloud-run-gateway.rendered.yaml
+
       - name: Deploy staging
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          metadata: infra/gcp/cloud-run-gateway.yaml
+          metadata: infra/gcp/cloud-run-gateway.rendered.yaml
           region: ${{ env.REGION }}
-          image: ${{ needs.build.outputs.image_tag }}
-          # tag: canary
-          # no_traffic: true
+          # image: ${{ needs.build.outputs.image_tag }} # Not needed when using rendered metadata
 
       - name: Route 100% traffic
         run: |
