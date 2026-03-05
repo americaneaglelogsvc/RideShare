@@ -1,0 +1,38 @@
+{
+  "timestamp": "2026-03-05T12:40:46.603Z",
+  "summary": {
+    "totalTenants": 2,
+    "successful": 2,
+    "failed": 0,
+    "totalAssetsSynced": 4,
+    "totalErrors": 4
+  },
+  "results": [
+    {
+      "tenantId": "a1b2c3d4-0001-4000-8000-000000000001",
+      "success": true,
+      "syncedAssets": [
+        "branding-assets\\goldravenia.com\\branding.json",
+        "public\\brands\\goldravenia.com\\brand.css"
+      ],
+      "errors": [
+        "Failed to sync rider app.json: Error: ENOENT: no such file or directory, open 'C:\\Users\\Detaimfc\\Downloads\\RideShare\\scripts\\generated-apps\\rider-app-goldraveniacom\\app.json'",
+        "Failed to sync driver app.json: Error: ENOENT: no such file or directory, open 'C:\\Users\\Detaimfc\\Downloads\\RideShare\\scripts\\generated-apps\\driver-app-goldraveniacom\\app.json'"
+      ],
+      "timestamp": "2026-03-05T12:40:46.577Z"
+    },
+    {
+      "tenantId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "success": true,
+      "syncedAssets": [
+        "branding-assets\\blackravenia.com\\branding.json",
+        "public\\brands\\blackravenia.com\\brand.css"
+      ],
+      "errors": [
+        "Failed to sync rider app.json: Error: ENOENT: no such file or directory, open 'C:\\Users\\Detaimfc\\Downloads\\RideShare\\scripts\\generated-apps\\rider-app-blackraveniacom\\app.json'",
+        "Failed to sync driver app.json: Error: ENOENT: no such file or directory, open 'C:\\Users\\Detaimfc\\Downloads\\RideShare\\scripts\\generated-apps\\driver-app-blackraveniacom\\app.json'"
+      ],
+      "timestamp": "2026-03-05T12:40:46.595Z"
+    }
+  ]
+}
