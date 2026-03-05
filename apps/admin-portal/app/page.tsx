@@ -91,6 +91,10 @@ export default function HomePage() {
               </div>
             </div>
             <div className="space-y-2">
+              <a href="/walkthrough" className="block w-full bg-amber-600 text-white py-3 px-4 rounded-lg hover:bg-amber-500 transition-colors font-bold text-center text-lg">
+                ▶ Start Interactive Walkthrough
+              </a>
+              <p className="text-xs text-gray-500 text-center pb-1">7 personas · real API calls · full ride lifecycle</p>
               <a href="/ops-console" className="block w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium text-center">
                 Ops Console
               </a>
