@@ -13,10 +13,10 @@ on:
           - 'false'
 
 env:
-  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL || '' }}
+  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY || '' }}
   STAGING_API_URL: ${{ vars.STAGING_API_URL || 'http://localhost:3000' }}
-  AUTH_TOKEN: ${{ secrets.STAGING_AUTH_TOKEN }}
+  AUTH_TOKEN: ${{ secrets.STAGING_AUTH_TOKEN || '' }}
 
 jobs:
   seed:
@@ -34,19 +34,31 @@ jobs:
       - name: Install Supabase CLI
         run: npm install -g supabase@latest
 
+      - name: Check required secrets
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_KEY" ]; then
+            echo "❌ Missing required secrets: SUPABASE_URL or SUPABASE_SERVICE_KEY"
+            echo "Please configure these secrets in GitHub repository settings"
+            exit 1
+          fi
+          echo "✅ All required secrets are available"
+
       - name: Apply seed 001 — test tenants
+        if: env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_KEY != ''
         run: |
           supabase db push --db-url "${{ secrets.SUPABASE_DB_URL || 'postgresql://localhost:5432/postgres' }}" \
             --file supabase/seeds/001_test_tenants.sql
         continue-on-error: true
 
       - name: Apply seed 002 — test drivers + riders
+        if: env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_KEY != ''
         run: |
           supabase db push --db-url "${{ secrets.SUPABASE_DB_URL || 'postgresql://localhost:5432/postgres' }}" \
             --file supabase/seeds/002_test_users.sql
         continue-on-error: true
 
       - name: Verify seed — count tenants
+        if: env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_KEY != ''
         run: |
           npx supabase-js-cli query \
             --url "$SUPABASE_URL" \
@@ -85,6 +97,7 @@ jobs:
         run: npm install -g tsx
 
       - name: Wait for staging to be ready
+        if: env.STAGING_API_URL != ''
         run: |
           echo "Checking staging health..."
           for i in 1 2 3 4 5; do
@@ -98,6 +111,7 @@ jobs:
           done
 
       - name: Run full lifecycle simulation
+        if: env.STAGING_API_URL != '' && env.AUTH_TOKEN != ''
         run: |
           STAGING_API_URL="$STAGING_API_URL" \
           AUTH_TOKEN="$AUTH_TOKEN" \
