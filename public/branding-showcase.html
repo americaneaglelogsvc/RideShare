@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Tenant Branding Showcase - UrWay Dispatch</title>
+    <meta name="description" content="See the power of white-label branding with live demos of GoldRavenia and BlackRavenia themes. Customize your rideshare platform with your brand.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        
+        /* GoldRavenia Theme */
+        .goldravenia-theme {
+            --brand-primary: #d4a017;
+            --brand-secondary: #0f172a;
+            --brand-accent: #f59e0b;
+            --brand-gradient: linear-gradient(135deg, #d4a017 0%, #f59e0b 100%);
+        }
+        
+        /* BlackRavenia Theme */
+        .blackravenia-theme {
+            --brand-primary: #1a1a1a;
+            --brand-secondary: #ffffff;
+            --brand-accent: #3b82f6;
+            --brand-gradient: linear-gradient(135deg, #1a1a1a 0%, #3b82f6 100%);
+        }
+        
+        .theme-preview {
+            transition: all 0.3s ease;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .theme-preview:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mobile-frame {
+            background: #1a1a1a;
+            border-radius: 2rem;
+            padding: 0.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .mobile-screen {
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            aspect-ratio: 9/19.5;
+        }
+        
+        .color-swatch {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="brandingShowcase()">
+    
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/" class="flex items-center space-x-2">
+                    <i data-lucide="car" class="w-8 h-8 text-blue-600"></i>
+                    <span class="text-xl font-bold text-gray-900">UrWay Dispatch</span>
+                </a>
+                <a href="/" class="text-blue-600 hover:text-blue-700 font-medium">← Back to Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-br from-blue-600 to-purple-700 text-white py-16">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-6">
+                White-Label Branding <span class="text-yellow-300">Showcase</span>
+            </h1>
+            <p class="text-xl text-blue-100 max-w-3xl mx-auto">
+                See how your brand comes to life with our multi-tenant platform. 
+                Switch between themes to experience the power of instant branding.
+            </p>
+        </div>
+    </section>
+
+    <!-- Theme Switcher -->
+    <section class="py-8 bg-white border-b border-gray-200">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex justify-center">
+                <div class="bg-gray-100 rounded-lg p-1 inline-flex">
+                    <button @click="activeTheme = 'goldravenia'" 
+                            :class="activeTheme === 'goldravenia' ? 'bg-yellow-500 text-white shadow-md' : 'text-gray-600'"
+                            class="px-6 py-3 rounded-md font-medium transition-all">
+                        🏆 GoldRavenia (Luxury)
+                    </button>
+                    <button @click="activeTheme = 'blackravenia'" 
+                            :class="activeTheme === 'blackravenia' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-600'"
+                            class="px-6 py-3 rounded-md font-medium transition-all">
+                        🚀 BlackRavenia (Premium)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Preview Section -->
+    <section class="py-16">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                    Live <span x-text="activeTheme === 'goldravenia' ? 'GoldRavenia' : 'BlackRavenia'"></span> Experience
+                </h2>
+                <p class="text-xl text-gray-600">
+                    See your brand in action across mobile apps, customer website, and admin console
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                
+                <!-- Mobile App Preview -->
+                <div class="theme-preview bg-white rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Mobile Apps</h3>
+                    <div class="mobile-frame mx-auto" style="max-width: 200px;">
+                        <div class="mobile-screen" :class="activeTheme + '-theme'">
+                            <div class="p-4 h-full flex flex-col">
+                                <!-- App Header -->
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-8 h-8 rounded-full flex items-center justify-center"
+                                             :style="activeTheme === 'goldravenia' ? 'background: var(--brand-primary)' : 'background: var(--brand-primary)'">
+                                            <i data-lucide="car" class="w-4 h-4 text-white"></i>
+                                        </div>
+                                        <span class="font-bold text-sm"
+                                              :style="activeTheme === 'goldravenia' ? 'color: var(--brand-primary)' : 'color: var(--brand-primary)'">
+                                            <span x-text="activeTheme === 'goldravenia' ? 'GoldRavenia' : 'BlackRavenia'"></span>
+                                        </span>
+                                    </div>
+                                    <i data-lucide="menu" class="w-5 h-5 text-gray-600"></i>
+                                </div>
+                                
+                                <!-- Booking Interface -->
+                                <div class="flex-1 space-y-3">
+                                    <div class="p-3 rounded-lg"
+                                         :style="activeTheme === 'goldravenia' ? 'background: #fef3c7' : 'background: #f3f4f6'">
+                                        <div class="text-xs font-medium mb-1"
+                                             :style="activeTheme === 'goldravenia' ? 'color: var(--brand-primary)' : 'color: var(--brand-primary)'">
+                                            Where to?
+                                        </div>
+                                        <div class="text-xs text-gray-600">Enter pickup location</div>
+                                    </div>
+                                    
+                                    <div class="p-3 rounded-lg"
+                                         :style="activeTheme === 'goldravenia' ? 'background: #fef3c7' : 'background: #f3f4f6'">
+                                        <div class="text-xs font-medium mb-1"
+                                             :style="activeTheme === 'goldravenia' ? 'color: var(--brand-primary)' : 'color: var(--brand-primary)'">
+                                            Drop-off
+                                        </div>
+                                        <div class="text-xs text-gray-600">Enter destination</div>
+                                    </div>
+                                    
+                                    <button class="w-full py-2 rounded-lg text-white text-sm font-medium"
+                                            :style="activeTheme === 'goldravenia' ? 'background: var(--brand-gradient)' : 'background: var(--brand-gradient)'">
+                                        Book Ride
+                                    </button>
+                                </div>
+                                
+                                <!-- Bottom Navigation -->
+                                <div class="flex justify-around pt-3 border-t border-gray-200">
+                                    <i data-lucide="home" class="w-4 h-4" 
+                                       :style="activeTheme === 'goldravenia' ? 'color: var(--brand-primary)' : 'color: var(--brand-primary)'"></i>
+                                    <i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i>
+                                    <i data-lucide="user" class="w-4 h-4 text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-center text-sm text-gray-600 mt-4">Rider & Driver Apps</p>
+                </div>
+
+                <!-- Customer Website Preview -->
+                <div class="theme-preview bg-white rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Customer Website</h3>
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden" style="height: 400px;">
+                        <div :class="activeTheme + '-theme'">
+                            <!-- Website Header -->
+                            <div class="p-4 flex items-center justify-between"
+                                 :style="activeTheme === 'goldravenia' ? 'background: var(--brand-secondary)' : 'background: var(--brand-primary)'">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-6 h-6 rounded-full bg-white flex items-center justify-center">
+                                        <i data-lucide="car" class="w-3 h-3"
+                                           :style="activeTheme === 'goldravenia' ? 'color: var(--brand-primary)' : 'color: var(--brand-accent)'"></i>
+                                    </div>
+                                    <span class="text-white font-bold text-sm">
+                                        <span x-text="activeTheme === 'goldravenia' ? 'GoldRavenia' : 'BlackRavenia'"></span>
+                                    </span>
+                                </div>
+                                <button class="text-white text-xs px-3 py-1 rounded-full border border-white">
+                                    Book Now
+                                </button>
+                            </div>
+                            
+                            <!-- Hero Section -->
+                            <div class="p-4 text-center"
+                                 :style="activeTheme === 'goldravenia' ? 'background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%)' : 'background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%)'">
+                                <h3 class="font-bold text-lg mb-2"
+                                    :style="activeTheme === 'goldravenia' ? 'color: var(--brand-primary)' : 'color: var(--brand-primary)'">
+                                    Premium Transportation
+                                </h3>
+                                <p class="text-xs text-gray-600 mb-3">
+                                    <span x-text="activeTheme === 'goldravenia' ? 'Luxury rides for discerning passengers' : 'Professional rides for modern travelers'"></span>
+                                </p>
+                                <button class="px-4 py-2 rounded-full text-white text-xs font-medium"
+                                        :style="activeTheme === 'goldravenia' ? 'background: var(--brand-gradient)' : 'background: var(--brand-gradient)'">
+                                    Get Started
+                                </button>
+                            </div>
+                            
+                            <!-- Features -->
+                            <div class="p-4 space-y-2">
+                                <div class="flex items-center space-x-2">
+                                    <i data-lucide="check-circle" class="w-4 h-4 text-green-500"></i>
+                                    <span class="text-xs text-gray-700">Professional Chauffeurs</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <i data-lucide="check-circle" class="w-4 h-4 text-green-500"></i>
+                                    <span class="text-xs text-gray-700">Premium Vehicles</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <i data-lucide="check-circle" class="w-4 h-4 text-green-500"></i>
+                                    <span class="text-xs text-gray-700">24/7 Service</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-center text-sm text-gray-600 mt-4">Branded Customer Site</p>
+                </div>
+
+                <!-- Admin Console Preview -->
+                <div class="theme-preview bg-white rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Admin Console</h3>
+                    <div class="bg-gray-900 rounded-lg p-4" style="height: 400px;">
+                        <!-- Dashboard Header -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-6 h-6 rounded-full flex items-center justify-center"
+                                     :style="activeTheme === 'goldravenia' ? 'background: var(--brand-primary)' : 'background: var(--brand-accent)'">
+                                    <i data-lucide="car" class="w-3 h-3 text-white"></i>
+                                </div>
+                                <span class="text-white font-bold text-sm">
+                                    <span x-text="activeTheme === 'goldravenia' ? 'GoldRavenia' : 'BlackRavenia'"></span> Admin
+                                </span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span class="text-green-500 text-xs">Live</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Stats Cards -->
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <div class="bg-gray-800 p-2 rounded">
+                                <div class="text-xs text-gray-400">Active Trips</div>
+                                <div class="text-lg font-bold text-white">12</div>
+                            </div>
+                            <div class="bg-gray-800 p-2 rounded">
+                                <div class="text-xs text-gray-400">Revenue Today</div>
+                                <div class="text-lg font-bold text-white">$2,840</div>
+                            </div>
+                            <div class="bg-gray-800 p-2 rounded">
+                                <div class="text-xs text-gray-400">Active Drivers</div>
+                                <div class="text-lg font-bold text-white">8/10</div>
+                            </div>
+                            <div class="bg-gray-800 p-2 rounded">
+                                <div class="text-xs text-gray-400">Avg Rating</div>
+                                <div class="text-lg font-bold text-white">4.8</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Live Map -->
+                        <div class="bg-gray-800 rounded h-32 flex items-center justify-center mb-4">
+                            <div class="text-center">
+                                <i data-lucide="map" class="w-8 h-8 text-gray-600 mx-auto mb-2"></i>
+                                <div class="text-xs text-gray-500">Live Fleet Map</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Actions -->
+                        <div class="space-y-2">
+                            <button class="w-full bg-gray-800 text-gray-300 text-xs py-2 rounded hover:bg-gray-700 transition-colors text-left px-3">
+                                📍 View Active Trips
+                            </button>
+                            <button class="w-full bg-gray-800 text-gray-300 text-xs py-2 rounded hover:bg-gray-700 transition-colors text-left px-3">
+                                👥 Manage Drivers
+                            </button>
+                            <button class="w-full bg-gray-800 text-gray-300 text-xs py-2 rounded hover:bg-gray-700 transition-colors text-left px-3"
+                                    :style="activeTheme === 'goldravenia' ? 'border-left: 3px solid var(--brand-primary)' : 'border-left: 3px solid var(--brand-accent)'">
+                                🎨 Brand Settings
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-center text-sm text-gray-600 mt-4">Operations Dashboard</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Color Palette & Typography -->
+    <section class="py-16 bg-white">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                    Brand Identity System
+                </h2>
+                <p class="text-xl text-gray-600">
+                    Complete color palettes, typography, and design tokens for each theme
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-12">
+                <!-- GoldRavenia Brand -->
+                <div class="goldravenia-theme">
+                    <h3 class="text-2xl font-bold mb-6" style="color: var(--brand-primary);">🏆 GoldRavenia Brand</h3>
+                    
+                    <div class="mb-8">
+                        <h4 class="font-semibold mb-4 text-gray-900">Color Palette</h4>
+                        <div class="grid grid-cols-4 gap-4">
+                            <div class="text-center">
+                                <div class="color-swatch mb-2" style="background: var(--brand-primary);"></div>
+                                <div class="text-xs text-gray-600">Primary</div>
+                                <div class="text-xs font-mono">#d4a017</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="color-swatch mb-2" style="background: var(--brand-secondary);"></div>
+                                <div class="text-xs text-gray-600">Secondary</div>
+                                <div class="text-xs font-mono">#0f172a</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="color-swatch mb-2" style="background: var(--brand-accent);"></div>
+                                <div class="text-xs text-gray-600">Accent</div>
+                                <div class="text-xs font-mono">#f59e0b</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="color-swatch mb-2" style="background: #fef3c7;"></div>
+                                <div class="text-xs text-gray-600">Light</div>
+                                <div class="text-xs font-mono">#fef3c7</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h4 class="font-semibold mb-4 text-gray-900">Typography</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="text-3xl font-bold" style="color: var(--brand-primary);">Heading One</div>
+                                <div class="text-xs text-gray-600">Inter, 700, 1.875rem</div>
+                            </div>
+                            <div>
+                                <div class="text-xl font-semibold" style="color: var(--brand-secondary);">Heading Two</div>
+                                <div class="text-xs text-gray-600">Inter, 600, 1.25rem</div>
+                            </div>
+                            <div>
+                                <div class="text-base" style="color: var(--brand-secondary);">Body text content with regular weight for optimal readability</div>
+                                <div class="text-xs text-gray-600">Inter, 400, 1rem</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-semibold mb-4 text-gray-900">Design Tokens</h4>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span class="text-gray-600">Border Radius:</span>
+                                <span class="font-mono ml-2">8px</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">Shadow:</span>
+                                <span class="font-mono ml-2">0 4px 6px rgba(0,0,0,0.1)</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">Spacing:</span>
+                                <span class="font-mono ml-2">4px base</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">Animation:</span>
+                                <span class="font-mono ml-2">0.3s ease</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BlackRavenia Brand -->
+                <div class="blackravenia-theme">
+                    <h3 class="text-2xl font-bold mb-6" style="color: var(--brand-primary);">🚀 BlackRavenia Brand</h3>
+                    
+                    <div class="mb-8">
+                        <h4 class="font-semibold mb-4 text-gray-900">Color Palette</h4>
+                        <div class="grid grid-cols-4 gap-4">
+                            <div class="text-center">
+                                <div class="color-swatch mb-2" style="background: var(--brand-primary);"></div>
+                                <div class="text-xs text-gray-600">Primary</div>
+                                <div class="text-xs font-mono">#1a1a1a</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="color-swatch mb-2 border border-gray-300" style="background: var(--brand-secondary);"></div>
+                                <div class="text-xs text-gray-600">Secondary</div>
+                                <div class="text-xs font-mono">#ffffff</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="color-swatch mb-2" style="background: var(--brand-accent);"></div>
+                                <div class="text-xs text-gray-600">Accent</div>
+                                <div class="text-xs font-mono">#3b82f6</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="color-swatch mb-2" style="background: #f3f4f6;"></div>
+                                <div class="text-xs text-gray-600">Light</div>
+                                <div class="text-xs font-mono">#f3f4f6</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h4 class="font-semibold mb-4 text-gray-900">Typography</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="text-3xl font-bold" style="color: var(--brand-primary);">Heading One</div>
+                                <div class="text-xs text-gray-600">Inter, 800, 1.875rem</div>
+                            </div>
+                            <div>
+                                <div class="text-xl font-semibold" style="color: var(--brand-primary);">Heading Two</div>
+                                <div class="text-xs text-gray-600">Inter, 600, 1.25rem</div>
+                            </div>
+                            <div>
+                                <div class="text-base" style="color: var(--brand-primary);">Body text content with strong weight for modern impact</div>
+                                <div class="text-xs text-gray-600">Inter, 500, 1rem</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-semibold mb-4 text-gray-900">Design Tokens</h4>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span class="text-gray-600">Border Radius:</span>
+                                <span class="font-mono ml-2">12px</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">Shadow:</span>
+                                <span class="font-mono ml-2">0 8px 16px rgba(0,0,0,0.15)</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">Spacing:</span>
+                                <span class="font-mono ml-2">6px base</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">Animation:</span>
+                                <span class="font-mono ml-2">0.2s ease-out</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Customization Options -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                    Advanced Customization Options
+                </h2>
+                <p class="text-xl text-gray-600">
+                    Go beyond colors with comprehensive branding controls
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white rounded-xl p-6 text-center">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="upload" class="w-8 h-8 text-blue-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">Logo Upload</h3>
+                    <p class="text-sm text-gray-600">Upload your company logo in multiple formats</p>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 text-center">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="palette" class="w-8 h-8 text-purple-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">Custom Colors</h3>
+                    <p class="text-sm text-gray-600">Define your own color palette and themes</p>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="type" class="w-8 h-8 text-green-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">Typography</h3>
+                    <p class="text-sm text-gray-600">Choose fonts and text styling options</p>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 text-center">
+                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="code" class="w-8 h-8 text-yellow-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">Custom CSS</h3>
+                    <p class="text-sm text-gray-600">Advanced users can add custom CSS</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 bg-gradient-to-br from-blue-600 to-purple-700 text-white">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">
+                Ready to Build Your Brand?
+            </h2>
+            <p class="text-xl text-blue-100 mb-8">
+                Start with our templates or create something completely unique to your business
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="window.location.href='/roi-calculator.html'" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-50 transition-colors shadow-lg">
+                    Calculate ROI
+                </button>
+                <button onclick="window.location.href='/'" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition-colors">
+                    Start Free Trial
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function brandingShowcase() {
+            return {
+                activeTheme: 'goldravenia',
+                
+                init() {
+                    // Initialize with default theme
+                }
+            }
+        }
+    </script>
+    
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Re-initialize icons when Alpine.js updates DOM
+        document.addEventListener('alpine:initialized', () => {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

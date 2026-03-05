@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Platform Demo - UrWay Dispatch</title>
+    <meta name="description" content="Experience the UrWay Dispatch platform in real-time. Live demo of dispatch, driver management, and customer booking systems.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .map-container {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .map-grid {
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="liveDemo()">
+    
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/" class="flex items-center space-x-2">
+                    <i data-lucide="car" class="w-8 h-8 text-blue-600"></i>
+                    <span class="text-xl font-bold text-gray-900">UrWay Dispatch</span>
+                </a>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
+                        <span class="text-sm text-green-600 font-medium">Live Demo</span>
+                    </div>
+                    <a href="/" class="text-blue-600 hover:text-blue-700 font-medium">← Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Status Bar -->
+    <div class="bg-green-50 border-b border-green-200">
+        <div class="max-w-7xl mx-auto px-6 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="activity" class="w-4 h-4 text-green-600"></i>
+                        <span class="text-sm text-green-800 font-medium">System Status: Operational</span>
+                    </div>
+                    <div class="text-sm text-green-700">
+                        API Response: <span x-text="apiResponseTime + 'ms'" class="font-mono font-bold"></span>
+                    </div>
+                </div>
+                <div class="text-sm text-green-700">
+                    Last Updated: <span x-text="lastUpdate"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-br from-blue-600 to-purple-700 text-white py-12">
+        <div class="max-w-6xl mx-auto px-6">
+            <h1 class="text-3xl md:text-4xl font-bold mb-4">
+                Live Platform Demonstration
+            </h1>
+            <p class="text-xl text-blue-100 max-w-3xl">
+                Experience real-time dispatch, driver management, and customer booking in action
+            </p>
+        </div>
+    </section>
+
+    <!-- Main Demo Dashboard -->
+    <section class="py-8">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid lg:grid-cols-3 gap-6">
+                
+                <!-- Live Dispatch Map -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="p-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-bold text-gray-900">Live Dispatch Map</h2>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
+                                    <span class="text-sm text-green-600">Live</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="map-container h-96 relative">
+                            <div class="map-grid absolute inset-0"></div>
+                            
+                            <!-- Simulated Map Elements -->
+                            <template x-for="driver in drivers" :key="driver.id">
+                                <div class="absolute" 
+                                     :style="`left: ${driver.x}%; top: ${driver.y}%;`"
+                                     x-transition:enter="transition ease-out duration-300"
+                                     x-transition:enter-start="opacity-0 transform scale-0"
+                                     x-transition:enter-end="opacity-100 transform scale-100">
+                                    <div class="relative">
+                                        <!-- Driver Icon -->
+                                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                                            <i data-lucide="car" class="w-4 h-4 text-white"></i>
+                                        </div>
+                                        <!-- Driver Status -->
+                                        <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                                            <span x-text="driver.name"></span>
+                                            <span class="text-green-400" x-show="driver.status === 'available'"> • Available</span>
+                                            <span class="text-yellow-400" x-show="driver.status === 'busy'"> • Busy</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <!-- Active Trips -->
+                            <template x-for="trip in activeTrips" :key="trip.id">
+                                <div class="absolute" 
+                                     :style="`left: ${trip.x}%; top: ${trip.y}%;`"
+                                     x-transition:enter="transition ease-out duration-500"
+                                     x-transition:enter-start="opacity-0"
+                                     x-transition:enter-end="opacity-100">
+                                    <div class="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg pulse-dot">
+                                        <i data-lucide="map-pin" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <!-- Map Legend -->
+                            <div class="absolute bottom-4 left-4 bg-black bg-opacity-75 text-white p-3 rounded-lg text-xs">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <div class="w-3 h-3 bg-blue-600 rounded-full"></div>
+                                    <span>Available Driver</span>
+                                </div>
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <div class="w-3 h-3 bg-gray-600 rounded-full"></div>
+                                    <span>Busy Driver</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                    <span>Active Trip</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Stats -->
+                <div class="space-y-6">
+                    <!-- System Metrics -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">System Metrics</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Active Drivers</span>
+                                <span class="text-2xl font-bold text-blue-600" x-text="metrics.activeDrivers"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Active Trips</span>
+                                <span class="text-2xl font-bold text-green-600" x-text="metrics.activeTrips"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Revenue Today</span>
+                                <span class="text-2xl font-bold text-purple-600" x-text="'$' + metrics.revenueToday"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Avg Response Time</span>
+                                <span class="text-2xl font-bold text-orange-600" x-text="metrics.avgResponseTime + 's'"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Recent Activity</h3>
+                        <div class="space-y-3 max-h-64 overflow-y-auto">
+                            <template x-for="activity in recentActivity" :key="activity.id">
+                                <div class="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded-lg slide-in">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                                         :class="activity.type === 'trip' ? 'bg-green-100' : activity.type === 'driver' ? 'bg-blue-100' : 'bg-yellow-100'">
+                                        <i :data-lucide="activity.icon" class="w-4 h-4"
+                                           :class="activity.type === 'trip' ? 'text-green-600' : activity.type === 'driver' ? 'text-blue-600' : 'text-yellow-600'"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm text-gray-900" x-text="activity.message"></p>
+                                        <p class="text-xs text-gray-500" x-text="activity.time"></p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Features -->
+    <section class="py-16">
+        <div class="max-w-6xl mx-auto px-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">Interactive Features</h2>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Simulate Booking -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">🚗 Simulate Booking</h3>
+                    <div class="space-y-4">
+                        <input type="text" x-model="bookingData.pickup" placeholder="Pickup Location" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <input type="text" x-model="bookingData.dropoff" placeholder="Drop-off Location" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <select x-model="bookingData.vehicleType" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Vehicle</option>
+                            <option value="sedan">Sedan</option>
+                            <option value="suv">SUV</option>
+                            <option value="luxury">Luxury</option>
+                        </select>
+                        <button @click="simulateBooking()" 
+                                class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Book Trip
+                        </button>
+                        <div x-show="bookingResult" class="p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p class="text-sm text-green-800" x-text="bookingResult"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Driver Management -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">👨‍✈️ Driver Management</h3>
+                    <div class="space-y-4">
+                        <div class="space-y-2">
+                            <template x-for="driver in drivers.slice(0, 3)" :key="driver.id">
+                                <div class="flex items-center justify-between p-2 border border-gray-200 rounded-lg">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                                            <i data-lucide="user" class="w-3 h-3 text-white"></i>
+                                        </div>
+                                        <span class="text-sm font-medium" x-text="driver.name"></span>
+                                    </div>
+                                    <button @click="toggleDriverStatus(driver.id)" 
+                                            class="text-xs px-2 py-1 rounded"
+                                            :class="driver.status === 'available' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'">
+                                        <span x-text="driver.status === 'available' ? 'Available' : 'Busy'"></span>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                        <button @click="addRandomDriver()" 
+                                class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                            Add Driver
+                        </button>
+                    </div>
+                </div>
+
+                <!-- System Controls -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">⚙️ System Controls</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Simulation Speed</label>
+                            <input type="range" x-model="simulationSpeed" min="1" max="10" 
+                                   @input="updateSimulationSpeed()"
+                                   class="w-full">
+                            <div class="text-xs text-gray-500">Speed: <span x-text="simulationSpeed"></span>x</div>
+                        </div>
+                        <button @click="toggleSimulation()" 
+                                class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
+                            <span x-text="isSimulating ? 'Pause Simulation' : 'Start Simulation'"></span>
+                        </button>
+                        <button @click="resetDemo()" 
+                                class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            Reset Demo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- API Documentation Preview -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Live API Integration</h2>
+                <p class="text-xl text-gray-600">
+                    See real API calls and responses powering this demo
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- API Calls -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">📡 Recent API Calls</h3>
+                    <div class="space-y-3 max-h-96 overflow-y-auto">
+                        <template x-for="call in apiCalls" :key="call.id">
+                            <div class="border border-gray-200 rounded-lg p-3">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium text-gray-900" x-text="call.method + ' ' + call.endpoint"></span>
+                                    <span class="text-xs px-2 py-1 rounded"
+                                          :class="call.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                                        <span x-text="call.status"></span>
+                                    </span>
+                                </div>
+                                <div class="text-xs text-gray-600 mb-1">
+                                    Response: <span x-text="call.responseTime + 'ms'"></span>
+                                </div>
+                                <pre class="text-xs bg-gray-50 p-2 rounded overflow-x-auto" x-text="JSON.stringify(call.response, null, 2)"></pre>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Webhooks -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">🔗 Webhook Events</h3>
+                    <div class="space-y-3 max-h-96 overflow-y-auto">
+                        <template x-for="webhook in webhookEvents" :key="webhook.id">
+                            <div class="border border-gray-200 rounded-lg p-3">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium text-gray-900" x-text="webhook.event"></span>
+                                    <span class="text-xs text-gray-500" x-text="webhook.timestamp"></span>
+                                </div>
+                                <pre class="text-xs bg-gray-50 p-2 rounded overflow-x-auto" x-text="JSON.stringify(webhook.payload, null, 2)"></pre>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 bg-gradient-to-br from-blue-600 to-purple-700 text-white">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">
+                Ready to Experience the Full Platform?
+            </h2>
+            <p class="text-xl text-blue-100 mb-8">
+                This is just a glimpse. Schedule a personalized demo to see the complete system
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="window.location.href='/'" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-50 transition-colors shadow-lg">
+                    Schedule Full Demo
+                </button>
+                <button onclick="window.location.href='/roi-calculator.html'" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition-colors">
+                    Calculate ROI
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function liveDemo() {
+            return {
+                // Demo state
+                drivers: [],
+                activeTrips: [],
+                metrics: {
+                    activeDrivers: 0,
+                    activeTrips: 0,
+                    revenueToday: 0,
+                    avgResponseTime: 0
+                },
+                recentActivity: [],
+                apiCalls: [],
+                webhookEvents: [],
+                apiResponseTime: 0,
+                lastUpdate: '',
+                isSimulating: false,
+                simulationSpeed: 1,
+                
+                // Booking form
+                bookingData: {
+                    pickup: '',
+                    dropoff: '',
+                    vehicleType: ''
+                },
+                bookingResult: '',
+                
+                init() {
+                    this.initializeDemo();
+                    this.startSimulation();
+                },
+                
+                initializeDemo() {
+                    // Initialize drivers
+                    this.drivers = [
+                        { id: 1, name: 'John Smith', x: 20, y: 30, status: 'available' },
+                        { id: 2, name: 'Sarah Johnson', x: 60, y: 45, status: 'busy' },
+                        { id: 3, name: 'Mike Davis', x: 35, y: 70, status: 'available' },
+                        { id: 4, name: 'Emily Wilson', x: 80, y: 25, status: 'available' },
+                        { id: 5, name: 'David Brown', x: 45, y: 55, status: 'busy' }
+                    ];
+                    
+                    // Initialize active trips
+                    this.activeTrips = [
+                        { id: 1, x: 25, y: 35 },
+                        { id: 2, x: 70, y: 40 }
+                    ];
+                    
+                    // Initialize metrics
+                    this.updateMetrics();
+                    
+                    // Add initial activity
+                    this.addActivity('system', 'activity', 'Demo initialized with 5 drivers');
+                },
+                
+                updateMetrics() {
+                    this.metrics.activeDrivers = this.drivers.filter(d => d.status === 'available').length;
+                    this.metrics.activeTrips = this.activeTrips.length;
+                    this.metrics.revenueToday = Math.floor(Math.random() * 5000) + 2000;
+                    this.metrics.avgResponseTime = Math.floor(Math.random() * 180) + 120;
+                },
+                
+                startSimulation() {
+                    this.isSimulating = true;
+                    
+                    // Update simulation
+                    setInterval(() => {
+                        if (this.isSimulating) {
+                            this.simulateMovement();
+                            this.simulateActivity();
+                            this.updateMetrics();
+                            this.updateLastUpdate();
+                        }
+                    }, 2000 / this.simulationSpeed);
+                },
+                
+                simulateMovement() {
+                    // Random driver movement
+                    this.drivers.forEach(driver => {
+                        if (Math.random() > 0.7) {
+                            driver.x = Math.max(5, Math.min(95, driver.x + (Math.random() - 0.5) * 10));
+                            driver.y = Math.max(5, Math.min(95, driver.y + (Math.random() - 0.5) * 10));
+                        }
+                    });
+                    
+                    // Random trip movement
+                    this.activeTrips.forEach(trip => {
+                        trip.x = Math.max(5, Math.min(95, trip.x + (Math.random() - 0.5) * 5));
+                        trip.y = Math.max(5, Math.min(95, trip.y + (Math.random() - 0.5) * 5));
+                    });
+                },
+                
+                simulateActivity() {
+                    const activities = [
+                        { type: 'trip', message: 'New trip requested from Downtown to Airport', icon: 'map-pin' },
+                        { type: 'driver', message: 'Driver John Smith is now available', icon: 'user' },
+                        { type: 'revenue', message: 'Trip completed - $45.00 earned', icon: 'dollar-sign' },
+                        { type: 'system', message: 'All systems operational', icon: 'check-circle' }
+                    ];
+                    
+                    if (Math.random() > 0.6) {
+                        const activity = activities[Math.floor(Math.random() * activities.length)];
+                        this.addActivity(activity.type, activity.icon, activity.message);
+                    }
+                    
+                    // Simulate API calls
+                    if (Math.random() > 0.7) {
+                        this.simulateApiCall();
+                    }
+                },
+                
+                addActivity(type, icon, message) {
+                    this.recentActivity.unshift({
+                        id: Date.now(),
+                        type,
+                        icon,
+                        message,
+                        time: new Date().toLocaleTimeString()
+                    });
+                    
+                    // Keep only last 10 activities
+                    if (this.recentActivity.length > 10) {
+                        this.recentActivity.pop();
+                    }
+                },
+                
+                simulateApiCall() {
+                    const endpoints = [
+                        { method: 'GET', endpoint: '/api/drivers', response: { drivers: this.drivers.length } },
+                        { method: 'GET', endpoint: '/api/trips/active', response: { trips: this.activeTrips.length } },
+                        { method: 'POST', endpoint: '/api/bookings', response: { bookingId: 'BK' + Math.random().toString(36).substr(2, 9) } }
+                    ];
+                    
+                    const call = endpoints[Math.floor(Math.random() * endpoints.length)];
+                    const responseTime = Math.floor(Math.random() * 200) + 50;
+                    
+                    this.apiCalls.unshift({
+                        id: Date.now(),
+                        ...call,
+                        responseTime,
+                        status: 'success',
+                        response: call.response
+                    });
+                    
+                    // Keep only last 5 API calls
+                    if (this.apiCalls.length > 5) {
+                        this.apiCalls.pop();
+                    }
+                    
+                    this.apiResponseTime = responseTime;
+                },
+                
+                simulateBooking() {
+                    if (!this.bookingData.pickup || !this.bookingData.dropoff || !this.bookingData.vehicleType) {
+                        this.bookingResult = 'Please fill in all booking details';
+                        return;
+                    }
+                    
+                    // Simulate booking API call
+                    setTimeout(() => {
+                        this.bookingResult = `Trip booked! ${this.bookingData.vehicleType} from ${this.bookingData.pickup} to ${this.bookingData.dropoff}`;
+                        
+                        // Add activity
+                        this.addActivity('trip', 'map-pin', `New ${this.bookingData.vehicleType} trip booked`);
+                        
+                        // Add to active trips
+                        this.activeTrips.push({
+                            id: Date.now(),
+                            x: Math.random() * 80 + 10,
+                            y: Math.random() * 80 + 10
+                        });
+                        
+                        // Clear form
+                        this.bookingData = { pickup: '', dropoff: '', vehicleType: '' };
+                        
+                        setTimeout(() => {
+                            this.bookingResult = '';
+                        }, 5000);
+                    }, 1000);
+                },
+                
+                toggleDriverStatus(driverId) {
+                    const driver = this.drivers.find(d => d.id === driverId);
+                    if (driver) {
+                        driver.status = driver.status === 'available' ? 'busy' : 'available';
+                        this.addActivity('driver', 'user', `Driver ${driver.name} is now ${driver.status}`);
+                    }
+                },
+                
+                addRandomDriver() {
+                    const names = ['Alex Turner', 'Jessica Lee', 'Robert Kim', 'Maria Garcia', 'Tom Wilson'];
+                    const newDriver = {
+                        id: Date.now(),
+                        name: names[Math.floor(Math.random() * names.length)],
+                        x: Math.random() * 80 + 10,
+                        y: Math.random() * 80 + 10,
+                        status: 'available'
+                    };
+                    
+                    this.drivers.push(newDriver);
+                    this.addActivity('driver', 'user', `New driver ${newDriver.name} joined the fleet`);
+                },
+                
+                toggleSimulation() {
+                    this.isSimulating = !this.isSimulating;
+                },
+                
+                updateSimulationSpeed() {
+                    // Speed is updated reactively
+                },
+                
+                resetDemo() {
+                    this.initializeDemo();
+                    this.recentActivity = [];
+                    this.apiCalls = [];
+                    this.webhookEvents = [];
+                    this.bookingResult = '';
+                },
+                
+                updateLastUpdate() {
+                    this.lastUpdate = new Date().toLocaleTimeString();
+                }
+            }
+        }
+    </script>
+    
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Re-initialize icons when Alpine.js updates DOM
+        document.addEventListener('alpine:initialized', () => {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

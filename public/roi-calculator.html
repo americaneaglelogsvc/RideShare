@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROI Calculator - UrWay Dispatch</title>
+    <meta name="description" content="Calculate your potential revenue and cost savings with UrWay Dispatch platform. See ROI projections for your transportation business.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .gradient-text { background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="roiCalculator()">
+    
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/" class="flex items-center space-x-2">
+                    <i data-lucide="car" class="w-8 h-8 text-blue-600"></i>
+                    <span class="text-xl font-bold text-gray-900">UrWay Dispatch</span>
+                </a>
+                <a href="/" class="text-blue-600 hover:text-blue-700 font-medium">← Back to Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-br from-blue-600 to-purple-700 text-white py-16">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-6">
+                Calculate Your <span class="gradient-text">ROI</span>
+            </h1>
+            <p class="text-xl text-blue-100 max-w-2xl mx-auto">
+                See how much revenue you can generate and costs you can save with UrWay Dispatch
+            </p>
+        </div>
+    </section>
+
+    <!-- Calculator Section -->
+    <section class="py-16">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="grid lg:grid-cols-2 gap-8">
+                
+                <!-- Input Form -->
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Business Parameters</h2>
+                    
+                    <div class="space-y-6">
+                        <!-- Fleet Size -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Fleet Size (vehicles)
+                            </label>
+                            <input type="range" x-model="fleetSize" min="1" max="100" 
+                                   @input="calculateROI()"
+                                   class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer">
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>1</span>
+                                <span class="font-bold text-blue-600" x-text="fleetSize"></span>
+                                <span>100</span>
+                            </div>
+                        </div>
+
+                        <!-- Service Type -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Primary Service Type
+                            </label>
+                            <select x-model="serviceType" @change="calculateROI()" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="black-car">Black Car / Luxury</option>
+                                <option value="suv">SUV / Premium</option>
+                                <option value="sedan">Standard Sedan</option>
+                                <option value="airport">Airport Shuttle</option>
+                                <option value="corporate">Corporate Travel</option>
+                            </select>
+                        </div>
+
+                        <!-- Daily Trips per Vehicle -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Daily Trips per Vehicle
+                            </label>
+                            <input type="range" x-model="dailyTrips" min="1" max="20" 
+                                   @input="calculateROI()"
+                                   class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer">
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>1</span>
+                                <span class="font-bold text-blue-600" x-text="dailyTrips"></span>
+                                <span>20</span>
+                            </div>
+                        </div>
+
+                        <!-- Average Trip Revenue -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Average Trip Revenue ($)
+                            </label>
+                            <input type="number" x-model="avgTripRevenue" @input="calculateROI()" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                   min="10" max="500" step="5">
+                        </div>
+
+                        <!-- Current Monthly Costs -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Current Monthly Software/Dispatch Costs ($)
+                            </label>
+                            <input type="number" x-model="currentCosts" @input="calculateROI()" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                   min="0" max="10000" step="100">
+                        </div>
+
+                        <!-- Platform Fee -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-blue-900">UrWay Platform Fee</span>
+                                <span class="text-lg font-bold text-blue-600" x-text="platformFee + '%'"></span>
+                            </div>
+                            <p class="text-xs text-blue-700 mt-1">Based on fleet size and service type</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div class="space-y-6">
+                    <!-- Revenue Projection -->
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Revenue Projection</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                <span class="text-gray-600">Daily Revenue</span>
+                                <span class="text-xl font-bold text-gray-900" x-text="'$' + dailyRevenue.toLocaleString()"></span>
+                            </div>
+                            <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                <span class="text-gray-600">Monthly Revenue</span>
+                                <span class="text-xl font-bold text-gray-900" x-text="'$' + monthlyRevenue.toLocaleString()"></span>
+                            </div>
+                            <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                <span class="text-gray-600">Annual Revenue</span>
+                                <span class="text-2xl font-bold text-blue-600" x-text="'$' + annualRevenue.toLocaleString()"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cost Analysis -->
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Cost Analysis</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                <span class="text-gray-600">Current Monthly Costs</span>
+                                <span class="text-xl font-bold text-red-600" x-text="'$' + currentCosts.toLocaleString()"></span>
+                            </div>
+                            <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                <span class="text-gray-600">UrWay Monthly Fee</span>
+                                <span class="text-xl font-bold text-gray-900" x-text="'$' + urwayMonthlyFee.toLocaleString()"></span>
+                            </div>
+                            <div class="flex justify-between items-center py-3">
+                                <span class="text-gray-600">Monthly Savings</span>
+                                <span class="text-xl font-bold text-green-600" x-text="'$' + monthlySavings.toLocaleString()"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ROI Metrics -->
+                    <div class="bg-gradient-to-br from-blue-600 to-purple-700 text-white rounded-xl shadow-lg p-8">
+                        <h3 class="text-xl font-bold mb-6">ROI Metrics</h3>
+                        
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold mb-2" x-text="roiMonths + ' mo'"></div>
+                                <div class="text-blue-200 text-sm">Payback Period</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold mb-2" x-text="annualROI + '%'"></div>
+                                <div class="text-blue-200 text-sm">Annual ROI</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold mb-2" x-text="'$' + netProfit.toLocaleString()"></div>
+                                <div class="text-blue-200 text-sm">Annual Net Profit</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold mb-2" x-text="profitMargin + '%'"></div>
+                                <div class="text-blue-200 text-sm">Profit Margin</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Chart -->
+            <div class="mt-12 bg-white rounded-xl shadow-lg p-8">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6">3-Year Financial Projection</h3>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="text-center p-6 bg-gray-50 rounded-lg">
+                        <div class="text-2xl font-bold text-gray-900 mb-2" x-text="'$' + year1Profit.toLocaleString()"></div>
+                        <div class="text-gray-600">Year 1 Profit</div>
+                        <div class="text-sm text-green-600 mt-2" x-text="'+' + year1Growth + '%'"></div>
+                    </div>
+                    <div class="text-center p-6 bg-gray-50 rounded-lg">
+                        <div class="text-2xl font-bold text-gray-900 mb-2" x-text="'$' + year2Profit.toLocaleString()"></div>
+                        <div class="text-gray-600">Year 2 Profit</div>
+                        <div class="text-sm text-green-600 mt-2" x-text="'+' + year2Growth + '%'"></div>
+                    </div>
+                    <div class="text-center p-6 bg-gray-50 rounded-lg">
+                        <div class="text-2xl font-bold text-gray-900 mb-2" x-text="'$' + year3Profit.toLocaleString()"></div>
+                        <div class="text-gray-600">Year 3 Profit</div>
+                        <div class="text-sm text-green-600 mt-2" x-text="'+' + year3Growth + '%'"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="mt-12 text-center bg-blue-600 text-white rounded-xl p-8">
+                <h3 class="text-2xl font-bold mb-4">Ready to Start Growing Your Revenue?</h3>
+                <p class="text-blue-100 mb-6 max-w-2xl mx-auto">
+                    Join 50+ transportation companies using UrWay Dispatch to increase their revenue and reduce costs
+                </p>
+                <button onclick="window.location.href='/'" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
+                    Get Started Now
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function roiCalculator() {
+            return {
+                fleetSize: 10,
+                serviceType: 'black-car',
+                dailyTrips: 8,
+                avgTripRevenue: 45,
+                currentCosts: 2000,
+                platformFee: 5,
+                
+                // Calculated values
+                dailyRevenue: 0,
+                monthlyRevenue: 0,
+                annualRevenue: 0,
+                urwayMonthlyFee: 0,
+                monthlySavings: 0,
+                roiMonths: 0,
+                annualROI: 0,
+                netProfit: 0,
+                profitMargin: 0,
+                year1Profit: 0,
+                year2Profit: 0,
+                year3Profit: 0,
+                year1Growth: 0,
+                year2Growth: 0,
+                year3Growth: 0,
+                
+                init() {
+                    this.calculateROI();
+                },
+                
+                calculateROI() {
+                    // Calculate platform fee based on fleet size and service type
+                    if (this.fleetSize <= 5) {
+                        this.platformFee = 7;
+                    } else if (this.fleetSize <= 20) {
+                        this.platformFee = 5;
+                    } else if (this.fleetSize <= 50) {
+                        this.platformFee = 4;
+                    } else {
+                        this.platformFee = 3;
+                    }
+                    
+                    // Service type modifiers
+                    const serviceMultipliers = {
+                        'black-car': 1.5,
+                        'suv': 1.3,
+                        'sedan': 1.0,
+                        'airport': 1.2,
+                        'corporate': 1.4
+                    };
+                    
+                    const multiplier = serviceMultipliers[this.serviceType] || 1.0;
+                    const adjustedRevenue = this.avgTripRevenue * multiplier;
+                    
+                    // Revenue calculations
+                    this.dailyRevenue = this.fleetSize * this.dailyTrips * adjustedRevenue;
+                    this.monthlyRevenue = this.dailyRevenue * 30;
+                    this.annualRevenue = this.monthlyRevenue * 12;
+                    
+                    // Cost calculations
+                    this.urwayMonthlyFee = this.monthlyRevenue * (this.platformFee / 100);
+                    this.monthlySavings = Math.max(0, this.currentCosts - this.urwayMonthlyFee);
+                    
+                    // ROI calculations
+                    const monthlyProfit = this.monthlyRevenue - this.urwayMonthlyFee;
+                    this.netProfit = monthlyProfit * 12;
+                    this.profitMargin = Math.round((this.netProfit / this.annualRevenue) * 100);
+                    
+                    // Payback period (if there are implementation costs)
+                    const implementationCost = 5000; // Estimated setup cost
+                    const monthlyNetSavings = this.monthlySavings + (monthlyProfit - (this.monthlyRevenue - this.currentCosts));
+                    this.roiMonths = monthlyNetSavings > 0 ? Math.ceil(implementationCost / monthlyNetSavings) : 0;
+                    
+                    // Annual ROI
+                    const totalInvestment = implementationCost + (this.urwayMonthlyFee * 12);
+                    this.annualROI = this.netProfit > 0 ? Math.round((this.netProfit / totalInvestment) * 100) : 0;
+                    
+                    // 3-year projections with growth
+                    const annualGrowthRate = 0.15; // 15% annual growth
+                    this.year1Profit = this.netProfit;
+                    this.year2Profit = Math.round(this.year1Profit * (1 + annualGrowthRate));
+                    this.year3Profit = Math.round(this.year2Profit * (1 + annualGrowthRate));
+                    
+                    this.year1Growth = Math.round(((this.year1Profit - (this.annualRevenue - this.currentCosts * 12)) / Math.abs(this.annualRevenue - this.currentCosts * 12)) * 100);
+                    this.year2Growth = Math.round(((this.year2Profit - this.year1Profit) / this.year1Profit) * 100);
+                    this.year3Growth = Math.round(((this.year3Profit - this.year2Profit) / this.year2Profit) * 100);
+                }
+            }
+        }
+    </script>
+    
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
