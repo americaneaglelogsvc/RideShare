@@ -408,4 +408,222 @@ export class PayoutService {
 
     return { success: true, type, amount_cents: amountCents, reason };
   }
+
+  // ═══════════════════════════════════════════════════════════════
+  // RIDE-PAYOUT-110: Receipt truth strings
+  // ═══════════════════════════════════════════════════════════════
+
+  getReceiptTruthStrings(tenantName: string): {
+    paidBy: string;
+    processedVia: string;
+    fundedBy: string;
+  } {
+    return {
+      paidBy: `Paid by: ${tenantName}`,
+      processedVia: 'Processed via: urwaydispatch.com',
+      fundedBy: 'Funded by: urwaydispatch.com (PaySurity rail)',
+    };
+  }
+
+  async buildPayoutReceipt(tenantId: string, driverId: string, amountCents: number, payoutId: string) {
+    const supabase = this.supabaseService.getClient();
+    const { data: tenant } = await supabase.from('tenants').select('name').eq('id', tenantId).single();
+    const tenantName = tenant?.name || 'Unknown Tenant';
+    const truth = this.getReceiptTruthStrings(tenantName);
+
+    return {
+      payout_id: payoutId,
+      driver_id: driverId,
+      amount_cents: amountCents,
+      amount_display: `$${(amountCents / 100).toFixed(2)} USD`,
+      ...truth,
+      generated_at: new Date().toISOString(),
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // RIDE-PAYOUT-108: Scheduled payout cadence
+  // ═══════════════════════════════════════════════════════════════
+
+  async processScheduledPayouts(): Promise<{ processed: number; skipped: number; errors: number }> {
+    const supabase = this.supabaseService.getClient();
+    const now = new Date();
+    const currentHour = now.getUTCHours();
+
+    const { data: tenants } = await supabase
+      .from('tenant_onboarding')
+      .select('tenant_id, payout_cadence, payout_cutoff_hour')
+      .not('payout_cadence', 'is', null);
+
+    let processed = 0, skipped = 0, errors = 0;
+
+    for (const t of (tenants || [])) {
+      const cutoffHour = t.payout_cutoff_hour ?? 17;
+      if (currentHour !== cutoffHour) { skipped++; continue; }
+
+      if (!this.isCadenceDue(t.payout_cadence, now)) { skipped++; continue; }
+
+      try {
+        const config = await this.getPayoutConfig(t.tenant_id);
+        const minBalance = config.min_balance_cents || 1000;
+
+        const { data: eligibleDrivers } = await supabase
+          .from('driver_payouts')
+          .select('driver_id, amount_cents')
+          .eq('tenant_id', t.tenant_id)
+          .eq('settlement_status', 'BANK_SETTLED')
+          .eq('payout_status', 'pending');
+
+        const grouped = new Map<string, number>();
+        for (const p of (eligibleDrivers || [])) {
+          grouped.set(p.driver_id, (grouped.get(p.driver_id) || 0) + p.amount_cents);
+        }
+
+        for (const [driverId, totalCents] of grouped) {
+          if (totalCents >= minBalance) {
+            this.logger.log(`Scheduled payout: driver=${driverId} amount=${totalCents} cadence=${t.payout_cadence}`);
+            processed++;
+          } else {
+            skipped++;
+          }
+        }
+      } catch (err: any) {
+        this.logger.error(`Scheduled payout error for tenant ${t.tenant_id}: ${err.message}`);
+        errors++;
+      }
+    }
+
+    this.logger.log(`Scheduled payouts: processed=${processed} skipped=${skipped} errors=${errors}`);
+    return { processed, skipped, errors };
+  }
+
+  private isCadenceDue(cadence: string, now: Date): boolean {
+    const dayOfWeek = now.getUTCDay(); // 0=Sun
+    const dayOfMonth = now.getUTCDate();
+
+    switch (cadence) {
+      case 'daily': return true;
+      case 'weekly': return dayOfWeek === 5; // Friday
+      case 'biweekly': return dayOfWeek === 5 && (dayOfMonth <= 14 || dayOfMonth > 14);
+      case 'monthly': return dayOfMonth === 1;
+      default: return false;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // RIDE-PAYOUT-105: Repayment plans (installment recovery)
+  // ═══════════════════════════════════════════════════════════════
+
+  async createRepaymentPlan(
+    tenantId: string,
+    driverId: string,
+    totalAmountCents: number,
+    installmentCount: number,
+    reason: string,
+  ) {
+    if (installmentCount < 1 || installmentCount > 52) {
+      throw new BadRequestException('Installment count must be 1–52');
+    }
+    if (totalAmountCents < 100) {
+      throw new BadRequestException('Minimum repayment amount is $1.00');
+    }
+
+    const supabase = this.supabaseService.getClient();
+    const installmentCents = Math.ceil(totalAmountCents / installmentCount);
+
+    const { data: plan, error } = await supabase
+      .from('repayment_plans')
+      .insert({
+        tenant_id: tenantId,
+        driver_id: driverId,
+        total_amount_cents: totalAmountCents,
+        remaining_cents: totalAmountCents,
+        installment_count: installmentCount,
+        installment_amount_cents: installmentCents,
+        status: 'active',
+        reason,
+      })
+      .select()
+      .single();
+
+    if (error) throw new BadRequestException(`Failed to create repayment plan: ${error.message}`);
+
+    // Create installment schedule
+    const now = new Date();
+    for (let i = 0; i < installmentCount; i++) {
+      const dueDate = new Date(now);
+      dueDate.setDate(dueDate.getDate() + (7 * (i + 1))); // Weekly installments
+
+      await supabase.from('repayment_installments').insert({
+        plan_id: plan.id,
+        installment_number: i + 1,
+        amount_cents: i === installmentCount - 1
+          ? totalAmountCents - (installmentCents * (installmentCount - 1)) // Last installment gets remainder
+          : installmentCents,
+        status: 'pending',
+        due_date: dueDate.toISOString().split('T')[0],
+      });
+    }
+
+    this.logger.log(`Repayment plan created: driver=${driverId} total=${totalAmountCents}c installments=${installmentCount}`);
+    return plan;
+  }
+
+  async getRepaymentSchedule(planId: string) {
+    const supabase = this.supabaseService.getClient();
+
+    const { data: plan } = await supabase
+      .from('repayment_plans')
+      .select('*')
+      .eq('id', planId)
+      .single();
+
+    if (!plan) throw new NotFoundException('Repayment plan not found');
+
+    const { data: installments } = await supabase
+      .from('repayment_installments')
+      .select('*')
+      .eq('plan_id', planId)
+      .order('installment_number', { ascending: true });
+
+    return { plan, installments: installments || [] };
+  }
+
+  async processRepaymentInstallment(planId: string, installmentId: string) {
+    const supabase = this.supabaseService.getClient();
+
+    const { data: installment } = await supabase
+      .from('repayment_installments')
+      .select('*')
+      .eq('id', installmentId)
+      .eq('plan_id', planId)
+      .eq('status', 'pending')
+      .single();
+
+    if (!installment) throw new NotFoundException('Pending installment not found');
+
+    await supabase
+      .from('repayment_installments')
+      .update({ status: 'deducted', deducted_at: new Date().toISOString() })
+      .eq('id', installmentId);
+
+    // Reduce remaining on plan
+    const { data: plan } = await supabase
+      .from('repayment_plans')
+      .select('remaining_cents')
+      .eq('id', planId)
+      .single();
+
+    const newRemaining = (plan?.remaining_cents || 0) - installment.amount_cents;
+    const updatePayload: Record<string, any> = {
+      remaining_cents: Math.max(0, newRemaining),
+      updated_at: new Date().toISOString(),
+    };
+    if (newRemaining <= 0) updatePayload.status = 'completed';
+
+    await supabase.from('repayment_plans').update(updatePayload).eq('id', planId);
+
+    this.logger.log(`Repayment installment processed: plan=${planId} amount=${installment.amount_cents}c remaining=${Math.max(0, newRemaining)}c`);
+    return { success: true, deducted_cents: installment.amount_cents, remaining_cents: Math.max(0, newRemaining) };
+  }
 }

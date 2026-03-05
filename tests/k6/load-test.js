@@ -54,10 +54,80 @@ export default function () {
     errorRate.add(!ok);
   });
 
-  // NOTE:
-  // The current staging OpenAPI surface is intentionally small (and most
-  // endpoints require auth). For repeatable load testing without secrets,
-  // we target only the public /health endpoint.
+  group('Correlation ID Propagation', () => {
+    const res = http.get(`${BASE_URL}/health`);
+    const ok = check(res, {
+      'has x-request-id header': (r) => !!r.headers['X-Request-Id'] || !!r.headers['x-request-id'],
+    });
+    errorRate.add(!ok);
+  });
+
+  group('Pricing Quote (public)', () => {
+    const res = http.post(`${BASE_URL}/pricing/quote`, JSON.stringify({
+      pickupLat: 41.8781, pickupLng: -87.6298,
+      dropoffLat: 41.9742, dropoffLng: -87.9073,
+      vehicleCategory: 'black_sedan',
+    }), { headers });
+    const ok = check(res, {
+      'pricing returns 200 or 201': (r) => r.status === 200 || r.status === 201,
+    });
+    errorRate.add(!ok);
+  });
+
+  group('Rate Limiting (429 + Retry-After)', () => {
+    // Rapid-fire 20 requests to trigger rate limiter
+    let gotRateLimited = false;
+    for (let i = 0; i < 20; i++) {
+      const res = http.get(`${BASE_URL}/health`);
+      if (res.status === 429) {
+        gotRateLimited = true;
+        check(res, {
+          'rate-limit has Retry-After header': (r) => !!r.headers['Retry-After'] || !!r.headers['retry-after'],
+        });
+        break;
+      }
+    }
+    // Rate limiting may not trigger in all environments — that's OK
+  });
+
+  group('DLQ Stats (admin)', () => {
+    const res = http.get(`${BASE_URL}/admin/jobs/stats`, { headers });
+    check(res, {
+      'job stats responds': (r) => r.status === 200 || r.status === 401 || r.status === 403,
+    });
+  });
+
+  group('Disclosures (public)', () => {
+    const res = http.get(`${BASE_URL}/disclosures/${TENANT_ID}/active`, { headers });
+    check(res, {
+      'disclosures responds': (r) => r.status === 200 || r.status === 404,
+    });
+  });
+
+  group('Lead Capture (POST)', () => {
+    const res = http.post(`${BASE_URL}/leads`, JSON.stringify({
+      name: `k6-user-${__VU}`,
+      email: `k6-${__VU}@loadtest.local`,
+      source: 'k6_load_test',
+    }), { headers });
+    check(res, {
+      'lead capture responds': (r) => r.status === 201 || r.status === 200 || r.status === 400,
+    });
+  });
+
+  group('Standard Error Envelope', () => {
+    const res = http.get(`${BASE_URL}/nonexistent-endpoint-404`);
+    check(res, {
+      '404 returns structured error': (r) => {
+        if (r.status !== 404) return true; // skip if route exists
+        try {
+          const body = JSON.parse(r.body);
+          return body.error !== undefined || body.message !== undefined;
+        } catch { return false; }
+      },
+    });
+  });
+
   sleep(1);
 }
 

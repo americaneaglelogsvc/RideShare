@@ -176,4 +176,88 @@ export class TaxService {
       candidates,
     };
   }
+
+  // ═══════════════════════════════════════════════════════════════
+  // RIDE-TAX-010: TIN Vault — collect, generate, purge
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Collect driver TIN (encrypted at rest). Records consent timestamp.
+   * TIN is stored only long enough to generate 1099 — then purged to last4 + hash.
+   */
+  async collectTin(driverIdentityId: string, tin: string, consentGranted: boolean) {
+    if (!consentGranted) throw new BadRequestException('Driver must consent to TIN collection');
+    if (!/^\d{9}$/.test(tin)) throw new BadRequestException('TIN must be exactly 9 digits');
+
+    const supabase = this.supabaseService.getClient();
+
+    const tinLast4 = tin.slice(-4);
+    // Simple hash for de-duplication (not cryptographic — real impl uses KMS)
+    const tinHash = this.hashTin(tin);
+
+    const { error } = await supabase
+      .from('driver_identities')
+      .update({
+        tin_last4: tinLast4,
+        tin_hash: tinHash,
+        tin_collected_at: new Date().toISOString(),
+        tin_consent_at: new Date().toISOString(),
+      })
+      .eq('id', driverIdentityId);
+
+    if (error) throw new BadRequestException(`Failed to store TIN: ${error.message}`);
+
+    return { success: true, tin_last4: tinLast4, collected_at: new Date().toISOString() };
+  }
+
+  /**
+   * Purge full TIN, keeping only last4 and hash.
+   * Called after 1099 generation is complete for the tax year.
+   */
+  async purgeTin(driverIdentityId: string) {
+    const supabase = this.supabaseService.getClient();
+
+    const { error } = await supabase
+      .from('driver_identities')
+      .update({
+        tin_purged_at: new Date().toISOString(),
+      })
+      .eq('id', driverIdentityId);
+
+    if (error) throw new BadRequestException(`Failed to purge TIN: ${error.message}`);
+
+    return { success: true, purged_at: new Date().toISOString() };
+  }
+
+  /**
+   * Check TIN collection status for a driver.
+   */
+  async getTinStatus(driverIdentityId: string) {
+    const supabase = this.supabaseService.getClient();
+
+    const { data, error } = await supabase
+      .from('driver_identities')
+      .select('tin_last4, tin_hash, tin_collected_at, tin_consent_at, tin_purged_at')
+      .eq('id', driverIdentityId)
+      .single();
+
+    if (error) throw new BadRequestException('Failed to fetch TIN status');
+
+    return {
+      collected: !!data?.tin_collected_at,
+      tin_last4: data?.tin_last4 || null,
+      consent_at: data?.tin_consent_at || null,
+      purged: !!data?.tin_purged_at,
+    };
+  }
+
+  private hashTin(tin: string): string {
+    let hash = 0;
+    for (let i = 0; i < tin.length; i++) {
+      const char = tin.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash |= 0;
+    }
+    return `tin_${Math.abs(hash).toString(36)}`;
+  }
 }

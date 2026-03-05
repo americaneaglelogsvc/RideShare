@@ -29,12 +29,12 @@ spec:
             - name: NODE_ENV
               value: production
 
-            - name: SUPABASE_URL
+            - name: VITE_SUPABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: supabase-url
                   key: latest
-            - name: SUPABASE_SERVICE_KEY
+            - name: SUPABASE_SERVICE_ROLE_KEY
               valueFrom:
                 secretKeyRef:
                   name: supabase-service-key

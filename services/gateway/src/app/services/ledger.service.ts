@@ -69,4 +69,40 @@ export class LedgerService {
 
     return { success: !error };
   }
+
+  /**
+   * Generic double-entry ledger record for bonuses, adjustments, QR attribution, etc.
+   * Returns the ledger entry ID for cross-referencing.
+   */
+  async record(entry: {
+    tenant_id: string;
+    type: string;
+    debit_account: string;
+    credit_account: string;
+    amount_cents: number;
+    reference_id?: string;
+    metadata?: Record<string, any>;
+  }): Promise<string> {
+    const supabase = this.supabaseService.getClient();
+
+    const { data, error } = await supabase.from('ledger_entries').insert({
+      event_type: entry.type,
+      tenant_id: entry.tenant_id,
+      debit_account: entry.debit_account,
+      credit_account: entry.credit_account,
+      fare_cents: entry.amount_cents,
+      platform_fee_cents: 0,
+      tenant_net_cents: 0,
+      driver_payout_cents: 0,
+      trip_id: entry.reference_id || null,
+      metadata: { ...entry.metadata, debit: entry.debit_account, credit: entry.credit_account },
+      created_at: new Date().toISOString(),
+    }).select('id').single();
+
+    if (error) {
+      throw new Error(`Ledger record failed: ${error.message}`);
+    }
+
+    return data.id;
+  }
 }

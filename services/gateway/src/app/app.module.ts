@@ -2,7 +2,7 @@ import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { SupabaseService } from './services/supabase.service';
 import { RealtimeService } from './services/realtime.service';
 import { DispatchService } from './services/dispatch.service';
@@ -91,6 +91,19 @@ import { FleetOwnerService } from './services/fleet-owner.service';
 import { OcrDocumentService } from './services/ocr-document.service';
 import { SplitPayService } from './services/split-pay.service';
 import { HourlyBookingService } from './services/hourly-booking.service';
+import { DatabaseService } from './services/database.service';
+import { SecretManagerService } from './services/secret-manager.service';
+import { QrAttributionService } from './services/qr-attribution.service';
+import { DisclosureService } from './services/disclosure.service';
+import { LeadService } from './services/lead.service';
+import { VoiceService } from './services/voice.service';
+import { LuxuryStandardsService } from './services/luxury-standards.service';
+import { BackgroundCheckService } from './services/background-check.service';
+import { ApprovalService } from './services/approval.service';
+import { CorrelationMiddleware } from './middleware/correlation.middleware';
+import { CookieConsentMiddleware } from './middleware/cookie-consent.middleware';
+import { StandardErrorFilter } from './filters/standard-error.filter';
+import { ETagInterceptor } from './interceptors/etag.interceptor';
 
 @Module({
   imports: [
@@ -195,10 +208,33 @@ import { HourlyBookingService } from './services/hourly-booking.service';
     OcrDocumentService,
     SplitPayService,
     HourlyBookingService,
+    DatabaseService,
+    SecretManagerService,
+    QrAttributionService,
+    DisclosureService,
+    LeadService,
+    VoiceService,
+    LuxuryStandardsService,
+    BackgroundCheckService,
+    ApprovalService,
+    {
+      provide: APP_FILTER,
+      useClass: StandardErrorFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ETagInterceptor,
+    },
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(CorrelationMiddleware)
+      .forRoutes('*');
+    consumer
+      .apply(CookieConsentMiddleware)
+      .forRoutes('*');
     consumer
       .apply(TenantContextMiddleware)
       .exclude('health', 'api/(.*)', 'tenants', 'webhooks/(.*)', 'admin/(.*)', 'developer/(.*)')

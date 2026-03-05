@@ -1,0 +1,59 @@
+/**
+ * StandardErrorCodes — CANONICAL req_id API-ERR-0001
+ * "Standard error codes + version conflicts"
+ *
+ * Every API error response MUST use this envelope:
+ *   { code: ErrorCode, message: string, details?: any, correlationId?: string }
+ */
+export enum ErrorCode {
+  // Generic
+  INTERNAL_ERROR = 'INTERNAL_ERROR',
+  VALIDATION_ERROR = 'VALIDATION_ERROR',
+  NOT_FOUND = 'NOT_FOUND',
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  FORBIDDEN = 'FORBIDDEN',
+  RATE_LIMITED = 'RATE_LIMITED',
+
+  // Conflict / Concurrency
+  CONFLICT = 'CONFLICT',
+  VERSION_CONFLICT = 'VERSION_CONFLICT',
+  DOUBLE_ASSIGNMENT = 'DOUBLE_ASSIGNMENT',
+  OFFER_ALREADY_CLAIMED = 'OFFER_ALREADY_CLAIMED',
+  IDEMPOTENCY_CONFLICT = 'IDEMPOTENCY_CONFLICT',
+
+  // Payment / Financial
+  PAYMENT_FAILED = 'PAYMENT_FAILED',
+  INSUFFICIENT_FUNDS = 'INSUFFICIENT_FUNDS',
+  PAYOUT_NOT_ELIGIBLE = 'PAYOUT_NOT_ELIGIBLE',
+  SETTLEMENT_PENDING = 'SETTLEMENT_PENDING',
+  BILLING_PAST_DUE = 'BILLING_PAST_DUE',
+
+  // Dispatch
+  NO_DRIVERS_AVAILABLE = 'NO_DRIVERS_AVAILABLE',
+  TRIP_STATE_INVALID = 'TRIP_STATE_INVALID',
+  QUEUE_STATE_INVALID = 'QUEUE_STATE_INVALID',
+
+  // Compliance
+  COMPLIANCE_BLOCKED = 'COMPLIANCE_BLOCKED',
+  DOCUMENT_EXPIRED = 'DOCUMENT_EXPIRED',
+  TENANT_SUSPENDED = 'TENANT_SUSPENDED',
+  DRIVER_SUSPENDED = 'DRIVER_SUSPENDED',
+  KILL_SWITCH_ACTIVE = 'KILL_SWITCH_ACTIVE',
+
+  // Policy
+  POLICY_VALIDATION_FAILED = 'POLICY_VALIDATION_FAILED',
+  POLICY_PUBLISH_FAILED = 'POLICY_PUBLISH_FAILED',
+
+  // Feature
+  FEATURE_DISABLED = 'FEATURE_DISABLED',
+  CONSENT_REQUIRED = 'CONSENT_REQUIRED',
+}
+
+export interface StandardErrorResponse {
+  code: ErrorCode;
+  message: string;
+  details?: any;
+  correlationId?: string;
+  statusCode: number;
+  timestamp: string;
+}

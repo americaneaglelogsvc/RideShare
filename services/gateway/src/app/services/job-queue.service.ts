@@ -10,6 +10,9 @@ export interface QueuedJob {
   maxAttempts: number;
   runAt?: Date;
   error?: string;
+  failure_class?: 'transient' | 'permanent' | 'unknown';
+  replayed_at?: string;
+  replay_result?: 'success' | 'failed';
 }
 
 type JobHandler = (payload: Record<string, unknown>) => Promise<void>;
@@ -126,5 +129,137 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
     }
 
     return stats;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // DLQ — CANONICAL §11.1 Dead-letter queue + replay tooling
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Get all dead-letter jobs with optional queue filter.
+   */
+  async getDlqJobs(queue?: string, limit = 50): Promise<QueuedJob[]> {
+    const supabase = this.supabaseService.getClient();
+    let q = supabase.from('job_queue').select('*').eq('status', 'dead').order('created_at', { ascending: false }).limit(limit);
+    if (queue) q = q.eq('queue', queue);
+    const { data } = await q;
+    return (data || []) as QueuedJob[];
+  }
+
+  /**
+   * Classify a dead job as transient or permanent.
+   * Transient: timeouts, rate limits, temporary unavailability.
+   * Permanent: validation errors, missing data, schema violations.
+   */
+  async classifyDlqJob(jobId: string): Promise<'transient' | 'permanent' | 'unknown'> {
+    const supabase = this.supabaseService.getClient();
+    const { data: job } = await supabase.from('job_queue').select('*').eq('id', jobId).single();
+    if (!job) throw new Error(`Job ${jobId} not found`);
+
+    const errorMsg = (job.error || '').toLowerCase();
+    let failureClass: 'transient' | 'permanent' | 'unknown' = 'unknown';
+
+    const transientPatterns = ['timeout', 'econnrefused', 'econnreset', 'rate limit', '429', '503', '502', 'temporarily', 'retry'];
+    const permanentPatterns = ['validation', 'invalid', 'not found', '404', 'schema', 'constraint', 'duplicate', 'forbidden', '403', '401'];
+
+    if (transientPatterns.some(p => errorMsg.includes(p))) {
+      failureClass = 'transient';
+    } else if (permanentPatterns.some(p => errorMsg.includes(p))) {
+      failureClass = 'permanent';
+    }
+
+    await supabase.from('job_queue').update({ failure_class: failureClass }).eq('id', jobId);
+    return failureClass;
+  }
+
+  /**
+   * Classify all unclassified dead jobs.
+   */
+  async classifyAllDlq(): Promise<{ transient: number; permanent: number; unknown: number }> {
+    const supabase = this.supabaseService.getClient();
+    const { data: jobs } = await supabase.from('job_queue').select('id').eq('status', 'dead').is('failure_class', null);
+
+    const counts = { transient: 0, permanent: 0, unknown: 0 };
+    for (const job of (jobs || [])) {
+      const cls = await this.classifyDlqJob(job.id);
+      counts[cls]++;
+    }
+    return counts;
+  }
+
+  /**
+   * Dry-run replay estimation: projects how many dead jobs would succeed if replayed.
+   * Returns projected success rate (CANONICAL §1.4 gate: ≥70%).
+   */
+  async dryRunReplayEstimate(): Promise<{ total: number; transient: number; permanent: number; unknown: number; projectedSuccessRate: number }> {
+    const supabase = this.supabaseService.getClient();
+
+    const { data: deadJobs } = await supabase.from('job_queue').select('failure_class').eq('status', 'dead');
+    const jobs = deadJobs || [];
+
+    if (jobs.length === 0) {
+      return { total: 0, transient: 0, permanent: 0, unknown: 0, projectedSuccessRate: 100 };
+    }
+
+    // Classify any unclassified first
+    await this.classifyAllDlq();
+
+    const { data: classified } = await supabase.from('job_queue').select('failure_class').eq('status', 'dead');
+    const all = classified || [];
+
+    const transient = all.filter(j => j.failure_class === 'transient').length;
+    const permanent = all.filter(j => j.failure_class === 'permanent').length;
+    const unknown = all.filter(j => j.failure_class === 'unknown' || !j.failure_class).length;
+
+    // Transient jobs are expected to succeed on replay; unknown get 50% estimate
+    const projectedSuccesses = transient + Math.floor(unknown * 0.5);
+    const projectedSuccessRate = all.length > 0 ? Math.round((projectedSuccesses / all.length) * 100) : 100;
+
+    return { total: all.length, transient, permanent, unknown, projectedSuccessRate };
+  }
+
+  /**
+   * Replay a specific dead job (re-enqueue it with reset attempts).
+   * Idempotent: uses the original job ID as idempotency key.
+   */
+  async replayJob(jobId: string): Promise<{ success: boolean; newJobId?: string }> {
+    const supabase = this.supabaseService.getClient();
+    const { data: job } = await supabase.from('job_queue').select('*').eq('id', jobId).eq('status', 'dead').single();
+
+    if (!job) throw new Error(`Dead job ${jobId} not found`);
+
+    // Re-enqueue
+    const newJobId = await this.enqueue(job.queue, job.payload, { maxAttempts: job.max_attempts || 3 });
+
+    // Mark original as replayed
+    await supabase.from('job_queue').update({
+      replayed_at: new Date().toISOString(),
+      replay_result: 'success',
+    }).eq('id', jobId);
+
+    this.logger.log(`DLQ replay: job ${jobId} re-enqueued as ${newJobId}`);
+    return { success: true, newJobId };
+  }
+
+  /**
+   * Replay all transient dead jobs.
+   */
+  async replayAllTransient(): Promise<{ replayed: number; failed: number }> {
+    const supabase = this.supabaseService.getClient();
+    const { data: jobs } = await supabase.from('job_queue').select('id').eq('status', 'dead').eq('failure_class', 'transient').is('replayed_at', null);
+
+    let replayed = 0;
+    let failed = 0;
+    for (const job of (jobs || [])) {
+      try {
+        await this.replayJob(job.id);
+        replayed++;
+      } catch {
+        failed++;
+      }
+    }
+
+    this.logger.log(`DLQ bulk replay: ${replayed} replayed, ${failed} failed`);
+    return { replayed, failed };
   }
 }

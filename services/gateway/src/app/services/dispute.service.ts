@@ -400,6 +400,102 @@ export class DisputeService {
     };
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // CANONICAL §8.1: Chargeback reason code classification + evidence artifacts
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Classify a chargeback reason code and recommend evidence strategy.
+   * Maps common Visa/MC reason codes to recommended evidence types.
+   */
+  classifyReasonCode(reasonCode: string): {
+    category: string;
+    description: string;
+    recommendedEvidence: string[];
+    winProbability: 'high' | 'medium' | 'low';
+  } {
+    const classifications: Record<string, { category: string; description: string; recommendedEvidence: string[]; winProbability: 'high' | 'medium' | 'low' }> = {
+      '10.4': { category: 'fraud', description: 'Card-absent fraud', recommendedEvidence: ['gps_trace', 'device_fingerprint', 'ip_address', 'rider_verification'], winProbability: 'medium' },
+      '13.1': { category: 'service_not_received', description: 'Merchandise/service not received', recommendedEvidence: ['gps_trace', 'trip_timestamps', 'driver_confirmation', 'pickup_photo'], winProbability: 'high' },
+      '13.3': { category: 'not_as_described', description: 'Not as described', recommendedEvidence: ['fare_breakdown', 'route_map', 'pricing_policy', 'trip_receipt'], winProbability: 'medium' },
+      '13.6': { category: 'credit_not_processed', description: 'Credit not processed', recommendedEvidence: ['refund_history', 'ledger_entries', 'communication_log'], winProbability: 'high' },
+      '13.7': { category: 'cancelled_service', description: 'Cancelled recurring', recommendedEvidence: ['cancellation_policy', 'trip_status', 'no_show_evidence'], winProbability: 'medium' },
+      '4837': { category: 'no_cardholder_auth', description: 'No cardholder authorization (MC)', recommendedEvidence: ['3ds_result', 'avs_result', 'device_fingerprint'], winProbability: 'low' },
+      '4853': { category: 'cardholder_dispute', description: 'Cardholder dispute (MC)', recommendedEvidence: ['gps_trace', 'trip_timestamps', 'rider_verification', 'receipt'], winProbability: 'medium' },
+    };
+
+    const match = classifications[reasonCode];
+    if (match) return match;
+
+    return {
+      category: 'unknown',
+      description: `Unclassified reason code: ${reasonCode}`,
+      recommendedEvidence: ['gps_trace', 'trip_timestamps', 'fare_breakdown', 'trip_receipt'],
+      winProbability: 'medium',
+    };
+  }
+
+  /**
+   * Add evidence artifact (file URL, screenshot, etc.) to an existing dispute.
+   */
+  async addEvidenceArtifact(disputeId: string, artifact: {
+    type: string;
+    label: string;
+    url: string;
+    mime_type?: string;
+  }): Promise<{ success: boolean; artifactCount: number }> {
+    const supabase = this.supabaseService.getClient();
+
+    const { data: dispute } = await supabase
+      .from('dispute_cases')
+      .select('evidence_package')
+      .eq('id', disputeId)
+      .single();
+
+    if (!dispute) throw new NotFoundException('Dispute not found');
+
+    const currentArtifacts = dispute.evidence_package?.artifacts || [];
+    currentArtifacts.push({
+      ...artifact,
+      added_at: new Date().toISOString(),
+    });
+
+    const updatedPackage = {
+      ...dispute.evidence_package,
+      artifacts: currentArtifacts,
+    };
+
+    await supabase
+      .from('dispute_cases')
+      .update({ evidence_package: updatedPackage, updated_at: new Date().toISOString() })
+      .eq('id', disputeId);
+
+    this.logger.log(`Evidence artifact added to dispute ${disputeId}: ${artifact.type} — ${artifact.label}`);
+    return { success: true, artifactCount: currentArtifacts.length };
+  }
+
+  /**
+   * Set the reason code on a dispute and get recommended evidence strategy.
+   */
+  async setReasonCode(disputeId: string, reasonCode: string) {
+    const supabase = this.supabaseService.getClient();
+    const classification = this.classifyReasonCode(reasonCode);
+
+    await supabase
+      .from('dispute_cases')
+      .update({
+        reason_code: reasonCode,
+        evidence_package: {
+          ...(await supabase.from('dispute_cases').select('evidence_package').eq('id', disputeId).single()).data?.evidence_package,
+          reason_classification: classification,
+        },
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', disputeId);
+
+    return { disputeId, reasonCode, classification };
+  }
+
   private mapDispute(d: any): DisputeCase {
     return {
       id: d.id,
