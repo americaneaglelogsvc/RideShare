@@ -1,0 +1,11 @@
+
+:root {
+  --brand-primary: #1a1a1a;
+  --brand-secondary: #ffffff;
+  --brand-accent: #3b82f6;
+  --brand-theme: 'premium';
+}
+
+.brand-blackravenia.com {
+  color: var(--brand-primary);
+}

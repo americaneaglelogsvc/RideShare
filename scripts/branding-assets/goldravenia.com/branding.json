@@ -1,0 +1,15 @@
+{
+  "tenant": "GoldRavenia",
+  "domain": "goldravenia.com",
+  "colors": {
+    "primary": "#d4a017",
+    "secondary": "#0f172a",
+    "accent": "#f59e0b"
+  },
+  "theme": "luxury",
+  "assets": {
+    "icon": "./icons/goldravenia.com-app-icon.png",
+    "splash": "./splash/goldravenia.com-splash.png",
+    "logo": "./images/goldravenia.com-logo.png"
+  }
+}

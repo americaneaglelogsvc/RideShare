@@ -1,0 +1,11 @@
+
+:root {
+  --brand-primary: #d4a017;
+  --brand-secondary: #0f172a;
+  --brand-accent: #f59e0b;
+  --brand-theme: 'luxury';
+}
+
+.brand-goldravenia.com {
+  color: var(--brand-primary);
+}

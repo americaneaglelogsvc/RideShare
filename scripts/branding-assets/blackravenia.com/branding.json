@@ -1,0 +1,15 @@
+{
+  "tenant": "BlackRavenia",
+  "domain": "blackravenia.com",
+  "colors": {
+    "primary": "#1a1a1a",
+    "secondary": "#ffffff",
+    "accent": "#3b82f6"
+  },
+  "theme": "premium",
+  "assets": {
+    "icon": "./icons/blackravenia.com-app-icon.png",
+    "splash": "./splash/blackravenia.com-splash.png",
+    "logo": "./images/blackravenia.com-logo.png"
+  }
+}
