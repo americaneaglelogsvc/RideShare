@@ -26,24 +26,27 @@ export default function PlatformAdminPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
-      <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
+      <header className="bg-[#0f172a] border-b border-amber-600/30 px-6 py-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Platform Administration</h1>
-            <p className="text-sm text-gray-400">UrWay Dispatch — Cross-tenant management</p>
+          <div className="flex items-center gap-4">
+            <a href="/" className="text-slate-500 hover:text-amber-400 text-sm transition-colors">← Home</a>
+            <div>
+              <h1 className="text-xl font-bold text-amber-400">Platform Administration</h1>
+              <p className="text-xs text-slate-500">UrWay Dispatch — Cross-tenant management</p>
+            </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-xs bg-red-600 px-2 py-1 rounded font-mono">ADMIN</span>
-            <span className="text-sm text-gray-400">admin@urwaydispatch.com</span>
+          <div className="flex items-center space-x-3">
+            <span className="text-xs bg-red-900/60 border border-red-700/50 text-red-300 px-2 py-1 rounded font-mono">SUPER ADMIN</span>
+            <span className="text-sm text-slate-500">admin@urwaydispatch.com</span>
           </div>
         </div>
       </header>
 
       {/* Platform Stats */}
-      <div className="bg-gray-800 border-b border-gray-700 px-6 py-4">
+      <div className="bg-[#1e293b] border-b border-slate-700 px-6 py-4">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-400">{MOCK_TENANTS.length}</div>
+            <div className="text-2xl font-bold text-amber-400">{MOCK_TENANTS.length}</div>
             <div className="text-xs text-gray-500">Total Tenants</div>
           </div>
           <div className="text-center">
@@ -67,7 +70,7 @@ export default function PlatformAdminPage() {
 
       {/* Tabs */}
       <div className="px-6 pt-4">
-        <div className="flex space-x-4 border-b border-gray-700">
+        <div className="flex space-x-4 border-b border-slate-700">
           {([
             { key: 'tenants', label: 'Tenant Management' },
             { key: 'health', label: 'System Health' },
@@ -78,7 +81,7 @@ export default function PlatformAdminPage() {
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === tab.key ? 'border-blue-400 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'
+                activeTab === tab.key ? 'border-amber-400 text-amber-400' : 'border-transparent text-slate-500 hover:text-slate-300'
               }`}
             >
               {tab.label}
@@ -93,7 +96,7 @@ export default function PlatformAdminPage() {
           <div>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">All Tenants</h2>
-              <button className="text-sm bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700">+ Create Tenant</button>
+              <button className="text-sm bg-amber-600 px-4 py-2 rounded-lg hover:bg-amber-500">+ Create Tenant</button>
             </div>
             <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
               <table className="w-full">
@@ -123,7 +126,7 @@ export default function PlatformAdminPage() {
                         }`}>{t.status}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <button className="text-xs text-blue-400 hover:text-blue-300 mr-3">Edit</button>
+                        <button className="text-xs text-amber-400 hover:text-amber-300 mr-3">Edit</button>
                         <button className="text-xs text-red-400 hover:text-red-300">
                           {t.status === 'active' ? 'Suspend' : 'Activate'}
                         </button>
@@ -217,7 +220,7 @@ export default function PlatformAdminPage() {
                     <div className="text-sm font-medium">Total: 37 tests</div>
                     <div className="text-xs text-green-400">All passing</div>
                   </div>
-                  <button className="text-sm bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700">Run All Tests</button>
+                  <button className="text-sm bg-amber-600 px-4 py-2 rounded-lg hover:bg-amber-500">Run All Tests</button>
                 </div>
               </div>
             </div>

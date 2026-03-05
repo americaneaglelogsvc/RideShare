@@ -1,32 +1,68 @@
 "use client";
 
-import { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 
 const TENANT_ID = "a1b2c3d4-0001-4000-8000-000000000001";
-const DRIVER_1   = "d0000000-0001-4000-8000-0000000001";
-const DRIVER_2   = "d0000000-0001-4000-8000-0000000002";
-const RIDER_1    = "r0000000-0001-4000-8000-000000000001";
-const RIDER_2    = "r0000000-0001-4000-8000-000000000002";
+const DRIVER_1  = "d0000000-0001-4000-8000-0000000001";
+const DRIVER_2  = "d0000000-0001-4000-8000-0000000002";
+const RIDER_1   = "r0000000-0001-4000-8000-000000000001";
+const RIDER_2   = "r0000000-0001-4000-8000-000000000002";
 
+const DEFAULT_URLS = {
+  gateway: "http://localhost:3000",
+  rider:   "http://localhost:4200",
+  driver:  "http://localhost:4300",
+  public:  "http://localhost:5173",
+  admin:   "http://localhost:4400",
+};
+
+type SvcStatus  = "checking" | "online" | "offline";
 type StepResult = { status: "idle" | "loading" | "ok" | "error"; data?: any; error?: string };
 
+const SERVICES: { id: keyof typeof DEFAULT_URLS; label: string; port: string; cmd: string; healthPath?: string }[] = [
+  { id: "gateway", label: "Gateway API",  port: "3000", cmd: "cd services/gateway && npm run start:dev", healthPath: "/health" },
+  { id: "rider",   label: "Rider App",    port: "4200", cmd: "cd apps/rider-app && npm run dev" },
+  { id: "driver",  label: "Driver App",   port: "4300", cmd: "cd apps/driver-app && npm run dev" },
+  { id: "public",  label: "Public Site",  port: "5173", cmd: "npm run dev  (root of repo)" },
+];
+
 export default function WalkthroughPage() {
-  const [apiUrl, setApiUrl]         = useState("http://localhost:3000");
-  const [authToken, setAuthToken]   = useState("test");
-  const [tripId, setTripId]         = useState("");
-  const [cancelId, setCancelId]     = useState("");
-  const [activeAct, setActiveAct]   = useState(1);
-  const [results, setResults]       = useState<Record<string, StepResult>>({});
+  const [urls, setUrls]         = useState({ ...DEFAULT_URLS });
+  const [authToken, setAuthToken] = useState("test");
+  const [tripId, setTripId]     = useState("");
+  const [cancelId, setCancelId] = useState("");
+  const [activeAct, setActiveAct] = useState(1);
+  const [results, setResults]   = useState<Record<string, StepResult>>({});
+  const [svc, setSvc]           = useState<Record<string, SvcStatus>>({});
   const actRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
   function setResult(key: string, r: StepResult) {
     setResults((prev) => ({ ...prev, [key]: r }));
   }
 
+  const checkServices = useCallback(async () => {
+    setSvc(prev => Object.fromEntries(SERVICES.map(s => [s.id, prev[s.id] ?? "checking"])));
+    await Promise.all(SERVICES.map(async s => {
+      const url = s.healthPath ? `${urls[s.id]}${s.healthPath}` : urls[s.id];
+      try {
+        await fetch(url, { signal: AbortSignal.timeout(2500), mode: "no-cors" });
+        setSvc(prev => ({ ...prev, [s.id]: "online" }));
+      } catch {
+        setSvc(prev => ({ ...prev, [s.id]: "offline" }));
+      }
+    }));
+  }, [urls]);
+
+  useEffect(() => {
+    checkServices();
+    const t = setInterval(checkServices, 15000);
+    return () => clearInterval(t);
+  }, [checkServices]);
+
   async function callApi(key: string, method: string, path: string, body?: any, tid = TENANT_ID) {
     setResult(key, { status: "loading" });
     try {
-      const res = await fetch(`${apiUrl}${path}`, {
+      const res = await fetch(`${urls.gateway}${path}`, {
         method,
         headers: {
           "Content-Type": "application/json",
@@ -44,6 +80,7 @@ export default function WalkthroughPage() {
     }
   }
 
+  const setUrl = (k: keyof typeof DEFAULT_URLS, v: string) => setUrls(prev => ({ ...prev, [k]: v }));
   function openUrl(url: string) { window.open(url, "_blank"); }
 
   function scrollToAct(n: number) {
@@ -141,39 +178,79 @@ export default function WalkthroughPage() {
     </div>
   );
 
+  const svcDot = (id: string) => {
+    const s = svc[id] ?? "checking";
+    return (
+      <span className={`inline-block w-2 h-2 rounded-full mr-1 ${s === "online" ? "bg-green-400" : s === "offline" ? "bg-red-500" : "bg-yellow-400 animate-pulse"}`} />
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-amber-600 to-amber-800 px-6 py-5">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-3 mb-1">
-            <span className="text-3xl">🚗</span>
-            <h1 className="text-2xl font-bold text-white">UrWayDispatch — Interactive Walkthrough</h1>
+    <div className="min-h-screen bg-slate-900 text-white font-sans">
+
+      {/* ── Brand Header ── */}
+      <div className="bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0f172a] border-b border-amber-600/40 px-6 py-5">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">🚗</span>
+              <div>
+                <h1 className="text-xl font-bold text-amber-400 tracking-tight">UrWay Dispatch</h1>
+                <p className="text-xs text-slate-400">Interactive Platform Walkthrough · 8 Personas · Real API Calls</p>
+              </div>
+            </div>
           </div>
-          <p className="text-amber-100 text-sm">Click through 7 personas, fire real API calls, and see the full ride lifecycle in your browser.</p>
+          <button onClick={runAllApiSteps} className="bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold px-6 py-2.5 rounded-lg transition-all active:scale-95 shadow-lg shadow-amber-900/40 whitespace-nowrap">
+            ▶ Run Full Lifecycle
+          </button>
         </div>
       </div>
 
-      {/* Config Bar */}
-      <div className="bg-slate-800 border-b border-slate-700 px-6 py-3">
-        <div className="max-w-4xl mx-auto flex flex-wrap gap-4 items-center">
-          <div className="flex items-center gap-2 flex-1 min-w-48">
-            <span className="text-xs text-slate-400 whitespace-nowrap">API URL</span>
-            <input value={apiUrl} onChange={e => setApiUrl(e.target.value)} title="Gateway API base URL" placeholder="http://localhost:3000" className="flex-1 bg-slate-700 text-white text-xs px-2 py-1.5 rounded border border-slate-600 focus:outline-none focus:border-amber-500 min-w-0" />
+      {/* ── Service Health Panel ── */}
+      <div className="bg-slate-800/80 border-b border-slate-700 px-6 py-3">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 items-center justify-between">
+            <div className="flex flex-wrap gap-x-5 gap-y-1">
+              {SERVICES.map(s => (
+                <div key={s.id} className="flex items-center gap-1.5 text-xs">
+                  {svcDot(s.id)}
+                  <span className={svc[s.id] === "online" ? "text-green-400" : svc[s.id] === "offline" ? "text-red-400" : "text-yellow-400"}>{s.label}</span>
+                  <span className="text-slate-500">:{s.port}</span>
+                  {svc[s.id] === "offline" && (
+                    <code className="text-slate-500 text-[10px] ml-1 hidden sm:inline">{s.cmd}</code>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button onClick={checkServices} className="text-xs text-slate-400 hover:text-amber-400 transition-colors">↻ Refresh</button>
           </div>
-          <div className="flex items-center gap-2 flex-1 min-w-36">
-            <span className="text-xs text-slate-400 whitespace-nowrap">Auth Token</span>
+        </div>
+      </div>
+
+      {/* ── Config Bar ── */}
+      <div className="bg-slate-800 border-b border-slate-700 px-6 py-3">
+        <div className="max-w-5xl mx-auto flex flex-wrap gap-3 items-center">
+          {([
+            { key: "gateway" as const, label: "Gateway", ph: "http://localhost:3000" },
+            { key: "rider"   as const, label: "Rider",   ph: "http://localhost:4200" },
+            { key: "driver"  as const, label: "Driver",  ph: "http://localhost:4300" },
+            { key: "public"  as const, label: "Public",  ph: "http://localhost:5173" },
+          ] as const).map(f => (
+            <div key={f.key} className="flex items-center gap-1.5 flex-1 min-w-36">
+              <span className="text-xs text-slate-500 whitespace-nowrap">{f.label}</span>
+              <input value={urls[f.key]} onChange={e => setUrl(f.key, e.target.value)} title={`${f.label} base URL`} placeholder={f.ph} className="flex-1 bg-slate-700 text-white text-xs px-2 py-1.5 rounded border border-slate-600 focus:outline-none focus:border-amber-500 min-w-0" />
+            </div>
+          ))}
+          <div className="flex items-center gap-1.5 min-w-28">
+            <span className="text-xs text-slate-500">Token</span>
             <input value={authToken} onChange={e => setAuthToken(e.target.value)} title="Bearer auth token" placeholder="test" className="flex-1 bg-slate-700 text-white text-xs px-2 py-1.5 rounded border border-slate-600 focus:outline-none focus:border-amber-500 min-w-0" />
           </div>
           {tripId && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400">trip_id</span>
-              <span className="bg-green-900 text-green-300 text-xs px-2 py-1 rounded font-mono">{tripId.slice(0, 18)}…</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-slate-500">trip_id</span>
+              <span className="bg-green-950 text-green-300 text-xs px-2 py-1 rounded font-mono border border-green-700">{tripId.slice(0,14)}…</span>
             </div>
           )}
-          <button onClick={runAllApiSteps} className="bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold px-5 py-2 rounded-lg transition-all active:scale-95 whitespace-nowrap">
-            ▶ Run Full Lifecycle
-          </button>
         </div>
       </div>
 
@@ -212,17 +289,19 @@ export default function WalkthroughPage() {
           <p className="text-sm text-slate-400">Marcus found UrWayDispatch online. Walk the public marketing site before he signs up.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {[
-              ["🏠 Home", "/public/index.html"],
-              ["⚙️ Services", "/public/services.html"],
-              ["💰 Pricing", "/public/pricing.html"],
-              ["🚀 For Operators", "/public/for-operators.html"],
-              ["🛡️ Safety", "/public/safety.html"],
-              ["❓ FAQ", "/public/faq.html"],
-              ["📋 Terms of Service", "/public/terms.html"],
-              ["🔒 Privacy Policy", "/public/privacy.html"],
-            ].map(([label, path]) =>
-              stepRow(label, <Btn label="Open Page →" color="bg-purple-700 hover:bg-purple-600 text-white" onClick={() => openUrl(`${apiUrl}${path}`)} />)
-            )}
+              ["🏠 Home",             ""],
+              ["⚙️ Services",         "/services.html"],
+              ["💰 Pricing",          "/pricing.html"],
+              ["🚀 For Operators",    "/for-operators.html"],
+              ["🛡️ Safety",          "/safety.html"],
+              ["❓ FAQ",              "/faq.html"],
+              ["📋 Terms of Service", "/terms.html"],
+              ["🔒 Privacy Policy",   "/privacy.html"],
+            ].map(([label, path]) => (
+              <React.Fragment key={label as string}>
+                {stepRow(label as string, <Btn label="Open Page →" color="bg-purple-700 hover:bg-purple-600 text-white" onClick={() => openUrl(`${urls.public}${path as string}`)} />)}
+              </React.Fragment>
+            ))}
           </div>
           <div className="pt-2 text-xs text-slate-500">💡 On "For Operators", fill out the lead form and click Submit — it POSTs to the real <code>/leads</code> API.</div>
           <div className="flex justify-end pt-2"><Btn label="Next: Platform Admin →" color="bg-slate-600 hover:bg-slate-500 text-white" onClick={() => scrollToAct(2)} /></div>
@@ -231,17 +310,17 @@ export default function WalkthroughPage() {
         {/* ACT 2 */}
         <ActCard n={2} persona="Janet Reyes" role="UWD Platform Administrator — onboarding GoldRavenia" color="bg-red-700" borderColor="border-red-500" badge="Platform Admin">
           <p className="text-sm text-slate-400">Marcus signed up. Janet onboards his tenant in the Platform Admin console and accepts ToS.</p>
-          {stepRow("Open Platform Admin — see all 10 pre-seeded tenants", <Btn label="Open Platform Admin →" color="bg-red-700 hover:bg-red-600 text-white" onClick={() => openUrl("http://localhost:4400/platform-admin")} />)}
+          {stepRow("Open Platform Admin — see all 10 pre-seeded tenants", <Btn label="Open Platform Admin →" color="bg-red-700 hover:bg-red-600 text-white" onClick={() => openUrl(`${urls.admin}/platform-admin`)} />)}
           {stepRow("Accept Terms of Service for GoldRavenia (tenant ID: a1b2c3d4-0001-…)", <Btn label="Execute: POST /onboarding/terms/accept" color="bg-red-700 hover:bg-red-600 text-white" onClick={() => callApi("tos-accept", "POST", "/onboarding/terms/accept", { accepted_by: "admin@goldravenia.com" })} />, "tos-accept")}
           {stepRow("Check ToS acceptance status", <Btn label="Execute: GET /onboarding/terms/status" color="bg-slate-600 hover:bg-slate-500 text-white" onClick={() => callApi("tos-status", "GET", "/onboarding/terms/status")} />, "tos-status")}
-          {stepRow("View full API catalogue in Swagger", <Btn label="Open Swagger UI →" color="bg-slate-600 hover:bg-slate-500 text-white" onClick={() => openUrl(`${apiUrl}/api`)} />)}
+          {stepRow("View full API catalogue in Swagger", <Btn label="Open Swagger UI →" color="bg-slate-600 hover:bg-slate-500 text-white" onClick={() => openUrl(`${urls.gateway}/api`)} />)}
           <div className="flex justify-end pt-2"><Btn label="Next: Tenant Owner →" color="bg-slate-600 hover:bg-slate-500 text-white" onClick={() => scrollToAct(3)} /></div>
         </ActCard>
 
         {/* ACT 3 */}
         <ActCard n={3} persona="Marcus Chen" role="Tenant Owner — configuring GoldRavenia in Owner Console" color="bg-blue-700" borderColor="border-blue-500" badge="Tenant Owner">
           <p className="text-sm text-slate-400">Marcus logs into the Owner Console to set up branding, pricing, and verify his drivers are online.</p>
-          {stepRow("Open Owner Console — Dashboard, Branding, Pricing, Drivers, Fleet, Reports tabs", <Btn label="Open Owner Console →" color="bg-blue-700 hover:bg-blue-600 text-white" onClick={() => openUrl("http://localhost:4400/owner-console")} />)}
+          {stepRow("Open Owner Console — Dashboard, Branding, Pricing, Drivers, Fleet, Reports tabs", <Btn label="Open Owner Console →" color="bg-blue-700 hover:bg-blue-600 text-white" onClick={() => openUrl(`${urls.admin}/owner-console`)} />)}
           <div className="bg-slate-700 rounded p-3 text-xs text-slate-300 space-y-1">
             <div><span className="text-amber-400 font-bold">Branding tab:</span> Colors — #b8960c (gold) + #1a1a2e (navy), logo</div>
             <div><span className="text-amber-400 font-bold">Pricing tab:</span> Base $8.00 | Per-mile $2.50 | Per-min $0.45 | Mess fee $250 | Min wage $18/hr</div>
@@ -255,8 +334,8 @@ export default function WalkthroughPage() {
         {/* ACT 4 */}
         <ActCard n={4} persona="Alice Nguyen" role="Rider — booking a black-car ride via GoldRavenia's branded app" color="bg-green-700" borderColor="border-green-500" badge="Rider">
           <p className="text-sm text-slate-400">Alice opens the rider app and books a ride from Willis Tower to O'Hare.</p>
-          {stepRow("Open Rider App — home screen with on-demand, scheduled, hourly tiles", <Btn label="Open Rider App →" color="bg-green-700 hover:bg-green-600 text-white" onClick={() => openUrl("http://localhost:5173")} />)}
-          {stepRow("Open booking screen — enter pickup/dropoff, select Black Sedan", <Btn label="Open Book a Ride →" color="bg-green-700 hover:bg-green-600 text-white" onClick={() => openUrl("http://localhost:5173/book")} />)}
+          {stepRow("Open Rider App — home screen with on-demand, scheduled, hourly tiles", <Btn label="Open Rider App →" color="bg-green-700 hover:bg-green-600 text-white" onClick={() => openUrl(urls.rider)} />)}
+          {stepRow("Open booking screen — enter pickup/dropoff, select Black Sedan", <Btn label="Open Book a Ride →" color="bg-green-700 hover:bg-green-600 text-white" onClick={() => openUrl(`${urls.rider}/book`)} />)}
           {stepRow(
             "Dispatch ride — Willis Tower → O'Hare, black_sedan, $45 estimated fare",
             <Btn label="Execute: POST /dispatch/dispatch-ride" color="bg-green-700 hover:bg-green-600 text-white" onClick={async () => {
@@ -277,19 +356,19 @@ export default function WalkthroughPage() {
         {/* ACT 5 */}
         <ActCard n={5} persona="James Kim" role="Driver — GoldRavenia driver #1 accepting and completing the trip" color="bg-orange-700" borderColor="border-orange-500" badge="Driver">
           <p className="text-sm text-slate-400">James gets the offer on his driver app, accepts it, picks Alice up, and drops her at O'Hare.</p>
-          {stepRow("Open Driver App — dashboard with online/offline toggle and ride offer", <Btn label="Open Driver App →" color="bg-orange-700 hover:bg-orange-600 text-white" onClick={() => openUrl("http://localhost:5174")} />)}
-          {stepRow("Open Active Trip view — en route, wait timer, no-show at 5 min", <Btn label="Open Active Trip →" color="bg-orange-700 hover:bg-orange-600 text-white" onClick={() => openUrl("http://localhost:5174/trip")} />)}
+          {stepRow("Open Driver App — dashboard with online/offline toggle and ride offer", <Btn label="Open Driver App →" color="bg-orange-700 hover:bg-orange-600 text-white" onClick={() => openUrl(urls.driver)} />)}
+          {stepRow("Open Active Trip view — en route, wait timer, no-show at 5 min", <Btn label="Open Active Trip →" color="bg-orange-700 hover:bg-orange-600 text-white" onClick={() => openUrl(`${urls.driver}/trip`)} />)}
           {stepRow("Driver accepts the trip offer (REQUESTED → ASSIGNED)", <Btn label="Execute: PUT /accept-trip" color="bg-orange-700 hover:bg-orange-600 text-white" onClick={() => callApi("accept-trip", "PUT", "/dispatch/accept-trip", { trip_id: tripId, driver_id: DRIVER_1 })} />, "accept-trip")}
           {stepRow("Alice enters the car — driver taps Start Trip (ASSIGNED → ACTIVE)", <Btn label="Execute: PUT /start-trip" color="bg-orange-700 hover:bg-orange-600 text-white" onClick={() => callApi("start-trip", "PUT", "/dispatch/start-trip", { trip_id: tripId })} />, "start-trip")}
           {stepRow("Arrive at O'Hare — driver taps Complete (ACTIVE → COMPLETED)", <Btn label="Execute: PUT /complete-trip" color="bg-orange-700 hover:bg-orange-600 text-white" onClick={() => callApi("complete-trip", "PUT", "/dispatch/complete-trip", { trip_id: tripId })} />, "complete-trip")}
-          {stepRow("View James's earnings — today/week/month breakdown", <Btn label="Open Earnings →" color="bg-orange-700 hover:bg-orange-600 text-white" onClick={() => openUrl("http://localhost:5174/earnings")} />)}
+          {stepRow("View James's earnings — today/week/month breakdown", <Btn label="Open Earnings →" color="bg-orange-700 hover:bg-orange-600 text-white" onClick={() => openUrl(`${urls.driver}/earnings`)} />)}
           <div className="flex justify-end pt-2"><Btn label="Next: Ops Manager →" color="bg-slate-600 hover:bg-slate-500 text-white" onClick={() => scrollToAct(6)} /></div>
         </ActCard>
 
         {/* ACT 6 */}
         <ActCard n={6} persona="Janet Reyes" role="Ops Manager — applying 4 adjustments to the completed trip" color="bg-violet-700" borderColor="border-violet-500" badge="Ops Manager">
           <p className="text-sm text-slate-400">Alice added a stop, made a mess, the route deviated, and James's hourly fell below GoldRavenia's $18/hr floor. Janet applies all 4 adjustments. Each <code>amount_cents</code> auto-resolves from GoldRavenia's pricing policy.</p>
-          {stepRow("Open Ops Console — see live trips table with Alice's completed trip", <Btn label="Open Ops Console →" color="bg-violet-700 hover:bg-violet-600 text-white" onClick={() => openUrl("http://localhost:4400/ops-console")} />)}
+          {stepRow("Open Ops Console — see live trips table with Alice's completed trip", <Btn label="Open Ops Console →" color="bg-violet-700 hover:bg-violet-600 text-white" onClick={() => openUrl(`${urls.admin}/ops-console`)} />)}
           {stepRow("Extra stop — Starbucks on N State St (+$3.00)", <Btn label="Execute: extra_stop" color="bg-violet-700 hover:bg-violet-600 text-white" onClick={() => callApi("adj-extra-stop", "POST", "/dispatch/adjust-trip", { trip_id: tripId, adjustments: [{ type: "extra_stop", description: "Rider added stop at Starbucks on N State St" }] })} />, "adj-extra-stop")}
           {stepRow("Mess fee — interior cleaning required (+$250.00)", <Btn label="Execute: mess_fee" color="bg-violet-700 hover:bg-violet-600 text-white" onClick={() => callApi("adj-mess-fee", "POST", "/dispatch/adjust-trip", { trip_id: tripId, adjustments: [{ type: "mess_fee", description: "Rider vomited — interior cleaning required" }] })} />, "adj-mess-fee")}
           {stepRow("Route deviation — Lake Shore Drive construction (+$9.00)", <Btn label="Execute: route_deviation" color="bg-violet-700 hover:bg-violet-600 text-white" onClick={() => callApi("adj-deviation", "POST", "/dispatch/adjust-trip", { trip_id: tripId, adjustments: [{ type: "route_deviation", description: "Longer route via Lake Shore Drive due to construction" }] })} />, "adj-deviation")}
@@ -301,8 +380,8 @@ export default function WalkthroughPage() {
         <ActCard n={7} persona="Sandra Park" role="Finance Manager — locking financials and reconciling the closed trip" color="bg-teal-700" borderColor="border-teal-500" badge="Finance">
           <p className="text-sm text-slate-400">Trip is COMPLETED with adjustments applied. Sandra closes it — all figures lock, ledger records <code>TRIP_CLOSED</code>.</p>
           {stepRow("Close the trip — COMPLETED → CLOSED, all financials locked permanently", <Btn label="Execute: PUT /close-trip" color="bg-teal-700 hover:bg-teal-600 text-white" onClick={() => callApi("close-trip", "PUT", "/dispatch/close-trip", { trip_id: tripId, closed_by: "sandra@goldravenia.com" })} />, "close-trip")}
-          {stepRow("View Owner Console Reports — trip shows CLOSED with final figures", <Btn label="Open Owner Console → Reports →" color="bg-teal-700 hover:bg-teal-600 text-white" onClick={() => openUrl("http://localhost:4400/owner-console")} />)}
-          {stepRow("View James's final payout — reflects all 4 adjustments", <Btn label="Open Driver Earnings →" color="bg-teal-700 hover:bg-teal-600 text-white" onClick={() => openUrl("http://localhost:5174/earnings")} />)}
+          {stepRow("View Owner Console Reports — trip shows CLOSED with final figures", <Btn label="Open Owner Console → Reports →" color="bg-teal-700 hover:bg-teal-600 text-white" onClick={() => openUrl(`${urls.admin}/owner-console`)} />)}
+          {stepRow("View James's final payout — reflects all 4 adjustments", <Btn label="Open Driver Earnings →" color="bg-teal-700 hover:bg-teal-600 text-white" onClick={() => openUrl(`${urls.driver}/earnings`)} />)}
           <div className="bg-teal-950 border border-teal-700 rounded p-3 text-xs text-teal-200 space-y-1">
             <div className="font-bold text-teal-100 mb-1">Expected reconciliation breakdown:</div>
             <div>Quoted fare: <span className="text-white">$45.00</span></div>
@@ -324,17 +403,19 @@ export default function WalkthroughPage() {
             <div className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Post-Trip Rider Features</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {[
-                ["⭐ Rate Driver (5 stars + tags)", "http://localhost:5173/rate/TRIP_ID"],
-                ["💬 PII-Masked Chat", "http://localhost:5173/messages/TRIP_ID"],
-                ["🔀 Split Pay", "http://localhost:5173/split-pay/TRIP_ID"],
-                ["📋 Ride History + Receipts", "http://localhost:5173/history"],
-                ["🕒 Schedule a Future Ride", "http://localhost:5173/book/scheduled"],
-                ["⏱️ Hourly Chauffeur (2-12h)", "http://localhost:5173/book/hourly"],
-                ["🆘 File a Support Dispute", "http://localhost:5173/support"],
-                ["🔒 GDPR/CCPA Consent + DSAR", "http://localhost:5173/consent"],
-              ].map(([label, url]) =>
-                stepRow(label, <Btn label="Open →" color="bg-pink-700 hover:bg-pink-600 text-white" onClick={() => openUrl(url.replace("TRIP_ID", tripId || "demo"))} />)
-              )}
+                ["⭐ Rate Driver (5 stars + tags)", `${urls.rider}/rate/TRIP_ID`],
+                ["💬 PII-Masked Chat", `${urls.rider}/messages/TRIP_ID`],
+                ["🔀 Split Pay", `${urls.rider}/split-pay/TRIP_ID`],
+                ["📋 Ride History + Receipts", `${urls.rider}/history`],
+                ["🕒 Schedule a Future Ride", `${urls.rider}/book/scheduled`],
+                ["⏱️ Hourly Chauffeur (2-12h)", `${urls.rider}/book/hourly`],
+                ["🆘 File a Support Dispute", `${urls.rider}/support`],
+                ["🔒 GDPR/CCPA Consent + DSAR", `${urls.rider}/consent`],
+              ].map(([label, url]) => (
+                <React.Fragment key={label as string}>
+                  {stepRow(label as string, <Btn label="Open →" color="bg-pink-700 hover:bg-pink-600 text-white" onClick={() => openUrl((url as string).replace("TRIP_ID", tripId || "demo"))} />)}
+                </React.Fragment>
+              ))}
             </div>
           </div>
         </ActCard>
@@ -345,8 +426,8 @@ export default function WalkthroughPage() {
           <div className="font-bold text-white text-lg mb-1">Walkthrough Complete</div>
           <div className="text-slate-400 text-sm mb-4">Full ride lifecycle: Prospect → ToS → Booking → Drive → 4 Adjustments → Close. All real API calls, real DB writes, real financial reconciliation.</div>
           <div className="flex flex-wrap justify-center gap-3">
-            <Btn label="View All Tenants in Platform Admin" color="bg-red-700 hover:bg-red-600 text-white" onClick={() => openUrl("http://localhost:4400/platform-admin")} />
-            <Btn label="Open Swagger API Docs" color="bg-slate-600 hover:bg-slate-500 text-white" onClick={() => openUrl(`${apiUrl}/api`)} />
+            <Btn label="View All Tenants in Platform Admin" color="bg-red-700 hover:bg-red-600 text-white" onClick={() => openUrl(`${urls.admin}/platform-admin`)} />
+            <Btn label="Open Swagger API Docs" color="bg-slate-600 hover:bg-slate-500 text-white" onClick={() => openUrl(`${urls.gateway}/api`)} />
             <Btn label="Run Full Simulation (all 10 tenants)" color="bg-amber-600 hover:bg-amber-500 text-white" onClick={runAllApiSteps} />
           </div>
         </div>

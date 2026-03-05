@@ -103,6 +103,9 @@ import { ApprovalService } from './services/approval.service';
 import { PlatformTermsService } from './services/platform-terms.service';
 import { TermsAcceptanceGuard } from './guards/terms-acceptance.guard';
 import { OnboardingController } from './controllers/onboarding.controller';
+import { PricingController } from './controllers/pricing.controller';
+import { ReservationsController } from './controllers/reservations.controller';
+import { SkinningController } from './controllers/skinning.controller';
 import { CorrelationMiddleware } from './middleware/correlation.middleware';
 import { CookieConsentMiddleware } from './middleware/cookie-consent.middleware';
 import { StandardErrorFilter } from './filters/standard-error.filter';
@@ -137,6 +140,9 @@ import { ETagInterceptor } from './interceptors/etag.interceptor';
     MicrositeController,
     FaqController,
     OnboardingController,
+    PricingController,
+    ReservationsController,
+    SkinningController,
   ],
   providers: [
     SupabaseService,

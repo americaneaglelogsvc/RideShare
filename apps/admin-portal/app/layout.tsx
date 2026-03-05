@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Admin Portal - UrWay Dispatch',
+  title: 'UrWay Dispatch — Admin Portal',
   description: 'Administration dashboard for the urwaydispatch.com rideshare platform',
 };
 
@@ -12,7 +13,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      </head>
+      <body className="antialiased font-sans">
         {children}
       </body>
     </html>
