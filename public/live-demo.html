@@ -293,15 +293,19 @@
                             <label class="text-sm font-medium text-gray-700">Simulation Speed</label>
                             <input type="range" x-model="simulationSpeed" min="1" max="10" 
                                    @input="updateSimulationSpeed()"
-                                   class="w-full">
+                                   class="w-full"
+                                   title="Simulation Speed" aria-label="Simulation Speed">
                             <div class="text-xs text-gray-500">Speed: <span x-text="simulationSpeed"></span>x</div>
                         </div>
                         <button @click="toggleSimulation()" 
-                                class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
+                                class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                :title="isSimulating ? 'Pause Simulation' : 'Start Simulation'" 
+                                :aria-label="isSimulating ? 'Pause Simulation' : 'Start Simulation'">
                             <span x-text="isSimulating ? 'Pause Simulation' : 'Start Simulation'"></span>
                         </button>
                         <button @click="resetDemo()" 
-                                class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors">
+                                class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors"
+                                title="Reset Demo" aria-label="Reset Demo">
                             Reset Demo
                         </button>
                     </div>
