@@ -1,6 +1,6 @@
 # Coverage Table
 
-Generated: 2026-03-04T12:00:00Z | Total: 74 req_ids | ✅ 74 | ❌ 0
+Generated: 2026-03-05T00:00:00Z | Total: 80 req_ids | ✅ 80 | ❌ 0
 
 | Req ID | Title | Status | Evidence |
 |--------|-------|--------|----------|
@@ -78,3 +78,9 @@ Generated: 2026-03-04T12:00:00Z | Total: 74 req_ids | ✅ 74 | ❌ 0
 | TIME-TZ-0001 | Timezone handling | ✅ | `timezone.service.ts`, migration 1016 |
 | TRP-STM-0001 | Trip state machine | ✅ | `trip-state-machine.ts`, `trip-state-machine.spec.ts` (19 tests) |
 | UI-FAQ-0001 | FAQs page + bot dataset | ✅ | `faq.service.ts`, `microsite.controller.ts`, migration 1015 |
+| MSG-001 | In-app only rider↔driver communication (no external SMS for operational events) | ✅ | `in-trip-messaging.service.ts`, `sms.service.ts` (deprecated methods), migration 1023 |
+| MSG-002 | Message visibility: sender, counterparty, tenant_admin, UWD super/sub-super ONLY | ✅ | `in-trip-messaging.service.ts` `getConversationForRole()`, migration 1023 RLS |
+| MSG-003 | SMS retained only for OTP/2FA security codes (TCPA transactional exemption) | ✅ | `sms.service.ts` `sendSecurityCode()`, operational methods deprecated |
+| OB-LEGAL-001 | Tenant onboarding ToS gate — timestamped + IP-audited acceptance required before platform access | ✅ | `platform-terms.service.ts`, `terms-acceptance.guard.ts`, migration 1024 |
+| OB-LEGAL-002 | ToS language: Tenant is the rideshare operator; UWD provides software only; tenant bears all licensing/regulatory compliance | ✅ | `platform-terms.service.ts` `PLATFORM_TERMS_TEXT`, migration 1024 |
+| SAAS-001 | UWD has no obligation to track, alert, or enforce any TNC/rideshare licensing on behalf of tenants | ✅ | `platform-terms.service.ts` (clause 3), migration 1024 ToS |

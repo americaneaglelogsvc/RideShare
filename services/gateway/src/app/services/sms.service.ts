@@ -4,15 +4,13 @@ import { ConfigService } from '@nestjs/config';
 /**
  * Phase 7.0: SMS Service (Twilio-compatible)
  *
- * Handles outbound SMS for:
- *   - Rider ETA updates
- *   - Ride confirmation / driver assigned
- *   - Driver alerts (new offer, trip cancelled)
- *   - Security codes / 2FA
- *   - Settlement / payout notifications
+ * CANONICAL MSG-003 — SMS is retained ONLY for OTP/2FA security codes.
+ * All operational rider↔driver communications (ETA, confirmation, receipts,
+ * offers, payouts) are delivered exclusively via in-app push notifications.
+ * This eliminates TCPA exposure for operational messages entirely.
  *
- * All messages are tenant-scoped. Twilio sub-accounts or messaging services
- * can be configured per-tenant for white-label sender IDs.
+ * CEO directive (Sprint B): No external SMS for ride events.
+ * Use PushNotificationService for all operational event notifications.
  */
 
 export interface SmsPayload {
@@ -86,58 +84,53 @@ export class SmsService {
 
   // ── Convenience methods for common notification types ─────────────────
 
-  async sendRideConfirmation(tenantId: string, riderPhone: string, driverName: string, eta: string): Promise<SmsResult> {
-    return this.send({
-      to: riderPhone,
-      body: `Your ride is confirmed! ${driverName} is on the way. ETA: ${eta}. Track your ride in the app.`,
-      tenantId,
-      eventType: 'RIDE_CONFIRMED',
-    });
+  /**
+   * @deprecated CANONICAL MSG-001/MSG-003 — Use PushNotificationService instead.
+   * External SMS for ride events is disabled to eliminate TCPA exposure.
+   */
+  sendRideConfirmation(_tenantId: string, _riderPhone: string, _driverName: string, _eta: string): Promise<SmsResult> {
+    this.logger.warn('sendRideConfirmation via SMS is deprecated. Use PushNotificationService.');
+    return Promise.resolve({ sid: '', status: 'DISABLED_USE_PUSH', to: _riderPhone });
   }
 
-  async sendDriverArriving(tenantId: string, riderPhone: string, driverName: string, minutesAway: number): Promise<SmsResult> {
-    return this.send({
-      to: riderPhone,
-      body: `${driverName} is ${minutesAway} minute${minutesAway !== 1 ? 's' : ''} away. Please be ready at your pickup location.`,
-      tenantId,
-      eventType: 'DRIVER_ARRIVING',
-    });
+  /**
+   * @deprecated CANONICAL MSG-001/MSG-003 — Use PushNotificationService instead.
+   */
+  sendDriverArriving(_tenantId: string, _riderPhone: string, _driverName: string, _minutesAway: number): Promise<SmsResult> {
+    this.logger.warn('sendDriverArriving via SMS is deprecated. Use PushNotificationService.');
+    return Promise.resolve({ sid: '', status: 'DISABLED_USE_PUSH', to: _riderPhone });
   }
 
-  async sendTripReceipt(tenantId: string, riderPhone: string, fareDollars: string, tripId: string): Promise<SmsResult> {
-    return this.send({
-      to: riderPhone,
-      body: `Trip complete! Your fare: $${fareDollars} USD. Trip ID: ${tripId.slice(0, 8)}. Thank you for riding!`,
-      tenantId,
-      eventType: 'TRIP_RECEIPT',
-    });
+  /**
+   * @deprecated CANONICAL MSG-001/MSG-003 — Use PushNotificationService instead.
+   */
+  sendTripReceipt(_tenantId: string, _riderPhone: string, _fareDollars: string, _tripId: string): Promise<SmsResult> {
+    this.logger.warn('sendTripReceipt via SMS is deprecated. Use PushNotificationService.');
+    return Promise.resolve({ sid: '', status: 'DISABLED_USE_PUSH', to: _riderPhone });
   }
 
-  async sendTripCancelled(tenantId: string, phone: string, cancelledBy: string): Promise<SmsResult> {
-    return this.send({
-      to: phone,
-      body: `Your ride has been cancelled by the ${cancelledBy}. No charge has been applied.`,
-      tenantId,
-      eventType: 'TRIP_CANCELLED',
-    });
+  /**
+   * @deprecated CANONICAL MSG-001/MSG-003 — Use PushNotificationService instead.
+   */
+  sendTripCancelled(_tenantId: string, _phone: string, _cancelledBy: string): Promise<SmsResult> {
+    this.logger.warn('sendTripCancelled via SMS is deprecated. Use PushNotificationService.');
+    return Promise.resolve({ sid: '', status: 'DISABLED_USE_PUSH', to: _phone });
   }
 
-  async sendDriverNewOffer(tenantId: string, driverPhone: string, pickupAddress: string, fareDollars: string): Promise<SmsResult> {
-    return this.send({
-      to: driverPhone,
-      body: `New ride offer! Pickup: ${pickupAddress}. Est. fare: $${fareDollars} USD. Open the app to accept.`,
-      tenantId,
-      eventType: 'DRIVER_NEW_OFFER',
-    });
+  /**
+   * @deprecated CANONICAL MSG-001/MSG-003 — Use PushNotificationService instead.
+   */
+  sendDriverNewOffer(_tenantId: string, _driverPhone: string, _pickupAddress: string, _fareDollars: string): Promise<SmsResult> {
+    this.logger.warn('sendDriverNewOffer via SMS is deprecated. Use PushNotificationService.');
+    return Promise.resolve({ sid: '', status: 'DISABLED_USE_PUSH', to: _driverPhone });
   }
 
-  async sendPayoutCompleted(tenantId: string, driverPhone: string, amountDollars: string): Promise<SmsResult> {
-    return this.send({
-      to: driverPhone,
-      body: `Payout of $${amountDollars} USD has been initiated to your bank account. Allow 1-3 business days for settlement.`,
-      tenantId,
-      eventType: 'PAYOUT_COMPLETED',
-    });
+  /**
+   * @deprecated CANONICAL MSG-001/MSG-003 — Use PushNotificationService instead.
+   */
+  sendPayoutCompleted(_tenantId: string, _driverPhone: string, _amountDollars: string): Promise<SmsResult> {
+    this.logger.warn('sendPayoutCompleted via SMS is deprecated. Use PushNotificationService.');
+    return Promise.resolve({ sid: '', status: 'DISABLED_USE_PUSH', to: _driverPhone });
   }
 
   async sendSecurityCode(tenantId: string, phone: string, code: string): Promise<SmsResult> {

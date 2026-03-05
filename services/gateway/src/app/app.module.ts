@@ -100,6 +100,8 @@ import { VoiceService } from './services/voice.service';
 import { LuxuryStandardsService } from './services/luxury-standards.service';
 import { BackgroundCheckService } from './services/background-check.service';
 import { ApprovalService } from './services/approval.service';
+import { PlatformTermsService } from './services/platform-terms.service';
+import { TermsAcceptanceGuard } from './guards/terms-acceptance.guard';
 import { CorrelationMiddleware } from './middleware/correlation.middleware';
 import { CookieConsentMiddleware } from './middleware/cookie-consent.middleware';
 import { StandardErrorFilter } from './filters/standard-error.filter';
@@ -217,6 +219,8 @@ import { ETagInterceptor } from './interceptors/etag.interceptor';
     LuxuryStandardsService,
     BackgroundCheckService,
     ApprovalService,
+    PlatformTermsService,
+    TermsAcceptanceGuard,
     {
       provide: APP_FILTER,
       useClass: StandardErrorFilter,

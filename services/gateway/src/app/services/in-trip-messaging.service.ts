@@ -1,8 +1,11 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
 
 // §4.6 In-app messaging (masked), §5.7 Driver↔rider messaging
-// Masked phone numbers, message retention, PII-safe communication
+// CANONICAL MSG-001: In-app only — no external SMS for rider↔driver comms
+// CANONICAL MSG-002: Visibility = sender, counterparty, tenant_admin, uwd_super/sub_super ONLY
+
+export type MessageViewerRole = 'rider' | 'driver' | 'tenant_admin' | 'uwd_super_admin' | 'uwd_sub_super';
 
 export interface SendMessageInput {
   tripId: string;
@@ -89,6 +92,79 @@ export class InTripMessagingService {
       .is('read_at', null);
 
     if (error) this.logger.debug(`Mark read failed: ${error.message}`);
+  }
+
+  /**
+   * CANONICAL MSG-002 — Role-based message visibility.
+   * Rider: own trips only | Driver: own trips only
+   * Tenant admin: all messages in their tenant | UWD super/sub-super: all tenants
+   */
+  async getConversationForRole(
+    tripId: string,
+    tenantId: string,
+    viewerId: string,
+    viewerRole: MessageViewerRole,
+    limit = 50,
+  ): Promise<TripMessage[]> {
+    const supabase = this.supabaseService.getClient();
+
+    if (viewerRole === 'uwd_super_admin' || viewerRole === 'uwd_sub_super') {
+      const { data, error } = await supabase
+        .from('trip_messages')
+        .select('*')
+        .eq('trip_id', tripId)
+        .order('created_at', { ascending: true })
+        .limit(limit);
+      if (error) throw new BadRequestException(error.message);
+      return (data || []).map(this.mapMessage);
+    }
+
+    if (viewerRole === 'tenant_admin') {
+      const { data: trip } = await supabase
+        .from('trips')
+        .select('tenant_id')
+        .eq('id', tripId)
+        .maybeSingle();
+      if (!trip || trip.tenant_id !== tenantId) {
+        throw new ForbiddenException('Trip does not belong to your tenant.');
+      }
+      const { data, error } = await supabase
+        .from('trip_messages')
+        .select('*')
+        .eq('trip_id', tripId)
+        .eq('tenant_id', tenantId)
+        .order('created_at', { ascending: true })
+        .limit(limit);
+      if (error) throw new BadRequestException(error.message);
+      return (data || []).map(this.mapMessage);
+    }
+
+    if (viewerRole === 'rider' || viewerRole === 'driver') {
+      const roleField = viewerRole === 'rider' ? 'rider_id' : 'driver_id';
+      const { data: trip } = await supabase
+        .from('trips')
+        .select(`id, tenant_id, rider_id, driver_id`)
+        .eq('id', tripId)
+        .eq('tenant_id', tenantId)
+        .maybeSingle();
+
+      if (!trip) throw new ForbiddenException('Trip not found or not in your tenant.');
+      if (trip[roleField] !== viewerId) {
+        throw new ForbiddenException('You are not a participant of this trip.');
+      }
+
+      const { data, error } = await supabase
+        .from('trip_messages')
+        .select('*')
+        .eq('trip_id', tripId)
+        .eq('tenant_id', tenantId)
+        .order('created_at', { ascending: true })
+        .limit(limit);
+      if (error) throw new BadRequestException(error.message);
+      return (data || []).map(this.mapMessage);
+    }
+
+    throw new ForbiddenException('Invalid viewer role for message access.');
   }
 
   async getUnreadCount(tripId: string, userId: string): Promise<number> {
