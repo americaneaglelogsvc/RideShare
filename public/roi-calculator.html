@@ -58,7 +58,8 @@
                             </label>
                             <input type="range" x-model="fleetSize" min="1" max="100" 
                                    @input="calculateROI()"
-                                   class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer">
+                                   class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+                                   title="Fleet Size (vehicles)" aria-label="Fleet Size (vehicles)">
                             <div class="flex justify-between text-sm text-gray-600">
                                 <span>1</span>
                                 <span class="font-bold text-blue-600" x-text="fleetSize"></span>
@@ -72,7 +73,8 @@
                                 Primary Service Type
                             </label>
                             <select x-model="serviceType" @change="calculateROI()" 
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    title="Primary Service Type" aria-label="Primary Service Type">
                                 <option value="black-car">Black Car / Luxury</option>
                                 <option value="suv">SUV / Premium</option>
                                 <option value="sedan">Standard Sedan</option>
@@ -88,7 +90,8 @@
                             </label>
                             <input type="range" x-model="dailyTrips" min="1" max="20" 
                                    @input="calculateROI()"
-                                   class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer">
+                                   class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+                                   title="Daily Trips per Vehicle" aria-label="Daily Trips per Vehicle">
                             <div class="flex justify-between text-sm text-gray-600">
                                 <span>1</span>
                                 <span class="font-bold text-blue-600" x-text="dailyTrips"></span>
@@ -103,7 +106,8 @@
                             </label>
                             <input type="number" x-model="avgTripRevenue" @input="calculateROI()" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                   min="10" max="500" step="5">
+                                   min="10" max="500" step="5"
+                                   title="Average Trip Revenue ($)" placeholder="Average Trip Revenue ($)" aria-label="Average Trip Revenue ($)">
                         </div>
 
                         <!-- Current Monthly Costs -->
@@ -113,7 +117,8 @@
                             </label>
                             <input type="number" x-model="currentCosts" @input="calculateROI()" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                   min="0" max="10000" step="100">
+                                   min="0" max="10000" step="100"
+                                   title="Current Monthly Software/Dispatch Costs ($)" placeholder="Current Monthly Costs ($)" aria-label="Current Monthly Software/Dispatch Costs ($)">
                         </div>
 
                         <!-- Platform Fee -->
