@@ -19,6 +19,17 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Firebase config files (tenant-specific - never commit)
+google-services.json
+GoogleService-Info.plist
+**/google-services.json
+**/GoogleService-Info.plist
+
+# Generated tenant apps
+generated-apps/
+test-apps/
+apps/*-app-*/
+
 # generated report history
 reports/history/
 # --- local / generated (agentic Artificial Intelligence (AI)) ---
