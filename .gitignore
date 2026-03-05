@@ -88,3 +88,5 @@ _ebt_gap_report_*
 *_log_*.txt
 runner_log_*
 plans/
+Sampleuserflows.csv
+archive/
