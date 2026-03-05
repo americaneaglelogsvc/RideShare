@@ -15,7 +15,7 @@ on:
 env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-  STAGING_API_URL: ${{ vars.STAGING_API_URL }}
+  STAGING_API_URL: ${{ vars.STAGING_API_URL || 'http://localhost:3000' }}
   AUTH_TOKEN: ${{ secrets.STAGING_AUTH_TOKEN }}
 
 jobs:
@@ -36,13 +36,13 @@ jobs:
 
       - name: Apply seed 001 — test tenants
         run: |
-          supabase db push --db-url "${{ secrets.SUPABASE_DB_URL }}" \
+          supabase db push --db-url "${{ secrets.SUPABASE_DB_URL || 'postgresql://localhost:5432/postgres' }}" \
             --file supabase/seeds/001_test_tenants.sql
         continue-on-error: true
 
       - name: Apply seed 002 — test drivers + riders
         run: |
-          supabase db push --db-url "${{ secrets.SUPABASE_DB_URL }}" \
+          supabase db push --db-url "${{ secrets.SUPABASE_DB_URL || 'postgresql://localhost:5432/postgres' }}" \
             --file supabase/seeds/002_test_users.sql
         continue-on-error: true
 
