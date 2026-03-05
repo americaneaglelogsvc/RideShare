@@ -139,4 +139,35 @@ export class DispatchController {
     const tenantId = req.tenantId as string;
     return this.dispatchService.cancelTrip(tenantId, request.trip_id, request.cancelled_by, request.reason);
   }
+
+  @Post('adjust-trip')
+  @ApiOperation({ summary: 'Apply mid-trip or post-trip adjustments: extra_stop, mess_fee, damage_fee, route_deviation, min_wage_supplement, wait_time, toll, gratuity, discount' })
+  @ApiResponse({ status: 200, description: 'Adjustments applied and fare updated' })
+  async adjustTrip(
+    @Req() req: ExpressRequest & { tenantId?: string },
+    @Body() request: {
+      trip_id: string;
+      adjustments: Array<{
+        type: 'extra_stop' | 'mess_fee' | 'damage_fee' | 'route_deviation' | 'min_wage_supplement' | 'wait_time' | 'toll' | 'gratuity' | 'discount';
+        description: string;
+        amount_cents?: number;
+        applied_by?: string;
+        metadata?: Record<string, any>;
+      }>;
+    },
+  ) {
+    const tenantId = req.tenantId as string;
+    return this.dispatchService.adjustTrip(tenantId, request.trip_id, request.adjustments);
+  }
+
+  @Put('close-trip')
+  @ApiOperation({ summary: 'Close a trip (COMPLETED -> CLOSED): final reconciliation, lock all adjustments, record TRIP_CLOSED ledger event' })
+  @ApiResponse({ status: 200, description: 'Trip closed with full reconciliation summary' })
+  async closeTrip(
+    @Req() req: ExpressRequest & { tenantId?: string },
+    @Body() request: { trip_id: string; closed_by?: string },
+  ) {
+    const tenantId = req.tenantId as string;
+    return this.dispatchService.closeTrip(tenantId, request.trip_id, request.closed_by || 'system');
+  }
 }

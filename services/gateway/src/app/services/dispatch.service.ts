@@ -617,6 +617,211 @@ export class DispatchService {
     }
   }
 
+  // ── Adjustment types ─────────────────────────────────────────────────────
+
+  async adjustTrip(
+    tenantId: string,
+    tripId: string,
+    adjustments: Array<{
+      type: 'extra_stop' | 'mess_fee' | 'damage_fee' | 'route_deviation' | 'min_wage_supplement' | 'wait_time' | 'toll' | 'gratuity' | 'discount';
+      description: string;
+      amount_cents?: number;
+      applied_by?: string;
+      metadata?: Record<string, any>;
+    }>,
+  ): Promise<{ success: boolean; adjustments?: any[]; new_fare_cents?: number; message?: string }> {
+    const supabase = this.supabaseService.getClient();
+
+    try {
+      const { data: trip, error: tripErr } = await supabase
+        .from('trips')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('id', tripId)
+        .single();
+
+      if (tripErr || !trip) {
+        return { success: false, message: 'Trip not found' };
+      }
+
+      if (!['active', 'completed'].includes(trip.status)) {
+        return { success: false, message: `Cannot adjust trip in '${trip.status}' state` };
+      }
+
+      // Resolve per-tenant policy amounts for automatic types
+      const { data: policy } = await supabase
+        .from('tenant_pricing_policies')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .single();
+
+      const resolvedAdjustments = adjustments.map(adj => {
+        let amount = adj.amount_cents ?? 0;
+        if (amount === 0 && policy) {
+          switch (adj.type) {
+            case 'extra_stop':      amount = policy.extra_stop_fee_cents  ?? 200;   break;
+            case 'mess_fee':        amount = policy.mess_fee_cents         ?? 15000; break;
+            case 'damage_fee':      amount = policy.damage_fee_cents       ?? 25000; break;
+            case 'route_deviation': {
+              const devPct = policy.route_deviation_pct ?? 15;
+              amount = Math.floor((trip.fare_cents || 0) * devPct / 100);
+              break;
+            }
+            case 'min_wage_supplement': {
+              if (policy.min_wage_cents_per_hour && trip.trip_duration_minutes) {
+                const earnedCents = trip.net_payout_cents || trip.fare_cents || 0;
+                const durationHrs = trip.trip_duration_minutes / 60;
+                const minWageTotal = Math.ceil(policy.min_wage_cents_per_hour * durationHrs);
+                amount = Math.max(0, minWageTotal - earnedCents);
+              }
+              break;
+            }
+          }
+        }
+        return { ...adj, amount_cents: amount };
+      });
+
+      const insertRows = resolvedAdjustments.map(adj => ({
+        trip_id:         tripId,
+        tenant_id:       tenantId,
+        adjustment_type: adj.type,
+        description:     adj.description,
+        amount_cents:    adj.amount_cents,
+        applied_by:      adj.applied_by || 'system',
+        metadata:        adj.metadata || {},
+      }));
+
+      const { data: inserted, error: insertErr } = await supabase
+        .from('trip_adjustments')
+        .insert(insertRows)
+        .select();
+
+      if (insertErr) {
+        return { success: false, message: insertErr.message };
+      }
+
+      const totalAdj = resolvedAdjustments.reduce((s, a) => s + (a.amount_cents || 0), 0);
+      const newFareCents = (trip.fare_cents || 0) + totalAdj;
+
+      await supabase
+        .from('trips')
+        .update({
+          adjustment_total_cents: (trip.adjustment_total_cents || 0) + totalAdj,
+          final_fare_cents: newFareCents,
+        })
+        .eq('id', tripId);
+
+      for (const adj of resolvedAdjustments) {
+        await this.ledgerService.recordLedgerEvent({
+          eventType: `TRIP_ADJUSTMENT_${adj.type.toUpperCase()}`,
+          tripId,
+          tenantId,
+          driverId: trip.driver_id,
+          fareCents: adj.amount_cents || 0,
+          metadata: { adjustment_type: adj.type, description: adj.description },
+        });
+      }
+
+      return { success: true, adjustments: inserted, new_fare_cents: newFareCents };
+
+    } catch (e: any) {
+      console.error('adjustTrip failed:', e?.message || e);
+      return { success: false, message: 'adjustTrip failed' };
+    }
+  }
+
+  async closeTrip(
+    tenantId: string,
+    tripId: string,
+    closedBy: string = 'system',
+  ): Promise<{ success: boolean; trip?: any; reconciliation?: any; message?: string }> {
+    const supabase = this.supabaseService.getClient();
+
+    try {
+      const { data: trip, error: tripErr } = await supabase
+        .from('trips')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('id', tripId)
+        .single();
+
+      if (tripErr || !trip) {
+        return { success: false, message: 'Trip not found' };
+      }
+
+      if (trip.status !== 'completed') {
+        return { success: false, message: `Trip must be in completed state to close. Current: ${trip.status}` };
+      }
+
+      // Sum all adjustments
+      const { data: adjustments } = await supabase
+        .from('trip_adjustments')
+        .select('adjustment_type, amount_cents')
+        .eq('trip_id', tripId);
+
+      const adjTotal = (adjustments || []).reduce((s: number, a: any) => s + (a.amount_cents || 0), 0);
+      const finalFare = (trip.fare_cents || 0) + adjTotal;
+
+      // Re-calculate fees on final fare
+      const fees = await this.calculateTenantFees(tenantId, finalFare);
+
+      const { data: closed, error: closeErr } = await supabase
+        .from('trips')
+        .update({
+          status:                   'closed',
+          closed_at:                new Date().toISOString(),
+          closed_by:                closedBy,
+          final_fare_cents:         finalFare,
+          adjustment_total_cents:   adjTotal,
+          net_payout_cents:         fees.driverPayoutCents,
+          commission_cents:         fees.platformFeeCents,
+        })
+        .eq('id', tripId)
+        .eq('tenant_id', tenantId)
+        .select('*')
+        .single();
+
+      if (closeErr || !closed) {
+        return { success: false, message: 'Failed to close trip' };
+      }
+
+      await this.ledgerService.recordLedgerEvent({
+        eventType: 'TRIP_CLOSED',
+        tripId,
+        tenantId,
+        driverId: trip.driver_id,
+        fareCents: finalFare,
+        metadata: {
+          quoted_fare_cents:    trip.fare_cents,
+          adjustment_total:     adjTotal,
+          final_fare_cents:     finalFare,
+          driver_payout_cents:  fees.driverPayoutCents,
+          platform_fee_cents:   fees.platformFeeCents,
+          closed_by:            closedBy,
+        },
+      });
+
+      const reconciliation = {
+        trip_id:              tripId,
+        tenant_id:            tenantId,
+        quoted_fare_cents:    trip.fare_cents,
+        adjustment_total:     adjTotal,
+        final_fare_cents:     finalFare,
+        platform_fee_cents:   fees.platformFeeCents,
+        driver_payout_cents:  fees.driverPayoutCents,
+        adjustments:          adjustments || [],
+        status:               'closed',
+        closed_at:            closed.closed_at,
+      };
+
+      return { success: true, trip: closed, reconciliation };
+
+    } catch (e: any) {
+      console.error('closeTrip failed:', e?.message || e);
+      return { success: false, message: 'closeTrip failed' };
+    }
+  }
+
   private async calculateTenantFees(tenantId: string, fareCents: number): Promise<{
     platformFeeCents: number;
     tenantNetCents: number;

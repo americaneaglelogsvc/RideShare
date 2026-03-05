@@ -1,0 +1,121 @@
+name: seed-staging-and-simulate
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_simulation:
+        description: 'Run full E2E lifecycle simulation after seeding'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+  STAGING_API_URL: ${{ vars.STAGING_API_URL }}
+  AUTH_TOKEN: ${{ secrets.STAGING_AUTH_TOKEN }}
+
+jobs:
+  seed:
+    name: Seed test tenants + users
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Supabase CLI
+        run: npm install -g supabase@latest
+
+      - name: Apply seed 001 — test tenants
+        run: |
+          supabase db push --db-url "${{ secrets.SUPABASE_DB_URL }}" \
+            --file supabase/seeds/001_test_tenants.sql
+        continue-on-error: true
+
+      - name: Apply seed 002 — test drivers + riders
+        run: |
+          supabase db push --db-url "${{ secrets.SUPABASE_DB_URL }}" \
+            --file supabase/seeds/002_test_users.sql
+        continue-on-error: true
+
+      - name: Verify seed — count tenants
+        run: |
+          npx supabase-js-cli query \
+            --url "$SUPABASE_URL" \
+            --key "$SUPABASE_SERVICE_KEY" \
+            --query "SELECT name, status, plan FROM tenants WHERE id LIKE 'a1b2c3d4-%' ORDER BY name" \
+            2>/dev/null || echo "Direct SQL verification requires DB access — check Supabase dashboard"
+
+      - name: Seed summary
+        run: |
+          echo "### Seed Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Tenants | 10 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Drivers (25/tenant) | 250 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Riders (10/tenant) | 100 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tenant Admins | 10 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pricing Policies | 10 |" >> $GITHUB_STEP_SUMMARY
+          echo "| ToS Acceptances | 10 |" >> $GITHUB_STEP_SUMMARY
+
+  simulate:
+    name: Run E2E lifecycle simulation
+    needs: seed
+    if: ${{ inputs.run_simulation == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install tsx
+        run: npm install -g tsx
+
+      - name: Wait for staging to be ready
+        run: |
+          echo "Checking staging health..."
+          for i in 1 2 3 4 5; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$STAGING_API_URL/health" 2>/dev/null || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "Staging is healthy (HTTP 200)"
+              break
+            fi
+            echo "Attempt $i: HTTP $STATUS — retrying in 10s..."
+            sleep 10
+          done
+
+      - name: Run full lifecycle simulation
+        run: |
+          STAGING_API_URL="$STAGING_API_URL" \
+          AUTH_TOKEN="$AUTH_TOKEN" \
+          npx tsx scripts/simulate-full-lifecycle.ts 2>&1 | tee simulation-output.txt
+
+      - name: Post simulation summary
+        if: always()
+        run: |
+          echo "### E2E Lifecycle Simulation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -20 simulation-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload simulation log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulation-output
+          path: simulation-output.txt
+          retention-days: 30

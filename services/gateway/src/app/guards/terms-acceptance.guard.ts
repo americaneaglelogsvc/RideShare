@@ -3,11 +3,13 @@ import {
   ExecutionContext,
   Injectable,
   ForbiddenException,
+  SetMetadata,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PlatformTermsService } from '../services/platform-terms.service';
 
 export const SKIP_TERMS_CHECK = 'skipTermsCheck';
+export const SkipTermsCheck = () => SetMetadata(SKIP_TERMS_CHECK, true);
 
 /**
  * TermsAcceptanceGuard — CANONICAL OB-LEGAL-001
