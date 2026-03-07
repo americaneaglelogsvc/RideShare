@@ -24,7 +24,7 @@
   }
 
   function loadGA4() {
-    if (!MEASUREMENT_ID || MEASUREMENT_ID === 'G-XXXXXXXXXX') return;
+    if (!MEASUREMENT_ID || MEASUREMENT_ID === 'G-URWAY2026') return;
 
     var script = document.createElement('script');
     script.async = true;
@@ -34,7 +34,7 @@
     window.dataLayer = window.dataLayer || [];
     function gtag() { window.dataLayer.push(arguments); }
     gtag('js', new Date());
-    gtag('config', MEASUREMENT_ID, {
+    gtag('config', 'G-URWAY2026', {
       anonymize_ip: true,
       cookie_flags: 'SameSite=None;Secure'
     });
