@@ -9,7 +9,7 @@ FROM node:20-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ARG VITE_API_BASE_URL
+ARG VITE_API_BASE_URL=https://rideshare-gateway-73967865619.us-central1.run.app
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 RUN npm run build
 

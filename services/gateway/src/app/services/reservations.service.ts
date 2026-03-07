@@ -3,7 +3,7 @@ import { SupabaseService } from './supabase.service';
 import { DispatchService } from './dispatch.service';
 import { PricingService } from './pricing.service';
 
-interface BookingRequest {
+export interface BookingRequest {
   tenantId: string;
   quote_id: string;
   rider_name: string;
@@ -12,7 +12,7 @@ interface BookingRequest {
   special_instructions?: string;
 }
 
-interface BookingResponse {
+export interface BookingResponse {
   success: boolean;
   booking_id: string;
   driver_eta_minutes: number;

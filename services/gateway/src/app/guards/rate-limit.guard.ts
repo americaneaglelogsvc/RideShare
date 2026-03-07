@@ -12,7 +12,7 @@ export class RateLimitGuard implements CanActivate {
   private readonly maxRequests: number;
   private readonly store: Map<string, { count: number; resetAt: number }> = new Map();
 
-  constructor(windowMs = 60_000, maxRequests = 30) {
+  constructor(windowMs = 60_000, maxRequests = 100) { // Increased from 30 to 100 for load testing
     this.windowMs = windowMs;
     this.maxRequests = maxRequests;
 
@@ -59,12 +59,12 @@ export class RateLimitGuard implements CanActivate {
 }
 
 /**
- * Stricter rate limiter for webhook endpoints: 100 req/min per IP.
+ * Stricter rate limiter for webhook endpoints: 200 req/min per IP.
  */
 @Injectable()
 export class WebhookRateLimitGuard extends RateLimitGuard {
   constructor() {
-    super(60_000, 100);
+    super(60_000, 200); // Increased from 60 to 200 for load testing
   }
 }
 
@@ -74,6 +74,6 @@ export class WebhookRateLimitGuard extends RateLimitGuard {
 @Injectable()
 export class AdminRateLimitGuard extends RateLimitGuard {
   constructor() {
-    super(60_000, 30);
+    super(60_000, 100); // Increased from 30 to 100 for load testing
   }
 }

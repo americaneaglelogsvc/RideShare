@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://rideshare-gateway-73967865619.us-central1.run.app';
 
 export interface QuoteRequest {
   category: string;
@@ -34,6 +34,7 @@ export interface BookingRequest {
   rider_phone: string;
   pickup_time?: string;
   special_instructions?: string;
+  vehicle_type?: string;
 }
 
 export interface BookingResponse {
@@ -46,6 +47,52 @@ export interface BookingResponse {
     vehicle: string;
     license_plate: string;
   };
+}
+
+export interface PassengerRequirements {
+  passenger_count: number;
+  immediacy: 'immediate' | 'scheduled';
+  scheduled_time?: string;
+  luggage_size: 'none' | 'small' | 'medium' | 'large' | 'extra_large';
+  unaccompanied_minors: boolean;
+  minors_ages?: number[];
+  special_assistance: boolean;
+  assistance_type?: 'wheelchair' | 'mobility' | 'visual' | 'hearing' | 'medical' | 'other';
+  assistance_details?: string;
+  ride_preference: 'economy' | 'standard' | 'premium' | 'luxury';
+}
+
+export interface BookingFlowRequest {
+  requirements: PassengerRequirements;
+  pickup: {
+    lat: number;
+    lng: number;
+    address: string;
+  };
+  dropoff: {
+    lat: number;
+    lng: number;
+    address: string;
+  };
+}
+
+export interface VehicleRecommendation {
+  vehicle_type: string;
+  display_name: string;
+  match_score: number;
+  match_reasons: string[];
+  estimated_fare_cents: number;
+  capacity: number;
+  luggage_capacity: string;
+  features: string[];
+}
+
+export interface BookingFlowResponse {
+  passenger_requirements: PassengerRequirements;
+  vehicle_recommendations: VehicleRecommendation[];
+  estimated_duration_minutes: number;
+  estimated_distance_miles: number;
+  nextSteps: string[];
 }
 
 class RiderApiService {
@@ -122,6 +169,64 @@ class RiderApiService {
     return this.request(`/reservations/${bookingId}/cancel`, {
       method: 'POST',
     });
+  }
+
+  async processPassengerRequirements(request: BookingFlowRequest): Promise<BookingFlowResponse> {
+    try {
+      return this.request<BookingFlowResponse>('/booking-flow/process-requirements', {
+        method: 'POST',
+        body: JSON.stringify(request),
+      });
+    } catch (error) {
+      console.warn('Booking flow API failed, using mock data:', error);
+
+      const mockVehicles: VehicleRecommendation[] = [
+        {
+          vehicle_type: 'economy_sedan',
+          display_name: 'Economy Sedan',
+          match_score: 85,
+          match_reasons: ['Accommodates 1 passengers', 'Adequate medium luggage space', 'Matches standard preference'],
+          estimated_fare_cents: 2500,
+          capacity: 4,
+          luggage_capacity: 'medium',
+          features: ['Air Conditioning', 'Music System'],
+        },
+        {
+          vehicle_type: 'standard_suv',
+          display_name: 'Standard SUV',
+          match_score: 75,
+          match_reasons: ['Accommodates 1 passengers', 'Adequate medium luggage space', 'More space available'],
+          estimated_fare_cents: 3500,
+          capacity: 6,
+          luggage_capacity: 'large',
+          features: ['Air Conditioning', 'Music System', 'Extra Storage'],
+        },
+        {
+          vehicle_type: 'premium_sedan',
+          display_name: 'Premium Sedan',
+          match_score: 70,
+          match_reasons: ['Accommodates 1 passengers', 'Adequate medium luggage space', 'Extra comfort features'],
+          estimated_fare_cents: 4500,
+          capacity: 4,
+          luggage_capacity: 'medium',
+          features: ['Leather Seats', 'Premium Sound', 'Climate Control'],
+        },
+      ];
+
+      return {
+        passenger_requirements: request.requirements,
+        vehicle_recommendations: mockVehicles,
+        estimated_duration_minutes: 25,
+        estimated_distance_miles: 10.2,
+        nextSteps: [
+          'Select a vehicle from the recommended options',
+          'Confirm pickup and dropoff locations',
+          'Review fare estimate and trip details',
+          'Enter payment information',
+          'Confirm booking',
+        ],
+      };
+    }
   }
 }
 

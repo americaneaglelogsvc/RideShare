@@ -1,0 +1,284 @@
+apiVersion: networking.gcp.io/v1
+kind: SecurityPolicy
+metadata:
+  name: rideshare-waf-production
+  namespace: default
+  annotations:
+    description: "Production WAF policy for UrWay Dispatch API"
+spec:
+  description: "Production Web Application Firewall policy with rate limiting and security rules"
+  rules:
+  # Allow all traffic with rate limiting (default rule)
+  - action: allow
+    priority: 2147483647
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "*"
+    description: "Allow all traffic with rate limiting"
+    rateLimit:
+      enable: true
+      rateLimitThreshold:
+        requestsPerInterval: 100
+        intervalSec: 60
+    
+  # Block known malicious IP ranges
+  - action: deny
+    priority: 1000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "192.0.2.0/24"  # RFC 5737 reserved for documentation
+        - "203.0.113.0/24" # RFC 5737 reserved for documentation
+        - "198.51.100.0/24" # RFC 5737 reserved for documentation
+    description: "Block known malicious IP ranges"
+    
+  # Allow traffic from specific countries (whitelist)
+  - action: allow
+    priority: 2000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "192.0.2.0/24"  # Replace with actual country IP ranges
+        - "203.0.113.0/24" # Replace with actual country IP ranges
+    description: "Allow traffic from whitelisted countries"
+    
+  # Enhanced rate limiting for sensitive endpoints
+  - action: throttle
+    priority: 3000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "*"
+    description: "Enhanced rate limiting for sensitive endpoints"
+    rateLimit:
+      enable: true
+      rateLimitThreshold:
+        requestsPerInterval: 10
+        intervalSec: 60
+    preview: false
+    
+  # Block SQL injection attempts
+  - action: deny
+    priority: 4000
+    match:
+      expr:
+        expression: "evaluatePreconfiguredExpr('sql-injection')"
+    description: "Block SQL injection attempts"
+    preview: false
+    
+  # Block XSS attempts
+  - action: deny
+    priority: 5000
+    match:
+      expr:
+        expression: "evaluatePreconfiguredExpr('xss-stable')"
+    description: "Block XSS attempts"
+    preview: false
+    
+  # Block common web attacks
+  - action: deny
+    priority: 6000
+    match:
+      expr:
+        expression: "evaluatePreconfiguredExpr('cve-canonical')"
+    description: "Block CVE-based attacks"
+    preview: false
+    
+  # Block malicious user agents
+  - action: deny
+    priority: 7000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "*"
+      userAgentsRequestHeaders:
+        - "sqlmap"
+        - "nikto"
+        - "nmap"
+        - "masscan"
+        - "zap"
+        - "burp"
+        - "scanner"
+    description: "Block malicious user agents"
+    preview: false
+    
+  # Rate limit authentication endpoints
+  - action: throttle
+    priority: 8000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "*"
+    description: "Rate limit authentication endpoints"
+    rateLimit:
+      enable: true
+      rateLimitThreshold:
+        requestsPerInterval: 5
+        intervalSec: 60
+    preview: false
+    
+  # Allow internal traffic without rate limiting
+  - action: allow
+    priority: 9000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "10.0.0.0/8"    # Private IP ranges
+        - "172.16.0.0/12" # Private IP ranges
+        - "192.168.0.0/16" # Private IP ranges
+        - "127.0.0.0/8"   # Loopback
+    description: "Allow internal traffic without rate limiting"
+    
+  # Block traffic from specific regions if needed
+  - action: deny
+    priority: 10000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "192.0.2.0/24"  # Replace with actual regions to block
+    description: "Block traffic from restricted regions"
+    preview: true
+    
+  # Allow traffic from CDN and proxy services
+  - action: allow
+    priority: 11000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "192.0.2.0/24"  # Replace with actual CDN IP ranges
+        - "203.0.113.0/24" # Replace with actual CDN IP ranges
+    description: "Allow traffic from CDN and proxy services"
+    
+  # Enhanced protection for admin endpoints
+  - action: throttle
+    priority: 12000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "*"
+    description: "Enhanced protection for admin endpoints"
+    rateLimit:
+      enable: true
+      rateLimitThreshold:
+        requestsPerInterval: 20
+        intervalSec: 60
+    preview: false
+    
+  # Block large request payloads
+  - action: deny
+    priority: 13000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "*"
+    description: "Block unusually large requests"
+    rateLimit:
+      enable: true
+      rateLimitThreshold:
+        requestsPerInterval: 1
+        intervalSec: 60
+    preview: true
+    
+  # Allow traffic from monitoring services
+  - action: allow
+    priority: 14000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "192.0.2.0/24"  # Replace with actual monitoring service IPs
+    description: "Allow traffic from monitoring services"
+    
+  # Rate limit API key validation endpoints
+  - action: throttle
+    priority: 15000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "*"
+    description: "Rate limit API key validation"
+    rateLimit:
+      enable: true
+      rateLimitThreshold:
+        requestsPerInterval: 15
+        intervalSec: 60
+    preview: false
+    
+  # Block traffic during maintenance (can be enabled via preview mode)
+  - action: deny
+    priority: 16000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "*"
+    description: "Block all traffic during maintenance"
+    preview: true
+    
+  # Allow traffic from specific partner services
+  - action: allow
+    priority: 17000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "192.0.2.0/24"  # Replace with actual partner service IPs
+        - "203.0.113.0/24" # Replace with actual partner service IPs
+    description: "Allow traffic from partner services"
+    
+  # Enhanced rate limiting for payment endpoints
+  - action: throttle
+    priority: 18000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "*"
+    description: "Enhanced rate limiting for payment endpoints"
+    rateLimit:
+      enable: true
+      rateLimitThreshold:
+        requestsPerInterval: 3
+        intervalSec: 60
+    preview: false
+    
+  # Allow traffic from load balancers and health checks
+  - action: allow
+    priority: 19000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "130.211.0.0/22"  # Google Cloud Load Balancer
+        - "35.191.0.0/16"    # Google Cloud Load Balancer
+        - "35.235.240.0/20"  # Google Cloud Health Checks
+    description: "Allow traffic from Google Cloud services"
+    
+  # Rate limit webhook endpoints
+  - action: throttle
+    priority: 20000
+    match:
+      versionedExpr: SRC_IPS_V1
+      config:
+        srcIpRanges:
+        - "*"
+    description: "Rate limit webhook endpoints"
+    rateLimit:
+      enable: true
+      rateLimitThreshold:
+        requestsPerInterval: 50
+        intervalSec: 60
+    preview: false

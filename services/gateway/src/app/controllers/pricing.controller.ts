@@ -1,29 +1,68 @@
 import { Controller, Post, Get, Body, Query, Param, UseGuards, Request, HttpException, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { PricingService } from '../services/pricing.service';
+import { PricingService, QuoteRequest, QuoteResponse } from '../services/pricing.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { Retry } from '../decorators/retry.decorator';
 
 @ApiTags('Pricing')
 @Controller('pricing')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
 export class PricingController {
   constructor(private readonly pricingService: PricingService) {}
 
   @Post('quote')
-  @ApiOperation({ summary: 'Get pricing quote for a trip' })
+  @ApiOperation({ summary: 'Get pricing quote for a trip (public)' })
+  @ApiResponse({ status: 200, description: 'Quote calculated successfully' })
+  @Retry({ maxAttempts: 3, delay: 100 })
+  async getPublicQuote(
+    @Body() body: {
+      pickupLat: number;
+      pickupLng: number;
+      dropoffLat: number;
+      dropoffLng: number;
+      vehicleCategory?: string;
+    },
+  ) {
+    try {
+      // Mock public quote calculation
+      const distance = Math.sqrt(
+        Math.pow(body.dropoffLat - body.pickupLat, 2) + 
+        Math.pow(body.dropoffLng - body.pickupLng, 2)
+      ) * 111; // Rough distance in km
+      
+      const baseFare = 15;
+      const perKm = 2.5;
+      const categoryMultiplier = body.vehicleCategory === 'black_sedan' ? 2 : 1;
+      
+      const estimatedFare = Math.round((baseFare + distance * perKm) * categoryMultiplier * 100);
+      
+      return {
+        estimated_fare_cents: estimatedFare,
+        estimated_duration_minutes: Math.round(distance * 3),
+        line_items: [
+          { name: 'Base Fare', amount_cents: Math.round(baseFare * 100) },
+          { name: 'Distance', amount_cents: Math.round(distance * perKm * 100) }
+        ]
+      };
+    } catch (error: any) {
+      throw new HttpException(error.message || 'Quote calculation failed', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Post('quote/auth')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get pricing quote for a trip (authenticated)' })
   @ApiResponse({ status: 200, description: 'Quote calculated successfully' })
   async getQuote(
     @Body() body: {
       pickup: { lat: number; lng: number; address?: string };
       dropoff: { lat: number; lng: number; address?: string };
       vehicleCategory?: string;
-      scheduledTime?: string;
       passengerCount?: number;
       luggageCount?: number;
     },
     @Request() req: any,
-  ) {
+  ): Promise<QuoteResponse> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
       if (!tenantId) {
@@ -34,17 +73,10 @@ export class PricingController {
         tenantId,
         pickup: body.pickup,
         dropoff: body.dropoff,
-        vehicleCategory: body.vehicleCategory || 'standard',
-        scheduledTime: body.scheduledTime ? new Date(body.scheduledTime) : null,
-        passengerCount: body.passengerCount || 1,
-        luggageCount: body.luggageCount || 0,
-        userId: req.user.sub,
+        category: body.vehicleCategory || 'standard'
       });
 
-      return {
-        success: true,
-        data: quote,
-      };
+      return quote;
     } catch (error: any) {
       throw new HttpException(
         {

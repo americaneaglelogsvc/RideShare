@@ -5,6 +5,7 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../guards/roles.guard';
 import { Public } from '../guards/jwt-auth.guard';
+import { Retry } from '../decorators/retry.decorator';
 
 @ApiTags('health')
 @Controller('health')
@@ -14,6 +15,7 @@ export class HealthController {
   @Get()
   @ApiOperation({ summary: 'Health check' })
   @ApiResponse({ status: 200, description: 'Service is healthy' })
+  @Retry({ maxAttempts: 3, delay: 50 })
   health() {
     return { ok: true };
   }

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Playground - UrWay Dispatch</title>
+    <meta name="description" content="Interactive API testing playground for UrWay Dispatch platform endpoints">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .endpoint-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+        }
+        .endpoint-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .method-get { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .method-post { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .method-put { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .method-delete { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .status-success { background: #10b981; color: white; }
+        .status-error { background: #ef4444; color: white; }
+        .status-info { background: #3b82f6; color: white; }
+        .code-editor {
+            height: 200px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        .response-json {
+            background: #1a1a1a;
+            color: #f8f9fa;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .tab-active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="apiPlayground()">
+    
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="flex items-center space-x-2">
+                        <i data-lucide="code" class="w-8 h-8 text-blue-600"></i>
+                        <span class="text-xl font-bold text-gray-900">API Playground</span>
+                    </a>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span class="text-sm text-gray-600">Sandbox Environment</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <select x-model="selectedTenant" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="demo">Demo Tenant</option>
+                        <option value="goldravenia">GoldRavenia</option>
+                        <option value="blackravenia">BlackRavenia</option>
+                    </select>
+                    <button onclick="clearHistory()" class="text-gray-600 hover:text-gray-900">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        
+        <!-- API Key Section -->
+        <section class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-gray-900">Authentication</h2>
+                <button onclick="generateApiKey()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                    <i data-lucide="key" class="w-4 h-4 mr-2"></i>
+                    Generate API Key
+                </button>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">API Key (Bearer Token)</p>
+                        <code class="text-sm font-mono text-gray-900" x-text="apiKey || 'Click Generate API Key'"></code>
+                    </div>
+                    <button x-show="apiKey" onclick="copyApiKey()" class="bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 transition-colors">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Endpoints Grid -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Available Endpoints</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Ride Booking -->
+                <div class="endpoint-card bg-white rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900">Ride Booking</h3>
+                        <span class="method-post text-white text-xs px-2 py-1 rounded">POST</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Create a new ride booking with pickup and dropoff locations</p>
+                    <button onclick="selectEndpoint('booking')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full">
+                        Test Endpoint
+                    </button>
+                </div>
+
+                <!-- Get Quote -->
+                <div class="endpoint-card bg-white rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900">Get Quote</h3>
+                        <span class="method-get text-white text-xs px-2 py-1 rounded">GET</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Calculate pricing for a potential ride</p>
+                    <button onclick="selectEndpoint('quote')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full">
+                        Test Endpoint
+                    </button>
+                </div>
+
+                <!-- Driver Status -->
+                <div class="endpoint-card bg-white rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900">Driver Status</h3>
+                        <span class="method-get text-white text-xs px-2 py-1 rounded">GET</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Get real-time driver availability and location</p>
+                    <button onclick="selectEndpoint('driver')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full">
+                        Test Endpoint
+                    </button>
+                </div>
+
+                <!-- User Profile -->
+                <div class="endpoint-card bg-white rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900">User Profile</h3>
+                        <span class="method-get text-white text-xs px-2 py-1 rounded">GET</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Retrieve user profile and account information</p>
+                    <button onclick="selectEndpoint('profile')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full">
+                        Test Endpoint
+                    </button>
+                </div>
+
+                <!-- Payment Process -->
+                <div class="endpoint-card bg-white rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900">Payment Process</h3>
+                        <span class="method-post text-white text-xs px-2 py-1 rounded">POST</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Process payment for completed rides</p>
+                    <button onclick="selectEndpoint('payment')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full">
+                        Test Endpoint
+                    </button>
+                </div>
+
+                <!-- Webhook Test -->
+                <div class="endpoint-card bg-white rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900">Webhook Test</h3>
+                        <span class="method-post text-white text-xs px-2 py-1 rounded">POST</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Test webhook delivery to your endpoint</p>
+                    <button onclick="selectEndpoint('webhook')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full">
+                        Test Endpoint
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Testing Interface -->
+        <section x-show="selectedEndpoint" class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-6">API Testing Interface</h3>
+            
+            <!-- Endpoint Info -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="font-semibold text-gray-900" x-text="endpointInfo.name"></h4>
+                        <p class="text-sm text-gray-600" x-text="endpointInfo.description"></p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="method-get text-white text-xs px-2 py-1 rounded" x-text="endpointInfo.method"></span>
+                        <code class="text-sm font-mono bg-gray-200 px-2 py-1 rounded" x-text="endpointInfo.url"></code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Request Builder -->
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Request Body</h4>
+                    <div id="requestEditor" class="code-editor"></div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Headers</h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <input type="text" value="Authorization" class="flex-1 px-3 py-2 border border-gray-300 rounded" disabled>
+                            <input type="text" :value="'Bearer ' + (apiKey || '')" class="flex-1 px-3 py-2 border border-gray-300 rounded" disabled>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="text" value="Content-Type" class="flex-1 px-3 py-2 border border-gray-300 rounded" disabled>
+                            <input type="text" value="application/json" class="flex-1 px-3 py-2 border border-gray-300 rounded" disabled>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="text" value="x-tenant-id" class="flex-1 px-3 py-2 border border-gray-300 rounded" disabled>
+                            <input type="text" :value="selectedTenant" class="flex-1 px-3 py-2 border border-gray-300 rounded">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Execute Button -->
+            <div class="flex items-center justify-between mb-6">
+                <button onclick="executeRequest()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center">
+                    <i data-lucide="play" class="w-5 h-5 mr-2"></i>
+                    Execute Request
+                </button>
+                <div class="flex items-center space-x-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" x-model="autoFormat" class="mr-2">
+                        <span class="text-sm text-gray-600">Auto-format JSON</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Response Display -->
+            <div x-show="response" class="border-t border-gray-200 pt-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="font-semibold text-gray-900">Response</h4>
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2 py-1 rounded text-xs font-semibold"
+                              :class="response.status >= 200 && response.status < 300 ? 'status-success' : 
+                                       response.status >= 400 ? 'status-error' : 'status-info'"
+                              x-text="'Status: ' + response.status"></span>
+                        <span class="text-sm text-gray-600" x-text="response.time + 'ms'"></span>
+                    </div>
+                </div>
+                
+                <!-- Response Tabs -->
+                <div class="flex space-x-1 mb-4">
+                    <button @click="activeTab = 'body'" 
+                            :class="activeTab === 'body' ? 'tab-active' : 'bg-gray-200 text-gray-700'"
+                            class="px-4 py-2 rounded-t-lg transition-colors">
+                        Body
+                    </button>
+                    <button @click="activeTab = 'headers'" 
+                            :class="activeTab === 'headers' ? 'tab-active' : 'bg-gray-200 text-gray-700'"
+                            class="px-4 py-2 rounded-t-lg transition-colors">
+                        Headers
+                    </button>
+                    <button @click="activeTab = 'curl'" 
+                            :class="activeTab === 'curl' ? 'tab-active' : 'bg-gray-200 text-gray-700'"
+                            class="px-4 py-2 rounded-t-lg transition-colors">
+                        cURL
+                    </button>
+                </div>
+                
+                <!-- Response Content -->
+                <div x-show="activeTab === 'body'" class="response-json p-4 rounded-lg">
+                    <pre x-text="JSON.stringify(response.body, null, 2)"></pre>
+                </div>
+                
+                <div x-show="activeTab === 'headers'" class="bg-gray-50 p-4 rounded-lg">
+                    <div class="space-y-2">
+                        <template x-for="(value, key) in response.headers" :key="key">
+                            <div class="flex justify-between">
+                                <span class="font-mono text-sm" x-text="key"></span>
+                                <span class="font-mono text-sm" x-text="value"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                <div x-show="activeTab === 'curl'" class="bg-gray-900 text-gray-100 p-4 rounded-lg">
+                    <pre class="font-mono text-sm" x-text="generateCurlCommand()"></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Request History -->
+        <section x-show="requestHistory.length > 0" class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-xl font-bold text-gray-900 mb-6">Request History</h3>
+            <div class="space-y-2">
+                <template x-for="(req, index) in requestHistory" :key="index">
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                         @click="loadHistoryItem(index)">
+                        <div class="flex items-center space-x-3">
+                            <span class="method-get text-white text-xs px-2 py-1 rounded" x-text="req.method"></span>
+                            <code class="text-sm font-mono" x-text="req.url"></code>
+                            <span class="text-sm text-gray-600" x-text="req.timestamp"></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-1 rounded text-xs font-semibold"
+                                  :class="req.status >= 200 && req.status < 300 ? 'status-success' : 'status-error'"
+                                  x-text="req.status"></span>
+                            <span class="text-sm text-gray-600" x-text="req.time + 'ms'"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        function apiPlayground() {
+            return {
+                apiKey: '',
+                selectedTenant: 'demo',
+                selectedEndpoint: null,
+                endpointInfo: {},
+                response: null,
+                activeTab: 'body',
+                autoFormat: true,
+                requestHistory: [],
+                requestEditor: null,
+                
+                endpoints: {
+                    booking: {
+                        name: 'Ride Booking',
+                        method: 'POST',
+                        url: '/api/v1/rides',
+                        description: 'Create a new ride booking',
+                        sampleBody: {
+                            pickup: { lat: 41.8781, lng: -87.6298, address: "123 Main St, Chicago, IL" },
+                            dropoff: { lat: 41.8819, lng: -87.6278, address: "456 Oak Ave, Chicago, IL" },
+                            vehicleCategory: "standard",
+                            passengerCount: 1,
+                            scheduledTime: null
+                        }
+                    },
+                    quote: {
+                        name: 'Get Quote',
+                        method: 'GET',
+                        url: '/api/v1/quote',
+                        description: 'Calculate pricing for a potential ride',
+                        sampleBody: {
+                            pickup: { lat: 41.8781, lng: -87.6298, address: "123 Main St, Chicago, IL" },
+                            dropoff: { lat: 41.8819, lng: -87.6278, address: "456 Oak Ave, Chicago, IL" },
+                            vehicleCategory: "standard"
+                        }
+                    },
+                    driver: {
+                        name: 'Driver Status',
+                        method: 'GET',
+                        url: '/api/v1/drivers/nearby',
+                        description: 'Get real-time driver availability',
+                        sampleBody: {
+                            location: { lat: 41.8781, lng: -87.6298 },
+                            radius: 5000,
+                            vehicleCategory: "standard"
+                        }
+                    },
+                    profile: {
+                        name: 'User Profile',
+                        method: 'GET',
+                        url: '/api/v1/users/profile',
+                        description: 'Retrieve user profile information',
+                        sampleBody: {}
+                    },
+                    payment: {
+                        name: 'Payment Process',
+                        method: 'POST',
+                        url: '/api/v1/payments/process',
+                        description: 'Process payment for completed ride',
+                        sampleBody: {
+                            rideId: "ride_123456",
+                            amount: 2500,
+                            currency: "USD",
+                            paymentMethod: "card_123456"
+                        }
+                    },
+                    webhook: {
+                        name: 'Webhook Test',
+                        method: 'POST',
+                        url: '/api/v1/webhooks/test',
+                        description: 'Test webhook delivery',
+                        sampleBody: {
+                            url: "https://your-domain.com/webhook",
+                            event: "ride.completed",
+                            data: { rideId: "ride_123456" }
+                        }
+                    }
+                },
+                
+                init() {
+                    // Initialize ACE editor
+                    this.requestEditor = ace.edit("requestEditor");
+                    this.requestEditor.setTheme("ace/theme/monokai");
+                    this.requestEditor.session.setMode("ace/mode/json");
+                    this.requestEditor.setOptions({
+                        fontSize: "14px",
+                        showPrintMargin: false,
+                        showGutter: true,
+                        highlightActiveLine: true
+                    });
+                },
+                
+                selectEndpoint(endpointKey) {
+                    this.selectedEndpoint = endpointKey;
+                    this.endpointInfo = this.endpoints[endpointKey];
+                    this.response = null;
+                    
+                    // Set sample body in editor
+                    const sampleBody = JSON.stringify(this.endpointInfo.sampleBody, null, 2);
+                    this.requestEditor.setValue(sampleBody);
+                    this.requestEditor.clearSelection();
+                    
+                    // Re-initialize icons
+                    setTimeout(() => lucide.createIcons(), 100);
+                },
+                
+                async executeRequest() {
+                    const startTime = Date.now();
+                    
+                    try {
+                        const requestBody = this.requestEditor.getValue();
+                        let parsedBody = {};
+                        
+                        if (requestBody.trim()) {
+                            parsedBody = JSON.parse(requestBody);
+                        }
+                        
+                        // Simulate API call
+                        const response = await this.simulateApiCall(
+                            this.endpointInfo.method,
+                            this.endpointInfo.url,
+                            parsedBody
+                        );
+                        
+                        const endTime = Date.now();
+                        
+                        this.response = {
+                            status: response.status,
+                            body: response.data,
+                            headers: response.headers,
+                            time: endTime - startTime
+                        };
+                        
+                        // Add to history
+                        this.requestHistory.unshift({
+                            method: this.endpointInfo.method,
+                            url: this.endpointInfo.url,
+                            status: response.status,
+                            time: endTime - startTime,
+                            timestamp: new Date().toLocaleTimeString(),
+                            requestBody: parsedBody
+                        });
+                        
+                        // Limit history to 10 items
+                        if (this.requestHistory.length > 10) {
+                            this.requestHistory.pop();
+                        }
+                        
+                    } catch (error) {
+                        this.response = {
+                            status: 400,
+                            body: { error: 'Invalid JSON: ' + error.message },
+                            headers: {},
+                            time: Date.now() - startTime
+                        };
+                    }
+                },
+                
+                simulateApiCall(method, url, body) {
+                    // Simulate different API responses based on endpoint
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            let response = { status: 200, data: {}, headers: {} };
+                            
+                            switch (this.selectedEndpoint) {
+                                case 'booking':
+                                    response.data = {
+                                        id: 'ride_' + Math.random().toString(36).substr(2, 9),
+                                        status: 'confirmed',
+                                        estimatedPrice: 2500,
+                                        currency: 'USD',
+                                        estimatedDuration: 15,
+                                        driver: {
+                                            id: 'driver_' + Math.random().toString(36).substr(2, 9),
+                                            name: 'John Driver',
+                                            rating: 4.8,
+                                            vehicle: {
+                                                make: 'Toyota',
+                                                model: 'Camry',
+                                                licensePlate: 'ABC 123'
+                                            }
+                                        }
+                                    };
+                                    break;
+                                case 'quote':
+                                    response.data = {
+                                        price: 2500,
+                                        currency: 'USD',
+                                        distance: 5.2,
+                                        duration: 15,
+                                        surgeMultiplier: 1.0
+                                    };
+                                    break;
+                                case 'driver':
+                                    response.data = {
+                                        drivers: [
+                                            {
+                                                id: 'driver_1',
+                                                name: 'John Driver',
+                                                location: { lat: 41.8781, lng: -87.6298 },
+                                                rating: 4.8,
+                                                vehicle: { make: 'Toyota', model: 'Camry' }
+                                            }
+                                        ],
+                                        total: 1
+                                    };
+                                    break;
+                                case 'profile':
+                                    response.data = {
+                                        id: 'user_123',
+                                        name: 'Jane Rider',
+                                        email: 'jane@example.com',
+                                        phone: '+1234567890',
+                                        rating: 4.9,
+                                        totalRides: 127,
+                                        memberSince: '2023-01-15'
+                                    };
+                                    break;
+                                case 'payment':
+                                    response.data = {
+                                        id: 'payment_' + Math.random().toString(36).substr(2, 9),
+                                        status: 'completed',
+                                        amount: 2500,
+                                        currency: 'USD',
+                                        processedAt: new Date().toISOString()
+                                    };
+                                    break;
+                                case 'webhook':
+                                    response.data = {
+                                        success: true,
+                                        delivered: true,
+                                        attempts: 1,
+                                        responseCode: 200
+                                    };
+                                    break;
+                            }
+                            
+                            response.headers = {
+                                'content-type': 'application/json',
+                                'x-request-id': Math.random().toString(36).substr(2, 9),
+                                'x-response-time': '127ms'
+                            };
+                            
+                            resolve(response);
+                        }, 500 + Math.random() * 1000); // Simulate network delay
+                    });
+                },
+                
+                generateCurlCommand() {
+                    if (!this.endpointInfo || !this.response) return '';
+                    
+                    const headers = [
+                        `-H "Authorization: Bearer ${this.apiKey}"`,
+                        `-H "Content-Type: application/json"`,
+                        `-H "x-tenant-id: ${this.selectedTenant}"`
+                    ];
+                    
+                    let curlCommand = `curl -X ${this.endpointInfo.method} \\\n`;
+                    curlCommand += `  "https://api.urwaydispatch.com${this.endpointInfo.url}" \\\n`;
+                    curlCommand += `  ${headers.map(h => `  ${h}`).join(' \\\n')} \\\n`;
+                    
+                    if (this.endpointInfo.method !== 'GET' && this.requestEditor.getValue().trim()) {
+                        curlCommand += `  -d '${this.requestEditor.getValue()}'`;
+                    }
+                    
+                    return curlCommand;
+                },
+                
+                generateApiKey() {
+                    this.apiKey = 'uk_' + Math.random().toString(36).substr(2, 32);
+                    setTimeout(() => lucide.createIcons(), 100);
+                },
+                
+                copyApiKey() {
+                    navigator.clipboard.writeText(this.apiKey);
+                    // Show success feedback
+                    const button = event.target.closest('button');
+                    const originalHTML = button.innerHTML;
+                    button.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>';
+                    setTimeout(() => {
+                        button.innerHTML = originalHTML;
+                        lucide.createIcons();
+                    }, 2000);
+                },
+                
+                clearHistory() {
+                    this.requestHistory = [];
+                },
+                
+                loadHistoryItem(index) {
+                    const item = this.requestHistory[index];
+                    // Find and select the endpoint
+                    for (const [key, endpoint] of Object.entries(this.endpoints)) {
+                        if (endpoint.url === item.url && endpoint.method === item.method) {
+                            this.selectEndpoint(key);
+                            this.requestEditor.setValue(JSON.stringify(item.requestBody, null, 2));
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

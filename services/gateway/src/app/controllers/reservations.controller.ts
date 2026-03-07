@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Put, Body, UseGuards, Request, HttpException, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { ReservationsService } from '../services/reservations.service';
+import { ReservationsService, BookingRequest, BookingResponse } from '../services/reservations.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @ApiTags('Reservations')
@@ -21,8 +21,8 @@ export class ReservationsController {
       pickup_time: string;
       special_instructions?: string;
     },
-    @Request() req: any,
-  ) {
+    @Request() req: any
+  ): Promise<BookingResponse> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
       if (!tenantId) {
@@ -38,10 +38,7 @@ export class ReservationsController {
         special_instructions: body.special_instructions,
       });
 
-      return {
-        success: true,
-        data: booking,
-      };
+      return booking;
     } catch (error: any) {
       throw new HttpException(
         {

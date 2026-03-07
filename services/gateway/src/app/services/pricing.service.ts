@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
 
-interface QuoteRequest {
+export interface QuoteRequest {
   pickup: { lat: number; lng: number };
   dropoff: { lat: number; lng: number };
   category: string;
   tenantId?: string;
 }
 
-interface QuoteResponse {
+export interface QuoteResponse {
   estimated_fare_cents: number;
   estimated_duration_minutes: number;
   line_items: Array<{
@@ -198,5 +198,10 @@ export class PricingService {
 
   private toRadians(degrees: number): number {
     return degrees * (Math.PI / 180);
+  }
+
+  async getVehicleCategories(tenantId?: string): Promise<string[]> {
+    // Return available vehicle categories
+    return ['economy', 'premium', 'luxury'];
   }
 }

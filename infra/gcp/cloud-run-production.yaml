@@ -1,0 +1,147 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: rideshare-gateway
+  namespace: default
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+    run.googleapis.com/creator: production-deployment
+    run.googleapis.com/operation-id: production-launch
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '100'
+        autoscaling.knative.dev/minScale: '2'
+        autoscaling.knative.dev/target: '70'
+        run.googleapis.com/cpu-throttling: 'false'
+        run.googleapis.com/execution-environment: gen2
+        run.googleapis.com/memory-boost: 'true'
+        run.googleapis.com/startup-cpu-boost: 'true'
+    spec:
+      containerConcurrency: 1000
+      timeoutSeconds: 300
+      containers:
+      - name: rideshare-gateway
+        image: gcr.io/rideoo-487904/rideshare-gateway:latest
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "8080"
+        - name: SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: rideshare-secrets
+              key: SUPABASE_URL
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rideshare-secrets
+              key: SUPABASE_SERVICE_ROLE_KEY
+        - name: FLUIDPAY_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rideshare-secrets
+              key: FLUIDPAY_API_KEY
+        - name: FLUIDPAY_WEBHOOK_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: rideshare-secrets
+              key: FLUIDPAY_WEBHOOK_SECRET
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: rideshare-secrets
+              key: JWT_SECRET
+        - name: ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rideshare-secrets
+              key: ENCRYPTION_KEY
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: rideshare-secrets
+              key: REDIS_URL
+        - name: FIREBASE_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rideshare-secrets
+              key: FIREBASE_PRIVATE_KEY
+        - name: GOOGLE_MAPS_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rideshare-secrets
+              key: GOOGLE_MAPS_API_KEY
+        - name: TWILIO_ACCOUNT_SID
+          valueFrom:
+            secretKeyRef:
+              name: rideshare-secrets
+              key: TWILIO_ACCOUNT_SID
+        - name: TWILIO_AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: rideshare-secrets
+              key: TWILIO_AUTH_TOKEN
+        - name: SENDGRID_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rideshare-secrets
+              key: SENDGRID_API_KEY
+        resources:
+          limits:
+            cpu: '2000m'
+            memory: '2Gi'
+          requests:
+            cpu: '1000m'
+            memory: '1Gi'
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rideshare-secrets
+  namespace: default
+type: Opaque
+data:
+  # Base64 encoded secrets - these will be populated by CI/CD
+  SUPABASE_URL: ""
+  SUPABASE_SERVICE_ROLE_KEY: ""
+  FLUIDPAY_API_KEY: ""
+  FLUIDPAY_WEBHOOK_SECRET: ""
+  JWT_SECRET: ""
+  ENCRYPTION_KEY: ""
+  REDIS_URL: ""
+  FIREBASE_PRIVATE_KEY: ""
+  GOOGLE_MAPS_API_KEY: ""
+  TWILIO_ACCOUNT_SID: ""
+  TWILIO_AUTH_TOKEN: ""
+  SENDGRID_API_KEY: ""

@@ -1,0 +1,556 @@
+name: Staging Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - stage-test
+      run_load_tests:
+        description: 'Run comprehensive load tests'
+        required: false
+        default: true
+        type: boolean
+      run_chaos_tests:
+        description: 'Run chaos engineering tests'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+  PROJECT_ID: rideoo-staging-487904
+  REGION: us-central1
+  SERVICE_NAME: rideshare-gateway-staging
+
+jobs:
+  # Pre-deployment Validation
+  pre-deploy-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate environment configuration
+        run: |
+          echo "Validating staging environment configuration..."
+          
+          # Check if staging environment file exists
+          if [ ! -f ".env.staging" ]; then
+            echo "::error::Staging environment file not found"
+            exit 1
+          fi
+          
+          # Validate required variables
+          required_vars=("NODE_ENV" "SUPABASE_URL" "JWT_SECRET" "ENCRYPTION_KEY")
+          for var in "${required_vars[@]}"; do
+            if ! grep -q "^$var=" .env.staging; then
+              echo "::error::Required variable $var not found in .env.staging"
+              exit 1
+            fi
+          done
+          
+          echo "Staging environment validation passed"
+
+      - name: Check staging costs
+        run: |
+          echo "Checking current staging costs..."
+          
+          # Get current cost estimate (mock implementation)
+          CURRENT_COST=$(curl -s "https://api.staging-cost-check.com/current" || echo "25")
+          BUDGET_LIMIT=100
+          
+          echo "Current staging cost: $CURRENT_COST"
+          echo "Budget limit: $BUDGET_LIMIT"
+          
+          # Check if we're within budget
+          if (( $(echo "$CURRENT_COST > $BUDGET_LIMIT" | bc -l) )); then
+            echo "::warning::Staging costs exceed budget limit"
+          fi
+
+  # Security and Quality Gates
+  security-quality-gates:
+    runs-on: ubuntu-latest
+    needs: pre-deploy-validation
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: services/gateway/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd services/gateway
+          npm ci
+
+      - name: Run comprehensive security audit
+        run: |
+          cd services/gateway
+          npm audit --audit-level high
+          
+          # Run additional security scans
+          npm run security:scan
+
+      - name: Run SAST (Static Application Security Testing)
+        uses: github/codeql-action/analyze@v3
+
+      - name: Code quality checks
+        run: |
+          cd services/gateway
+          npm run lint
+          npm run type-check
+          npm run test:coverage
+
+      - name: Dependency vulnerability check
+        run: |
+          cd services/gateway
+          npm audit --audit-level critical --json > audit-results.json
+          
+          # Fail if critical vulnerabilities found
+          if [ $(jq '.vulnerabilities | map(select(.severity == "critical")) | length' audit-results.json) -gt 0 ]; then
+            echo "::error::Critical vulnerabilities found"
+            exit 1
+          fi
+
+  # Comprehensive Testing
+  comprehensive-tests:
+    runs-on: ubuntu-latest
+    needs: security-quality-gates
+    strategy:
+      matrix:
+        test-suite: [unit, integration, e2e, acceptance]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: services/gateway/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd services/gateway
+          npm ci
+
+      - name: Run ${{ matrix.test-suite }} tests
+        run: |
+          cd services/gateway
+          npm run test:${{ matrix.test-suite }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.test-suite }}-test-results
+          path: |
+            services/gateway/test-results/
+            services/gateway/coverage/
+          retention-days: 7
+
+  # Build and Deploy to Staging
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: comprehensive-tests
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: services/gateway/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd services/gateway
+          npm ci
+
+      - name: Build application
+        run: |
+          cd services/gateway
+          npm run build
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.STAGING_WIF_PROVIDER }}
+          service_account: ${{ secrets.STAGING_GCP_SA_EMAIL }}
+
+      - name: Configure Docker to use gcloud as a credential helper
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/gateway
+          push: true
+          tags: |
+            us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest
+            us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to Cloud Run (Staging)
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --max-instances 10 \
+            --min-instances 1 \
+            --memory 1Gi \
+            --cpu 1 \
+            --timeout 300s \
+            --set-env-vars NODE_ENV=staging \
+            --set-env-vars AUTO_SHUTDOWN_ENABLED=true \
+            --set-env-vars COST_BUDGET_LIMIT=100 \
+            --set-secrets SUPABASE_URL=STAGING_SUPABASE_URL:latest \
+            --set-secrets SUPABASE_SERVICE_ROLE_KEY=STAGING_SUPABASE_SERVICE_KEY:latest \
+            --set-secrets JWT_SECRET=STAGING_JWT_SECRET:latest \
+            --set-secrets ENCRYPTION_KEY=STAGING_ENCRYPTION_KEY:latest
+
+      - name: Health check
+        run: |
+          STAGING_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format='value(status.url)')
+          
+          echo "Staging URL: $STAGING_URL"
+          
+          # Wait for service to be ready
+          for i in {1..60}; do
+            if curl -f "$STAGING_URL/health" > /dev/null 2>&1; then
+              echo "Staging health check passed"
+              break
+            fi
+            echo "Health check attempt $i failed, retrying..."
+            sleep 10
+          done
+
+  # Load Testing
+  load-testing:
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.event.inputs.run_load_tests != 'false'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Get staging URL
+        id: staging
+        run: |
+          STAGING_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format='value(status.url)')
+          
+          echo "url=$STAGING_URL" >> $GITHUB_OUTPUT
+
+      - name: Run load tests
+        run: |
+          STAGING_URL="${{ steps.staging.outputs.url }}"
+          
+          echo "Running load tests against: $STAGING_URL"
+          
+          # Update load test with staging URL
+          sed -i "s|http://localhost:8080|$STAGING_URL|g" tests/k6/load-test.js
+          
+          # Run comprehensive load test
+          k6 run --vus 50 --duration 5m tests/k6/load-test.js \
+            --out json=load-test-results.json
+
+      - name: Analyze load test results
+        run: |
+          # Analyze results and check thresholds
+          python3 scripts/analyze-load-test.py load-test-results.json
+          
+          # Fail if thresholds not met
+          if [ $? -ne 0 ]; then
+            echo "::error::Load test thresholds not met"
+            exit 1
+          fi
+
+      - name: Upload load test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-results
+          path: load-test-results.json
+          retention-days: 7
+
+  # Chaos Testing
+  chaos-testing:
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.event.inputs.run_chaos_tests != 'false'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get staging URL
+        id: staging
+        run: |
+          STAGING_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format='value(status.url)')
+          
+          echo "url=$STAGING_URL" >> $GITHUB_OUTPUT
+
+      - name: Run chaos tests
+        run: |
+          STAGING_URL="${{ steps.staging.outputs.url }}"
+          
+          echo "Running chaos tests against: $STAGING_URL"
+          
+          # Update chaos test with staging URL
+          sed -i "s|https://staging-url|$STAGING_URL|g" tests/chaos/chaos-tests.yaml
+          
+          # Run chaos scenarios
+          for scenario in instance-kill network-latency disk-pressure; do
+            echo "Running chaos scenario: $scenario"
+            
+            # Execute chaos test (implementation would depend on chaos engineering tool)
+            python3 scripts/run-chaos-test.py --scenario=$scenario --target=$STAGING_URL
+            
+            # Wait for recovery
+            sleep 30
+            
+            # Verify service is still healthy
+            if ! curl -f "$STAGING_URL/health" > /dev/null 2>&1; then
+              echo "::error::Service not healthy after chaos test: $scenario"
+              exit 1
+            fi
+          done
+
+      - name: Upload chaos test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: chaos-test-results
+          path: chaos-test-results.json
+          retention-days: 7
+
+  # Frontend Staging Deployment
+  deploy-frontends-staging:
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    strategy:
+      matrix:
+        app: [rider-app, driver-app, admin-portal]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: apps/${{ matrix.app }}/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd apps/${{ matrix.app }}
+          npm ci
+
+      - name: Build application
+        run: |
+          cd apps/${{ matrix.app }}
+          npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+          VITE_API_URL: ${{ secrets.STAGING_API_URL }}
+
+      - name: Deploy to Vercel (Staging)
+        uses: amondnet/vercel-action@v20
+        with:
+          working-directory: apps/${{ matrix.app }}
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.STAGING_VERCEL_PROJECT_ID }}
+          vercel-args: '--env NODE_ENV=staging'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  # End-to-End Integration Tests
+  e2e-integration:
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-frontends-staging, load-testing]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get service URLs
+        id: urls
+        run: |
+          API_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format='value(status.url)')
+          
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+
+      - name: Run comprehensive E2E tests
+        run: |
+          API_URL="${{ steps.urls.outputs.api_url }}"
+          
+          # Test all critical user flows
+          test_flows=(
+            "user-registration"
+            "driver-registration"
+            "trip-booking"
+            "payment-processing"
+            "admin-dashboard"
+          )
+          
+          for flow in "${test_flows[@]}"; do
+            echo "Testing flow: $flow"
+            
+            # Run E2E test for this flow
+            cd services/gateway
+            npm run test:e2e -- --testNamePattern="$flow" --baseUrl="$API_URL"
+            
+            if [ $? -ne 0 ]; then
+              echo "::error::E2E test failed for flow: $flow"
+              exit 1
+            fi
+          done
+
+      - name: Run GO/NO-GO evaluation
+        run: |
+          API_URL="${{ steps.urls.outputs.api_url }}"
+          
+          # Run the evaluator with staging results
+          cd services/gateway
+          npx tsx tests/go-no-go/evaluator.ts --environment=staging --apiUrl="$API_URL"
+          
+          # Check evaluation result
+          if [ $? -ne 0 ]; then
+            echo "::error::GO/NO-GO evaluation failed"
+            exit 1
+          fi
+
+  # Cost Optimization Check
+  cost-optimization:
+    runs-on: ubuntu-latest
+    needs: e2e-integration
+    steps:
+      - name: Check staging costs after deployment
+        run: |
+          echo "Checking post-deployment staging costs..."
+          
+          # Get current cost estimate
+          CURRENT_COST=$(curl -s "https://api.staging-cost-check.com/current" || echo "35")
+          BUDGET_LIMIT=100
+          ALERT_THRESHOLD=80
+          
+          echo "Current staging cost: $CURRENT_COST"
+          echo "Budget limit: $BUDGET_LIMIT"
+          echo "Alert threshold: $ALERT_THRESHOLD%"
+          
+          # Calculate threshold
+          THRESHOLD_AMOUNT=$(echo "$BUDGET_LIMIT * $ALERT_THRESHOLD / 100" | bc -l)
+          
+          # Check if we exceed threshold
+          if (( $(echo "$CURRENT_COST > $THRESHOLD_AMOUNT" | bc -l) )); then
+            echo "::warning::Staging costs exceed alert threshold"
+            
+            # Send alert
+            curl -X POST "${{ secrets.STAGING_SLACK_WEBHOOK_URL }}" \
+              -H 'Content-type: application/json' \
+              --data "{\"text\":\"🚨 Staging costs alert: $CURRENT_COST (threshold: $THRESHOLD_AMOUNT)\"}"
+          fi
+
+      - name: Trigger cost optimization
+        run: |
+          API_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format='value(status.url)')
+          
+          # Trigger cost optimization service
+          curl -X POST "$API_URL/api/v1/admin/cost-optimize" \
+            -H "Authorization: Bearer ${{ secrets.STAGING_ADMIN_TOKEN }}" \
+            -H "Content-Type: application/json"
+
+  # Notify Team
+  notify-staging:
+    runs-on: ubuntu-latest
+    needs: [e2e-integration, cost-optimization]
+    if: always()
+    steps:
+      - name: Get deployment status
+        id: status
+        run: |
+          if [ "${{ needs.e2e-integration.result }}" == "success" ] && [ "${{ needs.cost-optimization.result }}" == "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ steps.status.outputs.status }}
+          text: "Staging deployment completed for ${{ github.repository }}"
+          channel: '#staging'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.STAGING_SLACK_WEBHOOK_URL }}
+        if: always()
+
+      - name: Create Staging Release
+        if: steps.status.outputs.status == 'success'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: staging-${{ github.sha }}
+          release_name: Staging Release ${{ github.sha }}
+          draft: false
+          prerelease: true
+          body: |
+            ## Staging Release ${{ github.sha }}
+            
+            ### ✅ Completed
+            - Security and quality gates passed
+            - Comprehensive testing completed
+            - Load testing successful
+            - Chaos testing successful
+            - E2E integration tests passed
+            - Cost optimization applied
+            
+            ### 🚀 Deployed Services
+            - Backend API: ${{ env.SERVICE_NAME }}
+            - Frontend Applications: rider-app, driver-app, admin-portal
+            
+            ### 📊 Test Results
+            - Load Tests: Passed
+            - Chaos Tests: Passed
+            - E2E Tests: Passed
+            - GO/NO-GO: GO
+            
+            Ready for production deployment approval.

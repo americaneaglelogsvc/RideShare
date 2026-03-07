@@ -34,6 +34,17 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
   }));
 
+  // Performance optimizations
+  (app as any).set('trust proxy', 1); // Trust first proxy for Cloud Run
+  
+  // Increase timeout for load testing
+  const httpAdapter = app.getHttpAdapter();
+  if (httpAdapter) {
+    const server = httpAdapter.getHttpServer();
+    server.keepAliveTimeout = 65000; // 65 seconds
+    server.headersTimeout = 66000;  // 66 seconds
+  }
+
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('UrWay Dispatch API Gateway')

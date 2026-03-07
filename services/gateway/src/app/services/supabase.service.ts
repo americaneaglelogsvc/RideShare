@@ -5,6 +5,9 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class SupabaseService {
   private supabase?: SupabaseClient;
+  private connectionPool: SupabaseClient[] = [];
+  private poolSize = 5;
+  private currentPoolIndex = 0;
 
   constructor(private configService: ConfigService) {
     const supabaseUrl = this.configService.get<string>('VITE_SUPABASE_URL');
@@ -17,12 +20,17 @@ export class SupabaseService {
       return;
     }
 
-    this.supabase = createClient(supabaseUrl, supabaseKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    // Initialize connection pool
+    for (let i = 0; i < this.poolSize; i++) {
+      this.connectionPool.push(createClient(supabaseUrl, supabaseKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }));
+    }
+
+    this.supabase = this.connectionPool[0];
   }
 
   getClient(): SupabaseClient {

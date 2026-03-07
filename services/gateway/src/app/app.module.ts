@@ -75,6 +75,9 @@ import { CorporateController } from './controllers/corporate.controller';
 import { MicrositeService } from './services/microsite.service';
 import { FaqService } from './services/faq.service';
 import { MicrositeController, FaqController } from './controllers/microsite.controller';
+import { DisclosureController } from './controllers/disclosure.controller';
+import { LeadController } from './controllers/lead.controller';
+import { RetryService } from './decorators/retry.decorator';
 import { EnvValidationService } from './services/env-validation.service';
 import { TimezoneService } from './services/timezone.service';
 import { JobQueueService } from './services/job-queue.service';
@@ -97,6 +100,8 @@ import { QrAttributionService } from './services/qr-attribution.service';
 import { DisclosureService } from './services/disclosure.service';
 import { LeadService } from './services/lead.service';
 import { VoiceService } from './services/voice.service';
+import { AdvancedAnalyticsService } from './services/advanced-analytics.service';
+import { FraudDetectionService } from './services/fraud-detection.service';
 import { LuxuryStandardsService } from './services/luxury-standards.service';
 import { BackgroundCheckService } from './services/background-check.service';
 import { ApprovalService } from './services/approval.service';
@@ -106,6 +111,12 @@ import { OnboardingController } from './controllers/onboarding.controller';
 import { PricingController } from './controllers/pricing.controller';
 import { ReservationsController } from './controllers/reservations.controller';
 import { SkinningController } from './controllers/skinning.controller';
+import { AdvancedAnalyticsController } from './controllers/advanced-analytics.controller';
+import { FraudDetectionController } from './controllers/fraud-detection.controller';
+import { VehicleConfigService } from './services/vehicle-config.service';
+import { PassengerNeedsService } from './services/passenger-needs.service';
+import { VehicleConfigController } from './controllers/vehicle-config.controller';
+import { PassengerNeedsController } from './controllers/passenger-needs.controller';
 import { CorrelationMiddleware } from './middleware/correlation.middleware';
 import { CookieConsentMiddleware } from './middleware/cookie-consent.middleware';
 import { StandardErrorFilter } from './filters/standard-error.filter';
@@ -139,10 +150,16 @@ import { ETagInterceptor } from './interceptors/etag.interceptor';
     CorporateController,
     MicrositeController,
     FaqController,
+    DisclosureController,
+    LeadController,
     OnboardingController,
     PricingController,
     ReservationsController,
     SkinningController,
+    AdvancedAnalyticsController,
+    FraudDetectionController,
+    VehicleConfigController,
+    PassengerNeedsController,
   ],
   providers: [
     SupabaseService,
@@ -224,11 +241,16 @@ import { ETagInterceptor } from './interceptors/etag.interceptor';
     DisclosureService,
     LeadService,
     VoiceService,
+    AdvancedAnalyticsService,
+    FraudDetectionService,
     LuxuryStandardsService,
     BackgroundCheckService,
     ApprovalService,
     PlatformTermsService,
     TermsAcceptanceGuard,
+    RetryService,
+    VehicleConfigService,
+    PassengerNeedsService,
     {
       provide: APP_FILTER,
       useClass: StandardErrorFilter,

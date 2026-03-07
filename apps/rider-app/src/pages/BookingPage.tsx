@@ -1,7 +1,43 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Car, MapPin, Clock, DollarSign, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Car, MapPin, Clock, DollarSign, Users, Luggage, Wheelchair, Baby } from 'lucide-react';
 import { riderApiService } from '../services/api.service';
+import { MobileCard, MobileCardHeader, MobileCardBody } from '../components/MobileCard';
+import { MobileButton } from '../components/MobileButton';
+import { MobileInput, MobileSelect } from '../components/MobileForm';
+import { MobileHeader } from '../components/MobileNavigation';
+
+interface PassengerRequirements {
+  passenger_count: number;
+  immediacy: 'immediate' | 'scheduled';
+  scheduled_time?: string;
+  luggage_size: 'none' | 'small' | 'medium' | 'large' | 'extra_large';
+  unaccompanied_minors: boolean;
+  minors_ages?: number[];
+  special_assistance: boolean;
+  assistance_type?: 'wheelchair' | 'mobility' | 'visual' | 'hearing' | 'medical' | 'other';
+  assistance_details?: string;
+  ride_preference: 'economy' | 'standard' | 'premium' | 'luxury';
+}
+
+interface VehicleRecommendation {
+  vehicle_type: string;
+  display_name: string;
+  match_score: number;
+  match_reasons: string[];
+  estimated_fare_cents: number;
+  capacity: number;
+  luggage_capacity: string;
+  features: string[];
+}
+
+interface BookingFlowResponse {
+  passenger_requirements: PassengerRequirements;
+  vehicle_recommendations: VehicleRecommendation[];
+  estimated_duration_minutes: number;
+  estimated_distance_miles: number;
+  nextSteps: string[];
+}
 
 interface QuoteData {
   total_cents: number;
@@ -13,21 +49,71 @@ interface QuoteData {
 }
 
 export function BookingPage() {
+  const [step, setStep] = useState(1);
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
-  const [category, setCategory] = useState('black_sedan');
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleRecommendation | null>(null);
   const [quote, setQuote] = useState<QuoteData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [requirements, setRequirements] = useState<PassengerRequirements>({
+    passenger_count: 1,
+    immediacy: 'immediate',
+    luggage_size: 'medium',
+    unaccompanied_minors: false,
+    special_assistance: false,
+    ride_preference: 'standard',
+  });
+  const [bookingFlowData, setBookingFlowData] = useState<BookingFlowResponse | null>(null);
 
-  const handleGetQuote = async () => {
-    if (!pickup || !dropoff) return;
+  // Handle passenger requirements step
+  const handleRequirementsSubmit = async () => {
+    if (!pickup || !dropoff) {
+      alert('Please enter pickup and dropoff locations');
+      return;
+    }
 
     setLoading(true);
     try {
-      // Call the actual pricing service
+      const response = await riderApiService.processPassengerRequirements({
+        requirements,
+        pickup: {
+          lat: 41.8781,
+          lng: -87.6298,
+          address: pickup,
+        },
+        dropoff: {
+          lat: 41.9786,
+          lng: -87.9048,
+          address: dropoff,
+        },
+      });
+
+      setBookingFlowData(response);
+      setStep(2);
+    } catch (error) {
+      console.error('Error processing requirements:', error);
+      alert('Failed to process requirements. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle vehicle selection
+  const handleVehicleSelect = (vehicle: VehicleRecommendation) => {
+    setSelectedVehicle(vehicle);
+    setStep(3);
+  };
+
+  // Get quote for selected vehicle
+  const handleGetQuote = async () => {
+    if (!selectedVehicle || !pickup || !dropoff) return;
+
+    setLoading(true);
+    try {
+      // Call the actual pricing service with selected vehicle
       const quoteData = await riderApiService.getQuote({
-        category,
-        service: 'on_demand',
+        category: selectedVehicle.vehicle_type,
+        service: requirements.immediacy === 'immediate' ? 'on_demand' : 'scheduled',
         pickup: {
           lat: 41.8781,
           lng: -87.6298,
@@ -52,20 +138,22 @@ export function BookingPage() {
       setQuote(formattedQuote);
     } catch (error) {
       console.error('Error getting quote from API:', error);
-      // Fallback to mock data if API fails
-      const mockQuote: QuoteData = {
-        total_cents: 4500,
-        line_items: [
-          { name: 'Base Fare', amount_cents: 1000 },
-          { name: 'Distance', amount_cents: 2600, description: '10.0 miles' },
-          { name: 'Time', amount_cents: 900, description: '25 minutes' },
-        ],
-        surge_multiplier: 1.2,
-        surge_cap: 1.8,
-        eta_minutes: 8,
-        quote_id: 'quote_123456',
-      };
-      setQuote(mockQuote);
+      // Use the estimated fare from vehicle recommendation as fallback
+      if (selectedVehicle) {
+        const fallbackQuote: QuoteData = {
+          total_cents: selectedVehicle.estimated_fare_cents,
+          line_items: [
+            { name: 'Base Fare', amount_cents: Math.round(selectedVehicle.estimated_fare_cents * 0.3) },
+            { name: 'Distance', amount_cents: Math.round(selectedVehicle.estimated_fare_cents * 0.5), description: `${bookingFlowData?.estimated_distance_miles?.toFixed(1) || '10.0'} miles` },
+            { name: 'Time', amount_cents: Math.round(selectedVehicle.estimated_fare_cents * 0.2), description: `${bookingFlowData?.estimated_duration_minutes || '25'} minutes` },
+          ],
+          surge_multiplier: 1.0,
+          surge_cap: 2.0,
+          eta_minutes: 8,
+          quote_id: 'quote_' + Date.now(),
+        };
+        setQuote(fallbackQuote);
+      }
     } finally {
       setLoading(false);
     }
@@ -77,9 +165,10 @@ export function BookingPage() {
     try {
       const booking = await riderApiService.bookRide({
         quote_id: quote.quote_id,
-        rider_name: 'John Doe', // In a real app, this would come from user input
+        rider_name: 'John Doe',
         rider_phone: '+1-312-555-0123',
-        special_instructions: 'Please call when you arrive'
+        special_instructions: JSON.stringify(requirements),
+        vehicle_type: selectedVehicle?.vehicle_type,
       });
 
       if (booking.success) {
@@ -95,10 +184,363 @@ export function BookingPage() {
     return `$${(cents / 100).toFixed(2)}`;
   };
 
+  const updateRequirement = (field: keyof PassengerRequirements, value: any) => {
+    setRequirements(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Render Step 1: Passenger Requirements
+  const renderStep1 = () => (
+    <div className="space-y-6">
+      <MobileCard>
+        <MobileCardHeader>
+          <h2 className="text-lg md:text-xl font-semibold mb-6">Tell us about your trip</h2>
+        </MobileCardHeader>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">How many people will be riding?</label>
+            <MobileSelect
+              value={requirements.passenger_count.toString()}
+              onChange={(value) => updateRequirement('passenger_count', parseInt(value))}
+              options={[
+                { value: '1', label: '1 passenger' },
+                { value: '2', label: '2 passengers' },
+                { value: '3', label: '3 passengers' },
+                { value: '4', label: '4 passengers' },
+                { value: '5', label: '5 passengers' },
+                { value: '6', label: '6 passengers' },
+                { value: '7', label: '7 passengers' },
+                { value: '8', label: '8 passengers' },
+              ]}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Is this an immediate need or scheduled for later?</label>
+            <MobileSelect
+              value={requirements.immediacy}
+              onChange={(value) => updateRequirement('immediacy', value)}
+              options={[
+                { value: 'immediate', label: 'Immediate - I need a ride now' },
+                { value: 'scheduled', label: 'Scheduled - I want to book for later' },
+              ]}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Do you have luggage?</label>
+            <MobileSelect
+              value={requirements.luggage_size}
+              onChange={(value) => updateRequirement('luggage_size', value)}
+              options={[
+                { value: 'none', label: 'No luggage' },
+                { value: 'small', label: 'Small (backpack, small bag)' },
+                { value: 'medium', label: 'Medium (suitcase, multiple bags)' },
+                { value: 'large', label: 'Large (multiple suitcases)' },
+                { value: 'extra_large', label: 'Extra Large (excessive luggage)' },
+              ]}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Any unaccompanied minors?</label>
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="minors"
+                  checked={!requirements.unaccompanied_minors}
+                  onChange={() => updateRequirement('unaccompanied_minors', false)}
+                  className="mr-2"
+                />
+                No
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="minors"
+                  checked={requirements.unaccompanied_minors}
+                  onChange={() => updateRequirement('unaccompanied_minors', true)}
+                  className="mr-2"
+                />
+                Yes
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Any riders need special assistance?</label>
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="assistance"
+                  checked={!requirements.special_assistance}
+                  onChange={() => updateRequirement('special_assistance', false)}
+                  className="mr-2"
+                />
+                No
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="assistance"
+                  checked={requirements.special_assistance}
+                  onChange={() => updateRequirement('special_assistance', true)}
+                  className="mr-2"
+                />
+                Yes
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">What kind of ride do you prefer?</label>
+            <MobileSelect
+              value={requirements.ride_preference}
+              onChange={(value) => updateRequirement('ride_preference', value)}
+              options={[
+                { value: 'economy', label: 'Economy - Most affordable' },
+                { value: 'standard', label: 'Standard - Good value' },
+                { value: 'premium', label: 'Premium - Extra comfort' },
+                { value: 'luxury', label: 'Luxury - Best experience' },
+              ]}
+            />
+          </div>
+        </div>
+      </MobileCard>
+
+      <MobileCard>
+        <MobileCardHeader>
+          <h2 className="text-lg md:text-xl font-semibold mb-6">Trip Details</h2>
+        </MobileCardHeader>
+        
+        <div className="space-y-4">
+          <MobileInput
+            label="Pickup Location"
+            placeholder="Enter pickup address"
+            value={pickup}
+            onChange={setPickup}
+            icon={MapPin}
+          />
+
+          <MobileInput
+            label="Dropoff Location"
+            placeholder="Enter destination address"
+            value={dropoff}
+            onChange={setDropoff}
+            icon={MapPin}
+          />
+        </div>
+      </MobileCard>
+
+      <MobileButton
+        onClick={handleRequirementsSubmit}
+        disabled={!pickup || !dropoff || loading}
+        icon={Car}
+        iconPosition="left"
+        className="w-full"
+      >
+        {loading ? 'Finding Vehicles...' : 'Find Available Vehicles'}
+      </MobileButton>
+    </div>
+  );
+
+  // Render Step 2: Vehicle Selection
+  const renderStep2 = () => (
+    <div className="space-y-6">
+      <MobileCard>
+        <MobileCardHeader>
+          <h2 className="text-lg md:text-xl font-semibold mb-2">Recommended Vehicles</h2>
+          <p className="text-gray-600">Based on your requirements, we found {bookingFlowData?.vehicle_recommendations.length || 0} options</p>
+        </MobileCardHeader>
+        
+        <div className="space-y-4">
+          {bookingFlowData?.vehicle_recommendations.map((vehicle, index) => (
+            <div
+              key={vehicle.vehicle_type}
+              className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                selectedVehicle?.vehicle_type === vehicle.vehicle_type
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => handleVehicleSelect(vehicle)}
+            >
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-semibold text-lg">{vehicle.display_name}</h3>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-blue-600">{formatCurrency(vehicle.estimated_fare_cents)}</div>
+                  <div className="text-xs text-gray-500">Estimated fare</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
+                <div className="flex items-center">
+                  <Users className="w-4 h-4 mr-1" />
+                  {vehicle.capacity} passengers
+                </div>
+                <div className="flex items-center">
+                  <Luggage className="w-4 h-4 mr-1" />
+                  {vehicle.luggage_capacity}
+                </div>
+                <div className="flex items-center">
+                  <div className={`w-3 h-3 rounded-full mr-1 ${
+                    vehicle.match_score >= 80 ? 'bg-green-500' :
+                    vehicle.match_score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                  }`} />
+                  {vehicle.match_score}% match
+                </div>
+              </div>
+
+              <div className="text-sm text-gray-600">
+                {vehicle.match_reasons.slice(0, 2).map((reason, idx) => (
+                  <div key={idx} className="flex items-center">
+                    <div className="w-1 h-1 bg-gray-400 rounded-full mr-2" />
+                    {reason}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-2 mt-3">
+                {vehicle.features.slice(0, 3).map((feature, idx) => (
+                  <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                    {feature}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </MobileCard>
+
+      <MobileButton
+        onClick={() => setStep(1)}
+        variant="secondary"
+        className="w-full"
+      >
+        Back to Requirements
+      </MobileButton>
+    </div>
+  );
+
+  // Render Step 3: Quote and Booking
+  const renderStep3 = () => (
+    <div className="space-y-6">
+      <MobileCard>
+        <MobileCardHeader>
+          <h2 className="text-lg md:text-xl font-semibold mb-2">Selected Vehicle</h2>
+        </MobileCardHeader>
+        
+        {selectedVehicle && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-semibold text-lg">{selectedVehicle.display_name}</h3>
+                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                  <div className="flex items-center">
+                    <Users className="w-4 h-4 mr-1" />
+                    {selectedVehicle.capacity} passengers
+                  </div>
+                  <div className="flex items-center">
+                    <Luggage className="w-4 h-4 mr-1" />
+                    {selectedVehicle.luggage_capacity}
+                  </div>
+                </div>
+              </div>
+              <div className="text-lg font-bold text-blue-600">
+                {formatCurrency(selectedVehicle.estimated_fare_cents)}
+              </div>
+            </div>
+          </div>
+        )}
+      </MobileCard>
+
+      <MobileCard>
+        <MobileCardHeader>
+          <h2 className="text-lg md:text-xl font-semibold mb-6">Price Quote</h2>
+        </MobileCardHeader>
+        
+        {!quote ? (
+          <div className="text-center py-8">
+            <MobileButton
+              onClick={handleGetQuote}
+              disabled={loading}
+              icon={DollarSign}
+              iconPosition="left"
+              className="w-full"
+            >
+              {loading ? 'Getting Quote...' : 'Get Exact Quote'}
+            </MobileButton>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center text-xl md:text-2xl font-bold">
+              <span>Total</span>
+              <span className="text-blue-600">{formatCurrency(quote.total_cents)}</span>
+            </div>
+
+            <div className="border-t pt-4 space-y-2">
+              {quote.line_items.map((item, index) => (
+                <div key={index} className="flex justify-between text-sm">
+                  <span className="text-gray-600">
+                    {item.name}
+                    {item.description && (
+                      <span className="text-gray-400 ml-1">({item.description})</span>
+                    )}
+                  </span>
+                  <span>{formatCurrency(item.amount_cents)}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t pt-4 space-y-2 text-sm text-gray-600">
+              <div className="flex justify-between">
+                <span>Surge Multiplier</span>
+                <span>{quote.surge_multiplier}x (cap: {quote.surge_cap}x)</span>
+              </div>
+              <div className="flex justify-between">
+                <span><Clock className="w-4 h-4 inline mr-1" />ETA</span>
+                <span>{quote.eta_minutes} minutes</span>
+              </div>
+            </div>
+
+            <MobileButton 
+              onClick={handleBookRide}
+              variant="secondary"
+              icon={Car}
+              iconPosition="left"
+              className="w-full"
+            >
+              Book Now
+            </MobileButton>
+          </div>
+        )}
+      </MobileCard>
+
+      <MobileButton
+        onClick={() => setStep(2)}
+        variant="secondary"
+        className="w-full"
+      >
+        Back to Vehicles
+      </MobileButton>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm px-6 py-4">
+      {/* Mobile Header */}
+      <MobileHeader 
+        title={`Book Your Ride - Step ${step}`}
+        leftAction={{
+          icon: ArrowLeft,
+          onClick: step > 1 ? () => setStep(step - 1) : () => window.history.back(),
+          ariaLabel: step > 1 ? 'Previous step' : 'Go back'
+        }}
+      />
+
+      {/* Desktop Header */}
+      <header className="bg-white shadow-sm px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center">
           <Link to="/" className="flex items-center text-gray-600 hover:text-gray-900 mr-6">
             <ArrowLeft className="w-5 h-5 mr-2" />
@@ -108,124 +550,47 @@ export function BookingPage() {
             <Car className="w-6 h-6 text-blue-600" />
             <span className="text-xl font-bold text-gray-900">UrWay Dispatch</span>
           </div>
+          <div className="ml-auto">
+            <span className="text-sm text-gray-600">Step {step} of 3</span>
+          </div>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Book Your Ride</h1>
+      <div className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-8">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Book Your Ride</h1>
+        </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Booking Form */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-6">Trip Details</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <MapPin className="w-4 h-4 inline mr-1" />
-                  Pickup Location
-                </label>
-                <input
-                  type="text"
-                  value={pickup}
-                  onChange={(e) => setPickup(e.target.value)}
-                  placeholder="Enter pickup address"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+        {/* Progress indicator */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            {[1, 2, 3].map((stepNumber) => (
+              <div key={stepNumber} className="flex items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  step >= stepNumber 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {stepNumber}
+                </div>
+                {stepNumber < 3 && (
+                  <div className={`flex-1 h-1 mx-2 ${
+                    step > stepNumber ? 'bg-blue-600' : 'bg-gray-200'
+                  }`} />
+                )}
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <MapPin className="w-4 h-4 inline mr-1" />
-                  Dropoff Location
-                </label>
-                <input
-                  type="text"
-                  value={dropoff}
-                  onChange={(e) => setDropoff(e.target.value)}
-                  placeholder="Enter destination address"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Vehicle Category
-                </label>
-                <select
-                  id="vehicleCategory"
-                  aria-label="Vehicle Category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="black_sedan">Black Sedan</option>
-                  <option value="black_suv">Black SUV</option>
-                  <option value="black_ev">Black EV</option>
-                </select>
-              </div>
-
-              <button
-                onClick={handleGetQuote}
-                disabled={!pickup || !dropoff || loading}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold"
-              >
-                {loading ? 'Getting Quote...' : 'Get Quote'}
-              </button>
-            </div>
+            ))}
           </div>
-
-          {/* Quote Display */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-6">Price Quote</h2>
-            
-            {!quote ? (
-              <div className="text-center text-gray-500 py-12">
-                <DollarSign className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p>Enter trip details to get your upfront fare quote</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center text-2xl font-bold">
-                  <span>Total</span>
-                  <span className="text-blue-600">{formatCurrency(quote.total_cents)}</span>
-                </div>
-
-                <div className="border-t pt-4 space-y-2">
-                  {quote.line_items.map((item, index) => (
-                    <div key={index} className="flex justify-between text-sm">
-                      <span className="text-gray-600">
-                        {item.name}
-                        {item.description && (
-                          <span className="text-gray-400 ml-1">({item.description})</span>
-                        )}
-                      </span>
-                      <span>{formatCurrency(item.amount_cents)}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="border-t pt-4 space-y-2 text-sm text-gray-600">
-                  <div className="flex justify-between">
-                    <span>Surge Multiplier</span>
-                    <span>{quote.surge_multiplier}x (cap: {quote.surge_cap}x)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span><Clock className="w-4 h-4 inline mr-1" />ETA</span>
-                    <span>{quote.eta_minutes} minutes</span>
-                  </div>
-                </div>
-
-                <button 
-                  onClick={handleBookRide}
-                  className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 font-semibold mt-6"
-                >
-                  Book Now
-                </button>
-              </div>
-            )}
+          <div className="flex justify-between mt-2 text-xs text-gray-600">
+            <span>Requirements</span>
+            <span>Vehicle Selection</span>
+            <span>Booking</span>
           </div>
         </div>
+
+        {step === 1 && renderStep1()}
+        {step === 2 && renderStep2()}
+        {step === 3 && renderStep3()}
       </div>
     </div>
   );

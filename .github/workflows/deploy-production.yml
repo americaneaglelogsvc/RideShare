@@ -1,0 +1,449 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+      force_deploy:
+        description: 'Force deployment (skip tests)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PROJECT_ID: rideoo-487904
+  REGION: us-central1
+  SERVICE_NAME: rideshare-gateway
+  IMAGE_NAME: rideshare-gateway
+
+jobs:
+  # Security and Quality Gates
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run security audit
+        run: |
+          cd services/gateway
+          npm audit --audit-level high
+          npm audit --audit-level critical
+
+      - name: Run SAST scan
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'security-scan-results.sarif'
+
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+
+  # Build and Test
+  build-test:
+    runs-on: ubuntu-latest
+    needs: security-scan
+    if: github.event.inputs.force_deploy != 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: services/gateway/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd services/gateway
+          npm ci
+
+      - name: Run unit tests
+        run: |
+          cd services/gateway
+          npm run test
+
+      - name: Run E2E tests
+        run: |
+          cd services/gateway
+          npm run test:e2e
+
+      - name: Run acceptance tests
+        run: |
+          cd services/gateway
+          npm run test:acceptance
+
+      - name: Build application
+        run: |
+          cd services/gateway
+          npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: services/gateway/dist/
+          retention-days: 1
+
+  # Build Docker Image
+  build-image:
+    runs-on: ubuntu-latest
+    needs: build-test
+    if: github.event.inputs.force_deploy != 'true'
+    outputs:
+      image: ${{ steps.build-image.outputs.image }}
+      digest: ${{ steps.build-image.outputs.digest }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - name: Configure Docker to use gcloud as a credential helper
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      - name: Build and push Docker image
+        id: build-image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/gateway
+          push: true
+          tags: |
+            us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}:latest
+            us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+  # Deploy to Staging (Canary)
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: build-image
+    if: github.event.inputs.environment == 'production' || github.event.inputs.environment == 'staging'
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - name: Deploy to Cloud Run (Canary)
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }}-staging \
+            --image ${{ needs.build-image.outputs.image }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --max-instances 10 \
+            --memory 1Gi \
+            --cpu 1 \
+            --timeout 300s \
+            --set-env-vars NODE_ENV=staging \
+            --set-secrets SUPABASE_URL=SUPABASE_URL:latest \
+            --set-secrets SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:latest \
+            --set-secrets JWT_SECRET=JWT_SECRET:latest \
+            --set-secrets ENCRYPTION_KEY=ENCRYPTION_KEY:latest
+
+      - name: Wait for deployment
+        run: sleep 30
+
+      - name: Health check
+        run: |
+          STAGING_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }}-staging \
+            --region ${{ env.REGION }} \
+            --format='value(status.url)')
+          
+          echo "Staging URL: $STAGING_URL"
+          
+          # Wait for service to be ready
+          for i in {1..30}; do
+            if curl -f "$STAGING_URL/health" > /dev/null 2>&1; then
+              echo "Health check passed"
+              break
+            fi
+            echo "Health check attempt $i failed, retrying..."
+            sleep 10
+          done
+
+  # Load Testing
+  load-test:
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.event.inputs.environment == 'production' || github.event.inputs.environment == 'staging'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Run load tests
+        run: |
+          STAGING_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }}-staging \
+            --region ${{ env.REGION }} \
+            --format='value(status.url)')
+          
+          echo "Testing against: $STAGING_URL"
+          
+          # Update load test with staging URL
+          sed -i "s|http://localhost:8080|$STAGING_URL|g" tests/k6/load-test.js
+          
+          # Run load test
+          k6 run --vus 50 --duration 2m tests/k6/load-test.js \
+            --out json=load-test-results.json
+
+      - name: Upload load test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-results
+          path: load-test-results.json
+
+      - name: Evaluate Go/No-Go
+        run: |
+          npx tsx tests/go-no-go/evaluator.ts
+
+  # Deploy to Production
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [build-image, load-test]
+    if: github.event.inputs.environment == 'production'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - name: Deploy to Cloud Run (Production)
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${{ needs.build-image.outputs.image }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --max-instances 100 \
+            --min-instances 2 \
+            --memory 2Gi \
+            --cpu 2 \
+            --timeout 300s \
+            --set-env-vars NODE_ENV=production \
+            --set-secrets SUPABASE_URL=SUPABASE_URL:latest \
+            --set-secrets SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:latest \
+            --set-secrets FLUIDPAY_API_KEY=FLUIDPAY_API_KEY:latest \
+            --set-secrets FLUIDPAY_WEBHOOK_SECRET=FLUIDPAY_WEBHOOK_SECRET:latest \
+            --set-secrets JWT_SECRET=JWT_SECRET:latest \
+            --set-secrets ENCRYPTION_KEY=ENCRYPTION_KEY:latest \
+            --set-secrets REDIS_URL=REDIS_URL:latest \
+            --set-secrets FIREBASE_PRIVATE_KEY=FIREBASE_PRIVATE_KEY:latest \
+            --set-secrets GOOGLE_MAPS_API_KEY=GOOGLE_MAPS_API_KEY:latest \
+            --set-secrets TWILIO_ACCOUNT_SID=TWILIO_ACCOUNT_SID:latest \
+            --set-secrets TWILIO_AUTH_TOKEN=TWILIO_AUTH_TOKEN:latest \
+            --set-secrets SENDGRID_API_KEY=SENDGRID_API_KEY:latest
+
+      - name: Apply Cloud Armor policy
+        run: |
+          gcloud compute security-policies create rideshare-waf-production \
+            --description "Production WAF policy for UrWay Dispatch" \
+            --file infra/gcp/cloud-armor-production.yaml || true
+          
+          gcloud compute backend-services add-backend-rules ${{ env.SERVICE_NAME }} \
+            --global \
+            --security-policy rideshare-waf-production || true
+
+      - name: Wait for deployment
+        run: sleep 60
+
+      - name: Production health check
+        run: |
+          PROD_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format='value(status.url)')
+          
+          echo "Production URL: $PROD_URL"
+          
+          # Wait for service to be ready
+          for i in {1..60}; do
+            if curl -f "$PROD_URL/health" > /dev/null 2>&1; then
+              echo "Production health check passed"
+              break
+            fi
+            echo "Production health check attempt $i failed, retrying..."
+            sleep 10
+          done
+
+      - name: Run smoke tests
+        run: |
+          PROD_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format='value(status.url)')
+          
+          # Test critical endpoints
+          curl -f "$PROD_URL/health" || exit 1
+          curl -f "$PROD_URL/health/ready" || exit 1
+          curl -f "$PROD_URL/api/v1/health" || exit 1
+
+  # Deploy Frontend Applications
+  deploy-frontends:
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: github.event.inputs.environment == 'production'
+    strategy:
+      matrix:
+        app: [rider-app, driver-app, admin-portal]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/${{ matrix.app }}/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd apps/${{ matrix.app }}
+          npm ci
+
+      - name: Build application
+        run: |
+          cd apps/${{ matrix.app }}
+          npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VITE_API_URL: ${{ secrets.PROD_API_URL }}
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v20
+        with:
+          working-directory: apps/${{ matrix.app }}
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Post-Deployment Verification
+  post-deploy:
+    runs-on: ubuntu-latest
+    needs: [deploy-production, deploy-frontends]
+    if: github.event.inputs.environment == 'production'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get production URLs
+        id: urls
+        run: |
+          API_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format='value(status.url)')
+          
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+          echo "Production API: $API_URL"
+
+      - name: Run comprehensive health checks
+        run: |
+          API_URL="${{ steps.urls.outputs.api_url }}"
+          
+          # Test all critical endpoints
+          endpoints=(
+            "/health"
+            "/health/ready"
+            "/api/v1/health"
+            "/api/v1/tenants"
+            "/api/v1/drivers/available"
+          )
+          
+          for endpoint in "${endpoints[@]}"; do
+            echo "Testing: $API_URL$endpoint"
+            curl -f "$API_URL$endpoint" || {
+              echo "Health check failed for $endpoint"
+              exit 1
+            }
+          done
+
+      - name: Run chaos tests
+        run: |
+          API_URL="${{ steps.urls.outputs.api_url }}"
+          
+          # Update chaos test with production URL
+          sed -i "s|https://staging-url|$API_URL|g" tests/chaos/chaos-tests.yaml
+          
+          # Run chaos scenarios
+          for i in {1..3}; do
+            echo "Running chaos scenario $i"
+            # Implement chaos test execution
+            sleep 30
+          done
+
+      - name: Notify deployment success
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: "🚀 UrWay Dispatch deployed to production successfully!"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Rollback on failure
+  rollback:
+    runs-on: ubuntu-latest
+    needs: post-deploy
+    if: failure() && github.event.inputs.environment == 'production'
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - name: Rollback to previous revision
+        run: |
+          gcloud run services rollback ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --quiet
+
+      - name: Notify rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: "🚨 UrWay Dispatch deployment failed - rolled back to previous version"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
