@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Microsite Demo - UrWay Dispatch</title>
+    <meta name="description" content="Interactive demo of your branded tenant microsite. See how your transportation business website will look to customers.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #7c3aed;
+        }
+        
+        .tenant-abc-limo {
+            --primary-color: #dc2626;
+            --secondary-color: #f97316;
+        }
+        
+        .tenant-cityride {
+            --primary-color: #059669;
+            --secondary-color: #0891b2;
+        }
+        
+        .tenant-premier {
+            --primary-color: #7c2d12;
+            --secondary-color: #a16207;
+        }
+        
+        .primary-bg { background-color: var(--primary-color); }
+        .primary-text { color: var(--primary-color); }
+        .secondary-bg { background-color: var(--secondary-color); }
+        .secondary-text { color: var(--secondary-color); }
+        .primary-border { border-color: var(--primary-color); }
+        
+        .mobile-frame {
+            max-width: 375px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+        
+        .booking-widget {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        }
+        
+        .price-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .price-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="tenantMicrositeDemo()">
+    <!-- Demo Controls -->
+    <div class="bg-white border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-xl font-bold text-gray-900">Tenant Microsite Demo</h1>
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm font-medium text-gray-700">Select Tenant:</label>
+                        <select x-model="selectedTenant" @change="updateTenantTheme()"
+                                class="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                            <option value="abc-limo">ABC Limo Service</option>
+                            <option value="cityride">CityRide Express</option>
+                            <option value="premier">Premier Transport</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button @click="showMobile = !showMobile" 
+                            :class="showMobile ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'"
+                            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <i data-lucide="smartphone" class="w-4 h-4 mr-2 inline"></i>
+                        Mobile View
+                    </button>
+                    <button onclick="window.close()" class="text-gray-500 hover:text-gray-700">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo Container -->
+    <div class="py-8">
+        <div :class="showMobile ? 'mobile-frame' : 'max-w-7xl mx-auto px-6'">
+            <div :class="[showMobile ? '' : selectedTenant, 'min-h-screen']">
+                
+                <!-- Navigation -->
+                <nav class="bg-white shadow-sm">
+                    <div class="px-6 py-4 flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 primary-bg rounded-lg flex items-center justify-center">
+                                <span class="text-white font-bold text-lg">LOGO</span>
+                            </div>
+                            <div>
+                                <h2 class="font-bold text-gray-900" x-text="tenantData.name"></h2>
+                                <p class="text-xs text-gray-500" x-text="tenantData.tagline"></p>
+                            </div>
+                        </div>
+                        <div class="hidden md:flex items-center space-x-6">
+                            <a href="#" class="text-gray-600 hover:text-gray-900">Services</a>
+                            <a href="#" class="text-gray-600 hover:text-gray-900">Pricing</a>
+                            <a href="#" class="text-gray-600 hover:text-gray-900">About</a>
+                            <a href="#" class="text-gray-600 hover:text-gray-900">Contact</a>
+                            <button class="primary-bg text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- Hero Section -->
+                <section class="booking-widget text-white py-12 px-6">
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl md:text-4xl font-bold mb-4">
+                            Premium Transportation Services
+                        </h1>
+                        <p class="text-lg opacity-90" x-text="tenantData.description"></p>
+                    </div>
+
+                    <!-- Booking Widget -->
+                    <div class="bg-white rounded-xl shadow-xl p-6 max-w-2xl mx-auto">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Get Instant Quote</h3>
+                        <div class="space-y-4">
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Pickup Location</label>
+                                    <div class="relative">
+                                        <i data-lucide="map-pin" class="absolute left-3 top-3 w-5 h-5 text-gray-400"></i>
+                                        <input type="text" placeholder="Enter pickup address"
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Drop-off Location</label>
+                                    <div class="relative">
+                                        <i data-lucide="navigation" class="absolute left-3 top-3 w-5 h-5 text-gray-400"></i>
+                                        <input type="text" placeholder="Enter destination"
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Vehicle Type</label>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <template x-for="vehicle in tenantData.vehicles" :key="vehicle.id">
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="vehicle" :value="vehicle.id" x-model="selectedVehicle" class="sr-only peer">
+                                            <div class="border-2 rounded-lg p-3 text-center peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:bg-gray-50">
+                                                <div class="text-2xl mb-1" x-text="vehicle.icon"></div>
+                                                <p class="text-sm font-medium" x-text="vehicle.name"></p>
+                                                <p class="text-xs text-gray-500" x-text="vehicle.capacity"></p>
+                                            </div>
+                                        </label>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                                    <input type="date" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                                    <input type="time" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Passengers</label>
+                                    <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                        <option>1 Passenger</option>
+                                        <option>2 Passengers</option>
+                                        <option>3 Passengers</option>
+                                        <option>4 Passengers</option>
+                                        <option>5+ Passengers</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button @click="showQuote = true" 
+                                    class="w-full primary-bg text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                                Get Instant Quote
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Quote Results -->
+                <div x-show="showQuote" x-transition class="px-6 py-8">
+                    <div class="bg-white rounded-xl shadow-lg p-6 max-w-2xl mx-auto">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Your Quote</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center py-3 border-b">
+                                <span class="text-gray-600">Estimated Distance</span>
+                                <span class="font-semibold">12.5 miles</span>
+                            </div>
+                            <div class="flex justify-between items-center py-3 border-b">
+                                <span class="text-gray-600">Estimated Time</span>
+                                <span class="font-semibold">25 minutes</span>
+                            </div>
+                            <div class="flex justify-between items-center py-3 border-b">
+                                <span class="text-gray-600">Base Fare</span>
+                                <span class="font-semibold">$15.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-3 border-b">
+                                <span class="text-gray-600">Distance (12.5 mi × $2.50)</span>
+                                <span class="font-semibold">$31.25</span>
+                            </div>
+                            <div class="flex justify-between items-center py-3 border-b">
+                                <span class="text-gray-600">Time (25 min × $0.55)</span>
+                                <span class="font-semibold">$13.75</span>
+                            </div>
+                            <div class="flex justify-between items-center py-4">
+                                <span class="text-lg font-bold text-gray-900">Total Fare</span>
+                                <span class="text-2xl font-bold primary-text">$60.00</span>
+                            </div>
+                            
+                            <div class="flex space-x-4">
+                                <button @click="showBooking = true" 
+                                        class="flex-1 primary-bg text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                                    Book This Ride
+                                </button>
+                                <button @click="showQuote = false" 
+                                        class="px-6 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50">
+                                    Modify
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Form -->
+                <div x-show="showBooking" x-transition class="px-6 py-8">
+                    <div class="bg-white rounded-xl shadow-lg p-6 max-w-2xl mx-auto">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Complete Your Booking</h3>
+                        <div class="space-y-4">
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                                    <input type="text" placeholder="John" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                                    <input type="text" placeholder="Doe" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                                <input type="email" placeholder="john.doe@example.com" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                                <input type="tel" placeholder="(555) 123-4567" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Special Requests</label>
+                                <textarea rows="3" placeholder="Any special requirements or preferences..." 
+                                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                            </div>
+                            
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-gray-900 mb-2">Payment Information</h4>
+                                <p class="text-sm text-gray-600 mb-4">Payment will be collected after the ride is completed</p>
+                                <div class="flex items-center space-x-4">
+                                    <label class="flex items-center">
+                                        <input type="radio" name="payment" value="card" checked class="mr-2">
+                                        <span class="text-sm">Credit Card</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="radio" name="payment" value="cash" class="mr-2">
+                                        <span class="text-sm">Cash</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="radio" name="payment" value="invoice" class="mr-2">
+                                        <span class="text-sm">Invoice</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="flex space-x-4">
+                                <button @click="showConfirmation = true" 
+                                        class="flex-1 primary-bg text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                                    Confirm Booking
+                                </button>
+                                <button @click="showBooking = false" 
+                                        class="px-6 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50">
+                                    Back
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Confirmation -->
+                <div x-show="showConfirmation" x-transition class="px-6 py-8">
+                    <div class="bg-white rounded-xl shadow-lg p-6 max-w-2xl mx-auto text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="check-circle" class="w-8 h-8 text-green-600"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">Booking Confirmed!</h3>
+                        <p class="text-gray-600 mb-6">
+                            Your ride has been successfully booked. You'll receive a confirmation email shortly with all the details.
+                        </p>
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg text-left mb-6">
+                            <h4 class="font-semibold text-gray-900 mb-3">Booking Details</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Confirmation Number:</span>
+                                    <span class="font-semibold">#ABC123456</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Pickup:</span>
+                                    <span class="font-semibold">123 Main St, Chicago</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Drop-off:</span>
+                                    <span class="font-semibold">456 Oak Ave, Chicago</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Date & Time:</span>
+                                    <span class="font-semibold">Dec 15, 2024 at 2:30 PM</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Vehicle:</span>
+                                    <span class="font-semibold">Black Sedan</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Total Fare:</span>
+                                    <span class="font-semibold primary-text">$60.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex space-x-4">
+                            <button class="flex-1 primary-bg text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                                Track Your Ride
+                            </button>
+                            <button @click="resetBooking()" 
+                                    class="px-6 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50">
+                                Book Another Ride
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services Section (if not showing mobile) -->
+                <div x-show="!showMobile" class="px-6 py-16">
+                    <div class="text-center mb-12">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-4">Our Services</h2>
+                        <p class="text-xl text-gray-600">Premium transportation solutions for every need</p>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <template x-for="service in tenantData.services" :key="service.id">
+                            <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                                <div class="text-3xl mb-4" x-text="service.icon"></div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-2" x-text="service.name"></h3>
+                                <p class="text-gray-600 mb-4" x-text="service.description"></p>
+                                <ul class="space-y-2 text-sm text-gray-600">
+                                    <template x-for="feature in service.features" :key="feature">
+                                        <li class="flex items-center">
+                                            <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
+                                            <span x-text="feature"></span>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Pricing Section (if not showing mobile) -->
+                <div x-show="!showMobile" class="px-6 py-16 bg-gray-100">
+                    <div class="text-center mb-12">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-4">Transparent Pricing</h2>
+                        <p class="text-xl text-gray-600">No hidden fees, just great service</p>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                        <template x-for="pricing in tenantData.pricing" :key="pricing.vehicle">
+                            <div class="price-card bg-white rounded-xl shadow-lg p-6">
+                                <h3 class="text-xl font-bold text-gray-900 mb-2" x-text="pricing.vehicle"></h3>
+                                <div class="text-3xl font-bold primary-text mb-4">
+                                    $<span x-text="pricing.baseFare"></span>
+                                    <span class="text-sm font-normal text-gray-600">base fare</span>
+                                </div>
+                                <ul class="space-y-3 text-sm">
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600">Per Mile:</span>
+                                        <span class="font-semibold">$<span x-text="pricing.perMile"></span></span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600">Per Minute:</span>
+                                        <span class="font-semibold">$<span x-text="pricing.perMinute"></span></span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="text-gray-600">Minimum:</span>
+                                        <span class="font-semibold">$<span x-text="pricing.minimumFare"></span></span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function tenantMicrositeDemo() {
+            return {
+                showMobile: false,
+                selectedTenant: 'abc-limo',
+                selectedVehicle: 'black-sedan',
+                showQuote: false,
+                showBooking: false,
+                showConfirmation: false,
+                
+                tenants: {
+                    'abc-limo': {
+                        name: 'ABC Limo Service',
+                        tagline: 'Luxury Transportation Since 2010',
+                        description: 'Professional black car and limousine service for all occasions',
+                        vehicles: [
+                            { id: 'black-sedan', name: 'Black Sedan', icon: '🚗', capacity: '4 Passengers' },
+                            { id: 'black-suv', name: 'Black SUV', icon: '🚙', capacity: '6 Passengers' },
+                            { id: 'stretch-limo', name: 'Stretch Limo', icon: '🚖', capacity: '8 Passengers' }
+                        ],
+                        services: [
+                            {
+                                id: 'airport',
+                                name: 'Airport Transfers',
+                                icon: '✈️',
+                                description: 'Reliable airport transportation with flight tracking',
+                                features: ['Flight monitoring', 'Meet & greet', 'Luggage assistance', 'Real-time tracking']
+                            },
+                            {
+                                id: 'corporate',
+                                name: 'Corporate Travel',
+                                icon: '💼',
+                                description: 'Professional transportation for business needs',
+                                features: ['Executive vehicles', 'Monthly billing', 'Priority service', 'Professional drivers']
+                            },
+                            {
+                                id: 'special-events',
+                                name: 'Special Events',
+                                icon: '🎉',
+                                description: 'Luxury transportation for weddings and events',
+                                features: ['Decorated vehicles', 'Multiple stops', 'Event coordination', 'Complimentary drinks']
+                            }
+                        ],
+                        pricing: [
+                            {
+                                vehicle: 'Black Sedan',
+                                baseFare: '15.00',
+                                perMile: '2.50',
+                                perMinute: '0.55',
+                                minimumFare: '25.00'
+                            },
+                            {
+                                vehicle: 'Black SUV',
+                                baseFare: '20.00',
+                                perMile: '3.25',
+                                perMinute: '0.75',
+                                minimumFare: '35.00'
+                            },
+                            {
+                                vehicle: 'Stretch Limo',
+                                baseFare: '50.00',
+                                perMile: '4.00',
+                                perMinute: '1.00',
+                                minimumFare: '100.00'
+                            }
+                        ]
+                    },
+                    'cityride': {
+                        name: 'CityRide Express',
+                        tagline: 'Quick & Reliable City Transportation',
+                        description: 'Fast and affordable rides around the city',
+                        vehicles: [
+                            { id: 'sedan', name: 'Sedan', icon: '🚗', capacity: '4 Passengers' },
+                            { id: 'suv', name: 'SUV', icon: '🚙', capacity: '6 Passengers' },
+                            { id: 'van', name: 'Van', icon: '🚐', capacity: '8 Passengers' }
+                        ],
+                        services: [
+                            {
+                                id: 'point-to-point',
+                                name: 'Point-to-Point',
+                                icon: '📍',
+                                description: 'Direct rides between any two locations',
+                                features: ['Fixed pricing', 'Quick pickup', 'Professional drivers', 'GPS tracking']
+                            },
+                            {
+                                id: 'hourly',
+                                name: 'Hourly Service',
+                                icon: '⏰',
+                                description: 'Chauffeur service by the hour',
+                                features: ['Flexible scheduling', 'Multiple stops', 'Wait time included', 'Professional service']
+                            },
+                            {
+                                id: 'medical',
+                                name: 'Medical Transport',
+                                icon: '🏥',
+                                description: 'Non-emergency medical transportation',
+                                features: ['Wheelchair accessible', 'Trained staff', 'Insurance billing', 'Discreet service']
+                            }
+                        ],
+                        pricing: [
+                            {
+                                vehicle: 'Sedan',
+                                baseFare: '8.00',
+                                perMile: '1.75',
+                                perMinute: '0.35',
+                                minimumFare: '15.00'
+                            },
+                            {
+                                vehicle: 'SUV',
+                                baseFare: '12.00',
+                                perMile: '2.25',
+                                perMinute: '0.45',
+                                minimumFare: '20.00'
+                            },
+                            {
+                                vehicle: 'Van',
+                                baseFare: '15.00',
+                                perMile: '2.75',
+                                perMinute: '0.55',
+                                minimumFare: '25.00'
+                            }
+                        ]
+                    },
+                    'premier': {
+                        name: 'Premier Transport',
+                        tagline: 'Executive Transportation Solutions',
+                        description: 'High-end transportation for discerning clients',
+                        vehicles: [
+                            { id: 'executive-sedan', name: 'Executive Sedan', icon: '🚗', capacity: '4 Passengers' },
+                            { id: 'luxury-suv', name: 'Luxury SUV', icon: '🚙', capacity: '6 Passengers' },
+                            { id: 'executive-van', name: 'Executive Van', icon: '🚐', capacity: '10 Passengers' }
+                        ],
+                        services: [
+                            {
+                                id: 'executive',
+                                name: 'Executive Service',
+                                icon: '👔',
+                                description: 'Premium transportation for executives',
+                                features: ['Luxury vehicles', 'Professional chauffeurs', 'Privacy features', 'Complimentary amenities']
+                            },
+                            {
+                                id: 'roadshow',
+                                name: 'Roadshow Support',
+                                icon: '🗺️',
+                                description: 'Multi-location business meetings',
+                                features: ['Day-long service', 'Route planning', 'Schedule management', 'Team coordination']
+                            },
+                            {
+                                id: 'vip',
+                                name: 'VIP Service',
+                                icon: '⭐',
+                                description: 'Ultimate luxury transportation',
+                                features: ['Top-tier vehicles', 'Experienced chauffeurs', 'Full concierge', 'Custom amenities']
+                            }
+                        ],
+                        pricing: [
+                            {
+                                vehicle: 'Executive Sedan',
+                                baseFare: '25.00',
+                                perMile: '3.50',
+                                perMinute: '0.65',
+                                minimumFare: '40.00'
+                            },
+                            {
+                                vehicle: 'Luxury SUV',
+                                baseFare: '35.00',
+                                perMile: '4.50',
+                                perMinute: '0.85',
+                                minimumFare: '55.00'
+                            },
+                            {
+                                vehicle: 'Executive Van',
+                                baseFare: '45.00',
+                                perMile: '5.50',
+                                perMinute: '1.05',
+                                minimumFare: '75.00'
+                            }
+                        ]
+                    }
+                },
+                
+                get tenantData() {
+                    return this.tenants[this.selectedTenant];
+                },
+                
+                updateTenantTheme() {
+                    // Theme is updated via CSS classes
+                    console.log('Theme updated to:', this.selectedTenant);
+                },
+                
+                resetBooking() {
+                    this.showQuote = false;
+                    this.showBooking = false;
+                    this.showConfirmation = false;
+                    this.selectedVehicle = 'black-sedan';
+                }
+            }
+        }
+        
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

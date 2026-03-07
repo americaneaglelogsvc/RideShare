@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rider App Demo - UrWay Dispatch</title>
+    <meta name="description" content="Interactive demo of the rider mobile app interface. See how customers book and manage rides.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        
+        .mobile-frame {
+            max-width: 375px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            height: 812px;
+            position: relative;
+        }
+        
+        .mobile-screen {
+            height: 100%;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .map-container {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            position: relative;
+            height: 300px;
+        }
+        
+        .trip-card {
+            transition: all 0.2s ease;
+        }
+        
+        .trip-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100" x-data="riderAppDemo()">
+    <!-- Demo Controls -->
+    <div class="bg-white border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-xl font-bold text-gray-900">Rider App Demo</h1>
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm font-medium text-gray-700">Screen:</label>
+                        <select x-model="currentScreen" @change="updateScreen()"
+                                class="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                            <option value="home">Home</option>
+                            <option value="booking">Booking Flow</option>
+                            <option value="tracking">Live Tracking</option>
+                            <option value="history">Ride History</option>
+                            <option value="profile">Profile</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="window.close()" class="text-gray-500 hover:text-gray-700">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Frame -->
+    <div class="py-8">
+        <div class="mobile-frame">
+            <div class="mobile-screen">
+                
+                <!-- Home Screen -->
+                <div x-show="currentScreen === 'home'" class="h-full flex flex-col">
+                    <!-- Status Bar -->
+                    <div class="bg-white px-6 py-2 flex justify-between items-center text-xs">
+                        <span class="font-medium">9:41 AM</span>
+                        <div class="flex items-center space-x-1">
+                            <i data-lucide="wifi" class="w-3 h-3"></i>
+                            <i data-lucide="battery" class="w-3 h-3"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Header -->
+                    <div class="bg-white px-6 py-4 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900">Good morning, John</h2>
+                            <p class="text-sm text-gray-600">Where to today?</p>
+                        </div>
+                        <div class="relative">
+                            <i data-lucide="bell" class="w-6 h-6 text-gray-600"></i>
+                            <div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Map Preview -->
+                    <div class="map-container relative">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center">
+                                <i data-lucide="map" class="w-16 h-16 text-gray-400 mx-auto mb-2"></i>
+                                <p class="text-gray-500">Interactive map view</p>
+                            </div>
+                        </div>
+                        <div class="absolute bottom-4 left-4 right-4">
+                            <div class="bg-white rounded-lg shadow-lg p-3">
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="map-pin" class="w-5 h-5 text-blue-600"></i>
+                                    <input type="text" placeholder="Enter destination" 
+                                           class="flex-1 text-sm outline-none">
+                                    <i data-lucide="search" class="w-5 h-5 text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Options -->
+                    <div class="flex-1 bg-gray-50 px-6 py-6 overflow-y-auto">
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-white rounded-xl p-4 text-center hover:shadow-md transition-shadow cursor-pointer">
+                                <i data-lucide="clock" class="w-8 h-8 text-blue-600 mx-auto mb-2"></i>
+                                <p class="font-medium text-gray-900">Schedule</p>
+                                <p class="text-xs text-gray-500">Book ahead</p>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 text-center hover:shadow-md transition-shadow cursor-pointer">
+                                <i data-lucide="users" class="w-8 h-8 text-purple-600 mx-auto mb-2"></i>
+                                <p class="font-medium text-gray-900">For Someone</p>
+                                <p class="text-xs text-gray-500">Gift a ride</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Places -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-900 mb-3">Recent Places</h3>
+                            <div class="space-y-3">
+                                <div class="bg-white rounded-lg p-3 flex items-center space-x-3 cursor-pointer hover:bg-gray-50">
+                                    <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                                        <i data-lucide="home" class="w-5 h-5 text-gray-600"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">Home</p>
+                                        <p class="text-sm text-gray-500">123 Main St, Chicago</p>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                                </div>
+                                <div class="bg-white rounded-lg p-3 flex items-center space-x-3 cursor-pointer hover:bg-gray-50">
+                                    <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                                        <i data-lucide="briefcase" class="w-5 h-5 text-gray-600"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">Work</p>
+                                        <p class="text-sm text-gray-500">456 Oak Ave, Chicago</p>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                                </div>
+                                <div class="bg-white rounded-lg p-3 flex items-center space-x-3 cursor-pointer hover:bg-gray-50">
+                                    <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                                        <i data-lucide="plane" class="w-5 h-5 text-gray-600"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">O'Hare Airport</p>
+                                        <p class="text-sm text-gray-500">Terminal 1, Chicago</p>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Promotions -->
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-3">Special Offers</h3>
+                            <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-4 text-white">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="font-bold">20% OFF Airport Rides</p>
+                                        <p class="text-sm opacity-90">Valid until Dec 31</p>
+                                    </div>
+                                    <div class="bg-white/20 rounded-lg px-3 py-1">
+                                        <span class="text-sm font-semibold">AIRPORT20</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom Navigation -->
+                    <div class="bottom-nav">
+                        <div class="flex justify-around py-2">
+                            <button class="flex flex-col items-center p-2 text-blue-600">
+                                <i data-lucide="home" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Home</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="calendar" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Scheduled</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="history" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">History</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="user" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Profile</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Flow Screen -->
+                <div x-show="currentScreen === 'booking'" class="h-full flex flex-col">
+                    <!-- Status Bar -->
+                    <div class="bg-white px-6 py-2 flex justify-between items-center text-xs">
+                        <span class="font-medium">9:41 AM</span>
+                        <div class="flex items-center space-x-1">
+                            <i data-lucide="wifi" class="w-3 h-3"></i>
+                            <i data-lucide="battery" class="w-3 h-3"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Header -->
+                    <div class="bg-white px-6 py-4 flex items-center border-b">
+                        <button class="mr-4">
+                            <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                        </button>
+                        <h2 class="text-lg font-semibold text-gray-900">Book Your Ride</h2>
+                    </div>
+                    
+                    <!-- Booking Form -->
+                    <div class="flex-1 bg-gray-50 px-6 py-6 overflow-y-auto">
+                        <!-- Destination Input -->
+                        <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-3 h-3 bg-blue-600 rounded-full"></div>
+                                    <input type="text" value="123 Main St, Chicago" readonly
+                                           class="flex-1 text-sm bg-gray-50 px-3 py-2 rounded">
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-3 h-3 bg-red-600 rounded-full"></div>
+                                    <input type="text" placeholder="Where to?" 
+                                           class="flex-1 text-sm px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Vehicle Selection -->
+                        <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+                            <h3 class="font-semibold text-gray-900 mb-3">Choose Vehicle</h3>
+                            <div class="space-y-3">
+                                <label class="block cursor-pointer">
+                                    <input type="radio" name="vehicle" value="sedan" checked class="sr-only peer">
+                                    <div class="border rounded-lg p-3 peer-checked:border-blue-500 peer-checked:bg-blue-50">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                                                    <span class="text-xl">🚗</span>
+                                                </div>
+                                                <div>
+                                                    <p class="font-medium text-gray-900">Standard Sedan</p>
+                                                    <p class="text-sm text-gray-500">4 passengers • 2 bags</p>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="font-bold text-gray-900">$15-25</p>
+                                                <p class="text-xs text-gray-500">5 min away</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                                
+                                <label class="block cursor-pointer">
+                                    <input type="radio" name="vehicle" value="suv" class="sr-only peer">
+                                    <div class="border rounded-lg p-3 peer-checked:border-blue-500 peer-checked:bg-blue-50">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                                                    <span class="text-xl">🚙</span>
+                                                </div>
+                                                <div>
+                                                    <p class="font-medium text-gray-900">SUV</p>
+                                                    <p class="text-sm text-gray-500">6 passengers • 3 bags</p>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="font-bold text-gray-900">$20-30</p>
+                                                <p class="text-xs text-gray-500">3 min away</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                                
+                                <label class="block cursor-pointer">
+                                    <input type="radio" name="vehicle" value="luxury" class="sr-only peer">
+                                    <div class="border rounded-lg p-3 peer-checked:border-blue-500 peer-checked:bg-blue-50">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                                                    <span class="text-xl">🚖</span>
+                                                </div>
+                                                <div>
+                                                    <p class="font-medium text-gray-900">Luxury</p>
+                                                    <p class="text-sm text-gray-500">4 passengers • 2 bags</p>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="font-bold text-gray-900">$35-50</p>
+                                                <p class="text-xs text-gray-500">8 min away</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Ride Options -->
+                        <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+                            <h3 class="font-semibold text-gray-900 mb-3">Ride Options</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="font-medium text-gray-900">Ride Now</p>
+                                        <p class="text-sm text-gray-500">Pickup in 5 minutes</p>
+                                    </div>
+                                    <input type="radio" name="timing" value="now" checked class="text-blue-600">
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="font-medium text-gray-900">Schedule</p>
+                                        <p class="text-sm text-gray-500">Pickup later</p>
+                                    </div>
+                                    <input type="radio" name="timing" value="schedule" class="text-blue-600">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Payment Method -->
+                        <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+                            <h3 class="font-semibold text-gray-900 mb-3">Payment Method</h3>
+                            <div class="flex items-center justify-between p-3 border rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="credit-card" class="w-5 h-5 text-blue-600"></i>
+                                    <div>
+                                        <p class="font-medium text-gray-900">•••• 4242</p>
+                                        <p class="text-sm text-gray-500">Visa</p>
+                                    </div>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Promo Code -->
+                        <div class="bg-white rounded-xl shadow-sm p-4 mb-20">
+                            <div class="flex items-center space-x-3">
+                                <i data-lucide="tag" class="w-5 h-5 text-gray-400"></i>
+                                <input type="text" placeholder="Add promo code" 
+                                       class="flex-1 text-sm px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                                <button class="text-blue-600 font-medium text-sm">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom Booking Bar -->
+                    <div class="absolute bottom-0 left-0 right-0 bg-white border-t px-6 py-4">
+                        <button @click="currentScreen = 'tracking'" 
+                                class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                            Book Standard Sedan - $18.50
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Tracking Screen -->
+                <div x-show="currentScreen === 'tracking'" class="h-full flex flex-col">
+                    <!-- Status Bar -->
+                    <div class="bg-white px-6 py-2 flex justify-between items-center text-xs">
+                        <span class="font-medium">9:41 AM</span>
+                        <div class="flex items-center space-x-1">
+                            <i data-lucide="wifi" class="w-3 h-3"></i>
+                            <i data-lucide="battery" class="w-3 h-3"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Header -->
+                    <div class="bg-white px-6 py-4 flex items-center justify-between border-b">
+                        <h2 class="text-lg font-semibold text-gray-900">Your Ride</h2>
+                        <button class="text-blue-600 font-medium">Share Trip</button>
+                    </div>
+                    
+                    <!-- Map Area -->
+                    <div class="map-container relative flex-1">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center">
+                                <i data-lucide="map" class="w-16 h-16 text-gray-400 mx-auto mb-2"></i>
+                                <p class="text-gray-500">Live map tracking</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Driver Info Card -->
+                        <div class="absolute bottom-4 left-4 right-4 bg-white rounded-xl shadow-lg p-4 slide-up">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <img src="https://picsum.photos/seed/driver/50/50.jpg" alt="Driver" class="w-12 h-12 rounded-full">
+                                    <div>
+                                        <p class="font-semibold text-gray-900">Michael Chen</p>
+                                        <div class="flex items-center space-x-1">
+                                            <div class="flex text-yellow-400">
+                                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                                <i data-lucide="star" class="w-4 h-4"></i>
+                                            </div>
+                                            <span class="text-sm text-gray-600">4.8 (324 rides)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm text-gray-500">Toyota Camry</p>
+                                    <p class="font-bold text-gray-900">ABC 1234</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-blue-600 rounded-full status-badge"></div>
+                                    <span class="text-sm text-gray-600">Driver arriving in 2 min</span>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900">0.3 mi away</span>
+                            </div>
+                            
+                            <div class="grid grid-cols-3 gap-2">
+                                <button class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
+                                    <i data-lucide="phone" class="w-5 h-5 text-gray-600 mb-1"></i>
+                                    <span class="text-xs text-gray-600">Call</span>
+                                </button>
+                                <button class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
+                                    <i data-lucide="message-circle" class="w-5 h-5 text-gray-600 mb-1"></i>
+                                    <span class="text-xs text-gray-600">Message</span>
+                                </button>
+                                <button class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
+                                    <i data-lucide="share-2" class="w-5 h-5 text-gray-600 mb-1"></i>
+                                    <span class="text-xs text-gray-600">Share</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Trip Details -->
+                    <div class="bg-white px-6 py-4 border-t">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-3 h-3 bg-blue-600 rounded-full"></div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Pickup</p>
+                                    <p class="font-medium text-gray-900">123 Main St</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-500">Est. 9:45 AM</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-3 h-3 bg-red-600 rounded-full"></div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Dropoff</p>
+                                    <p class="font-medium text-gray-900">456 Oak Ave</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-500">Est. 10:10 AM</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ride History Screen -->
+                <div x-show="currentScreen === 'history'" class="h-full flex flex-col">
+                    <!-- Status Bar -->
+                    <div class="bg-white px-6 py-2 flex justify-between items-center text-xs">
+                        <span class="font-medium">9:41 AM</span>
+                        <div class="flex items-center space-x-1">
+                            <i data-lucide="wifi" class="w-3 h-3"></i>
+                            <i data-lucide="battery" class="w-3 h-3"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Header -->
+                    <div class="bg-white px-6 py-4 border-b">
+                        <h2 class="text-lg font-semibold text-gray-900">Ride History</h2>
+                    </div>
+                    
+                    <!-- History List -->
+                    <div class="flex-1 bg-gray-50 px-6 py-4 overflow-y-auto">
+                        <!-- This Month -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-900 mb-3">This Month</h3>
+                            <div class="space-y-3">
+                                <div class="trip-card bg-white rounded-xl p-4 cursor-pointer">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                                <i data-lucide="map-pin" class="w-5 h-5 text-blue-600"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-900">Downtown → O'Hare</p>
+                                                <p class="text-sm text-gray-500">Dec 10, 2024 • 2:30 PM</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="font-bold text-gray-900">$42.50</p>
+                                            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Completed</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm text-gray-600">
+                                        <span>Toyota Camry • ABC 1234</span>
+                                        <span>18.5 mi • 35 min</span>
+                                    </div>
+                                    <div class="flex items-center justify-between mt-3 pt-3 border-t">
+                                        <div class="flex items-center space-x-2">
+                                            <img src="https://picsum.photos/seed/driver1/30/30.jpg" alt="Driver" class="w-6 h-6 rounded-full">
+                                            <span class="text-sm">Michael Chen</span>
+                                            <div class="flex text-yellow-400 text-xs">
+                                                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                                <i data-lucide="star" class="w-3 h-3"></i>
+                                            </div>
+                                        </div>
+                                        <button class="text-blue-600 text-sm font-medium">Receipt</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="trip-card bg-white rounded-xl p-4 cursor-pointer">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                                <i data-lucide="map-pin" class="w-5 h-5 text-blue-600"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-900">Home → Office</p>
+                                                <p class="text-sm text-gray-500">Dec 8, 2024 • 8:15 AM</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="font-bold text-gray-900">$18.75</p>
+                                            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Completed</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm text-gray-600">
+                                        <span>Honda Accord • XYZ 5678</span>
+                                        <span>8.2 mi • 22 min</span>
+                                    </div>
+                                    <div class="flex items-center justify-between mt-3 pt-3 border-t">
+                                        <div class="flex items-center space-x-2">
+                                            <img src="https://picsum.photos/seed/driver2/30/30.jpg" alt="Driver" class="w-6 h-6 rounded-full">
+                                            <span class="text-sm">Sarah Johnson</span>
+                                            <div class="flex text-yellow-400 text-xs">
+                                                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                            </div>
+                                        </div>
+                                        <button class="text-blue-600 text-sm font-medium">Receipt</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="trip-card bg-white rounded-xl p-4 cursor-pointer">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                                <i data-lucide="map-pin" class="w-5 h-5 text-blue-600"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-900">Restaurant → Home</p>
+                                                <p class="text-sm text-gray-500">Dec 5, 2024 • 9:45 PM</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="font-bold text-gray-900">$15.25</p>
+                                            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Completed</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm text-gray-600">
+                                        <span>Nissan Altima • DEF 9012</span>
+                                        <span>5.8 mi • 18 min</span>
+                                    </div>
+                                    <div class="flex items-center justify-between mt-3 pt-3 border-t">
+                                        <div class="flex items-center space-x-2">
+                                            <img src="https://picsum.photos/seed/driver3/30/30.jpg" alt="Driver" class="w-6 h-6 rounded-full">
+                                            <span class="text-sm">David Lee</span>
+                                            <div class="flex text-yellow-400 text-xs">
+                                                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                                <i data-lucide="star" class="w-3 h-3"></i>
+                                            </div>
+                                        </div>
+                                        <button class="text-blue-600 text-sm font-medium">Receipt</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Statistics -->
+                        <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-4 text-white">
+                            <h3 class="font-semibold mb-3">Your Stats</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-2xl font-bold">47</p>
+                                    <p class="text-sm opacity-90">Total Rides</p>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold">$892.50</p>
+                                    <p class="text-sm opacity-90">Total Spent</p>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold">4.9</p>
+                                    <p class="text-sm opacity-90">Avg Rating</p>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold">23.5</p>
+                                    <p class="text-sm opacity-90">Avg Miles</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom Navigation -->
+                    <div class="bottom-nav">
+                        <div class="flex justify-around py-2">
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="home" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Home</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="calendar" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Scheduled</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-blue-600">
+                                <i data-lucide="history" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">History</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="user" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Profile</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Screen -->
+                <div x-show="currentScreen === 'profile'" class="h-full flex flex-col">
+                    <!-- Status Bar -->
+                    <div class="bg-white px-6 py-2 flex justify-between items-center text-xs">
+                        <span class="font-medium">9:41 AM</span>
+                        <div class="flex items-center space-x-1">
+                            <i data-lucide="wifi" class="w-3 h-3"></i>
+                            <i data-lucide="battery" class="w-3 h-3"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Header -->
+                    <div class="bg-white px-6 py-4 border-b">
+                        <h2 class="text-lg font-semibold text-gray-900">Profile</h2>
+                    </div>
+                    
+                    <!-- Profile Content -->
+                    <div class="flex-1 bg-gray-50 px-6 py-6 overflow-y-auto">
+                        <!-- User Info -->
+                        <div class="bg-white rounded-xl p-6 mb-4">
+                            <div class="flex items-center space-x-4 mb-4">
+                                <img src="https://picsum.photos/seed/user/80/80.jpg" alt="Profile" class="w-20 h-20 rounded-full">
+                                <div class="flex-1">
+                                    <h3 class="text-xl font-bold text-gray-900">John Doe</h3>
+                                    <p class="text-gray-600">john.doe@email.com</p>
+                                    <p class="text-sm text-gray-500">Member since Dec 2023</p>
+                                </div>
+                                <button class="text-blue-600">
+                                    <i data-lucide="edit" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Stats -->
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div>
+                                    <p class="text-2xl font-bold text-gray-900">4.9</p>
+                                    <p class="text-xs text-gray-500">Rating</p>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-gray-900">47</p>
+                                    <p class="text-xs text-gray-500">Rides</p>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-gray-900">2.5</p>
+                                    <p class="text-xs text-gray-500">Years</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Menu Items -->
+                        <div class="bg-white rounded-xl divide-y">
+                            <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="credit-card" class="w-5 h-5 text-gray-600"></i>
+                                    <span class="font-medium text-gray-900">Payment Methods</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-500">Visa •••• 4242</span>
+                                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                                </div>
+                            </button>
+                            
+                            <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="map-pin" class="w-5 h-5 text-gray-600"></i>
+                                    <span class="font-medium text-gray-900">Saved Places</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-500">3 places</span>
+                                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                                </div>
+                            </button>
+                            
+                            <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="users" class="w-5 h-5 text-gray-600"></i>
+                                    <span class="font-medium text-gray-900">Emergency Contacts</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                            </button>
+                            
+                            <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="bell" class="w-5 h-5 text-gray-600"></i>
+                                    <span class="font-medium text-gray-900">Notifications</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                                </div>
+                            </button>
+                            
+                            <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="shield" class="w-5 h-5 text-gray-600"></i>
+                                    <span class="font-medium text-gray-900">Privacy & Security</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                            </button>
+                            
+                            <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="help-circle" class="w-5 h-5 text-gray-600"></i>
+                                    <span class="font-medium text-gray-900">Help & Support</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                            </button>
+                            
+                            <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="info" class="w-5 h-5 text-gray-600"></i>
+                                    <span class="font-medium text-gray-900">About</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Sign Out -->
+                        <button class="w-full bg-red-50 text-red-600 p-4 rounded-xl font-medium hover:bg-red-100 mt-4">
+                            Sign Out
+                        </button>
+                    </div>
+                    
+                    <!-- Bottom Navigation -->
+                    <div class="bottom-nav">
+                        <div class="flex justify-around py-2">
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="home" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Home</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="calendar" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Scheduled</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="history" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">History</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-blue-600">
+                                <i data-lucide="user" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Profile</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function riderAppDemo() {
+            return {
+                currentScreen: 'home',
+                
+                updateScreen() {
+                    // Screen is updated via Alpine.js reactivity
+                    console.log('Screen changed to:', this.currentScreen);
+                }
+            }
+        }
+        
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

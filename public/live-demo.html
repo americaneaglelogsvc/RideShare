@@ -1013,17 +1013,20 @@
                 });
             }
             
-            // Open interface in new window or modal
-            const interfaces = {
-                'microsite': 'https://demo.urwaydispatch.com/tenant-microsite',
-                'rider': 'https://demo.urwaydispatch.com/rider-app',
-                'driver': 'https://demo.urwaydispatch.com/driver-app',
-                'dispatch': 'https://demo.urwaydispatch.com/dispatch-center',
-                'admin': 'https://demo.urwaydispatch.com/admin-console'
+            // Open actual interactive demo pages
+            const demoPages = {
+                'microsite': '/tenant-microsite-demo.html',
+                'rider': '/rider-app-demo.html',
+                'driver': '/driver-app-demo.html',
+                'dispatch': '/admin-console-demo.html',
+                'admin': '/admin-console-demo.html'
             };
             
-            // For now, show alert with interface info
-            alert(`Opening ${type} interface...\n\nThis would open your branded ${type} interface with "Your Logo Here" branding.\n\nIn production, this would open: ${interfaces[type]}`);
+            if (demoPages[type]) {
+                window.open(demoPages[type], '_blank', 'width=400,height=800');
+            } else {
+                alert(`Opening ${type} interface...\n\nThis would open your branded ${type} interface with "Your Logo Here" branding.\n\nIn production, this would open: ${demoPages[type]}`);
+            }
         }
         
         function openCalendar() {
