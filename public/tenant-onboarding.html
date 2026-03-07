@@ -440,6 +440,7 @@
                 ],
                 
                 formData: {
+                    selectedPlan: '',
                     companyName: '',
                     legalStructure: '',
                     businessEmail: '',
@@ -476,6 +477,19 @@
                             minimumFare: 20.00
                         };
                     });
+                    
+                    // Handle URL parameters for plan selection
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const plan = urlParams.get('plan');
+                    if (plan) {
+                        this.formData.selectedPlan = plan;
+                        // Pre-fill some fields based on plan
+                        if (plan === 'starter') {
+                            this.formData.fleetSize = '5';
+                        } else if (plan === 'professional') {
+                            this.formData.fleetSize = '25';
+                        }
+                    }
                 },
                 
                 get selectedVehicleTypes() {
@@ -525,6 +539,24 @@
                 previousStep() {
                     if (this.currentStep > 1) {
                         this.currentStep--;
+                    }
+                },
+                
+                generateDemoCaptcha() {
+                    const questions = [
+                        { q: "What is 15 + 7 × 2?", a: "29" },
+                        { q: "What is 100 - 43 ÷ 7?", a: "94" },
+                        { q: "What is 8 × 9 - 12?", a: "60" },
+                        { q: "What is 45 + 18 ÷ 3?", a: "51" },
+                        { q: "What is 25 × 4 - 30?", a: "70" },
+                        { q: "What is 144 ÷ 12 + 8?", a: "20" }
+                    ];
+                    
+                    const random = questions[Math.floor(Math.random() * questions.length)];
+                    const element = document.getElementById('demo-captcha-question');
+                    if (element) {
+                        element.textContent = random.q;
+                        element.dataset.answer = random.a;
                     }
                 },
                 

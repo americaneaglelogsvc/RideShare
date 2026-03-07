@@ -429,9 +429,10 @@
 
                 <!-- Real-time Stats -->
                 <div class="space-y-6">
-                    <!-- System Metrics -->
+                    <!-- Admin Console Metrics -->
                     <div class="bg-white rounded-xl shadow-lg p-6">
-                        <h3 class="text-lg font-bold text-gray-900 mb-4">System Metrics</h3>
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Admin Console Metrics</h3>
+                        <p class="text-sm text-gray-600 mb-4">Real-time business metrics from your admin dashboard</p>
                         <div class="space-y-4">
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-600">Active Drivers</span>
@@ -962,15 +963,20 @@
         
         // Demo unlock and interface functions
         function generateDemoCaptcha() {
-            const num1 = Math.floor(Math.random() * 10) + 1;
-            const num2 = Math.floor(Math.random() * 10) + 1;
-            const question = `${num1} + ${num2} = ?`;
-            const answer = num1 + num2;
+            const questions = [
+                { q: "What is 15 + 7 × 2?", a: "29" },
+                { q: "What is 100 - 43 ÷ 7?", a: "94" },
+                { q: "What is 8 × 9 - 12?", a: "60" },
+                { q: "What is 45 + 18 ÷ 3?", a: "51" },
+                { q: "What is 25 × 4 - 30?", a: "70" },
+                { q: "What is 144 ÷ 12 + 8?", a: "20" }
+            ];
             
+            const random = questions[Math.floor(Math.random() * questions.length)];
             const element = document.getElementById('demo-captcha-question');
             if (element) {
-                element.textContent = question;
-                element.dataset.answer = answer;
+                element.textContent = random.q;
+                element.dataset.answer = random.a;
             }
         }
         
