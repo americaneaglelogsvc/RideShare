@@ -75,11 +75,69 @@
                             <select x-model="serviceType" @change="calculateROI()" 
                                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                     title="Primary Service Type" aria-label="Primary Service Type">
-                                <option value="black-car">Black Car / Luxury</option>
-                                <option value="suv">SUV / Premium</option>
-                                <option value="sedan">Standard Sedan</option>
-                                <option value="airport">Airport Shuttle</option>
-                                <option value="corporate">Corporate Travel</option>
+                                <option value="black-car">Black Car / Luxury ($75/trip avg)</option>
+                                <option value="suv">SUV / Premium ($95/trip avg)</option>
+                                <option value="sedan">Standard Sedan ($45/trip avg)</option>
+                                <option value="airport">Airport Shuttle ($55/trip avg)</option>
+                                <option value="medical">Medical Transport ($65/trip avg)</option>
+                                <option value="corporate">Corporate Travel ($85/trip avg)</option>
+                            </select>
+                        </div>
+
+                        <!-- Service Area Size -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Service Area Size
+                            </label>
+                            <select x-model="serviceArea" @change="calculateROI()" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    title="Service Area Size" aria-label="Service Area Size">
+                                <option value="local">Local (City only)</option>
+                                <option value="regional">Regional (Metro area)</option>
+                                <option value="statewide">Statewide</option>
+                                <option value="interstate">Interstate</option>
+                            </select>
+                        </div>
+
+                        <!-- Current Monthly Revenue -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Current Monthly Revenue (optional)
+                            </label>
+                            <input type="number" x-model="currentRevenue" @input="calculateROI()" 
+                                   placeholder="Enter current monthly revenue"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                   title="Current Monthly Revenue" aria-label="Current Monthly Revenue">
+                        </div>
+
+                        <!-- Operating Hours -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Operating Hours per Day
+                            </label>
+                            <input type="range" x-model="operatingHours" min="8" max="24" 
+                                   @input="calculateROI()"
+                                   class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+                                   title="Operating Hours per Day" aria-label="Operating Hours per Day">
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>8 hours</span>
+                                <span class="font-bold text-blue-600" x-text="operatingHours + ' hours'"></span>
+                                <span>24 hours</span>
+                            </div>
+                        </div>
+
+                        <!-- Growth Timeline -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Growth Projection Timeline
+                            </label>
+                            <select x-model="growthTimeline" @change="calculateROI()" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    title="Growth Projection Timeline" aria-label="Growth Projection Timeline">
+                                <option value="6months">6 Months</option>
+                                <option value="12months">12 Months</option>
+                                <option value="24months">24 Months</option>
+                                <option value="36months">36 Months</option>
                             </select>
                         </div>
 
@@ -189,6 +247,62 @@
                             </div>
                             <div class="text-center">
                                 <div class="text-3xl font-bold mb-2" x-text="'$' + netProfit.toLocaleString()"></div>
+                                <div class="text-blue-200 text-sm">Net Profit/Month</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold mb-2" x-text="breakEvenPoint"></div>
+                                <div class="text-blue-200 text-sm">Break-even Point</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Growth Projections -->
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Growth Projections</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                <span class="text-gray-600">3-Month Revenue</span>
+                                <span class="text-xl font-bold text-green-600" x-text="'$' + threeMonthRevenue.toLocaleString()"></span>
+                            </div>
+                            <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                <span class="text-gray-600">6-Month Revenue</span>
+                                <span class="text-xl font-bold text-green-600" x-text="'$' + sixMonthRevenue.toLocaleString()"></span>
+                            </div>
+                            <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                <span class="text-gray-600">12-Month Revenue</span>
+                                <span class="text-xl font-bold text-green-600" x-text="'$' + twelveMonthRevenue.toLocaleString()"></span>
+                            </div>
+                            <div class="flex justify-between items-center py-3">
+                                <span class="text-gray-600">Total 3-Year Profit</span>
+                                <span class="text-2xl font-bold text-blue-600" x-text="'$' + threeYearProfit.toLocaleString()"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cost Savings Breakdown -->
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Cost Savings Breakdown</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                <span class="text-gray-600">Dispatch Automation</span>
+                                <span class="text-xl font-bold text-green-600" x-text="'$' + dispatchSavings.toLocaleString()"></span>
+                            </div>
+                            <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                <span class="text-gray-600">Route Optimization</span>
+                                <span class="text-xl font-bold text-green-600" x-text="'$' + routeSavings.toLocaleString()"></span>
+                            </div>
+                            <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                <span class="text-gray-600">Reduced Admin Time</span>
+                                <span class="text-xl font-bold text-green-600" x-text="'$' + adminSavings.toLocaleString()"></span>
+                            </div>
+                            <div class="flex justify-between items-center py-3">
+                                <span class="text-gray-600">Insurance & Compliance</span>
+                                <span class="text-xl font-bold text-green-600" x-text="'$' + insuranceSavings.toLocaleString()"></span>
+                            </div>
+                        </div>
+                    </div>
                                 <div class="text-blue-200 text-sm">Annual Net Profit</div>
                             </div>
                             <div class="text-center">
@@ -238,10 +352,17 @@
     <script>
         function roiCalculator() {
             return {
+                // Input variables
                 fleetSize: 10,
                 serviceType: 'black-car',
                 dailyTrips: 8,
-                avgTripRevenue: 45,
+                serviceArea: 'regional',
+                currentRevenue: 0,
+                operatingHours: 12,
+                growthTimeline: '12months',
+                
+                // Revenue calculations
+                avgTripRevenue: 75,
                 currentCosts: 2000,
                 platformFee: 5,
                 
@@ -251,10 +372,17 @@
                 annualRevenue: 0,
                 urwayMonthlyFee: 0,
                 monthlySavings: 0,
+                netProfit: 0,
                 roiMonths: 0,
                 annualROI: 0,
-                netProfit: 0,
+                breakEvenPoint: 0,
                 profitMargin: 0,
+                
+                // Growth projections
+                threeMonthRevenue: 0,
+                sixMonthRevenue: 0,
+                twelveMonthRevenue: 0,
+                threeYearProfit: 0,
                 year1Profit: 0,
                 year2Profit: 0,
                 year3Profit: 0,
@@ -262,72 +390,106 @@
                 year2Growth: 0,
                 year3Growth: 0,
                 
+                // Cost savings breakdown
+                dispatchSavings: 0,
+                routeSavings: 0,
+                adminSavings: 0,
+                insuranceSavings: 0,
+                
                 init() {
                     this.calculateROI();
                 },
                 
                 calculateROI() {
-                    // Calculate platform fee based on fleet size and service type
-                    if (this.fleetSize <= 5) {
-                        this.platformFee = 7;
-                    } else if (this.fleetSize <= 20) {
-                        this.platformFee = 5;
-                    } else if (this.fleetSize <= 50) {
-                        this.platformFee = 4;
-                    } else {
-                        this.platformFee = 3;
-                    }
-                    
-                    // Service type modifiers
-                    const serviceMultipliers = {
-                        'black-car': 1.5,
-                        'suv': 1.3,
-                        'sedan': 1.0,
-                        'airport': 1.2,
-                        'corporate': 1.4
+                    // Service type pricing
+                    const pricing = {
+                        'black-car': 75,
+                        'suv': 95,
+                        'sedan': 45,
+                        'airport': 55,
+                        'medical': 65,
+                        'corporate': 85
                     };
                     
-                    const multiplier = serviceMultipliers[this.serviceType] || 1.0;
-                    const adjustedRevenue = this.avgTripRevenue * multiplier;
+                    // Service area multipliers
+                    const areaMultipliers = {
+                        'local': 1.0,
+                        'regional': 1.2,
+                        'statewide': 1.5,
+                        'interstate': 2.0
+                    };
+                    
+                    // Operating hour multipliers
+                    const hourMultipliers = {
+                        8: 0.7,
+                        12: 1.0,
+                        16: 1.3,
+                        20: 1.5,
+                        24: 1.7
+                    };
+                    
+                    this.avgTripRevenue = pricing[this.serviceType] || 75;
+                    const areaMultiplier = areaMultipliers[this.serviceArea] || 1.0;
+                    const hourMultiplier = hourMultipliers[this.operatingHours] || 1.0;
                     
                     // Revenue calculations
-                    this.dailyRevenue = this.fleetSize * this.dailyTrips * adjustedRevenue;
+                    this.dailyRevenue = this.fleetSize * this.dailyTrips * this.avgTripRevenue * areaMultiplier * hourMultiplier;
                     this.monthlyRevenue = this.dailyRevenue * 30;
                     this.annualRevenue = this.monthlyRevenue * 12;
                     
+                    // Platform fees (tiered pricing)
+                    if (this.fleetSize <= 5) {
+                        this.urwayMonthlyFee = 299;
+                    } else if (this.fleetSize <= 20) {
+                        this.urwayMonthlyFee = 599;
+                    } else if (this.fleetSize <= 50) {
+                        this.urwayMonthlyFee = 999;
+                    } else {
+                        this.urwayMonthlyFee = 1499;
+                    }
+                    
                     // Cost calculations
-                    this.urwayMonthlyFee = this.monthlyRevenue * (this.platformFee / 100);
-                    this.monthlySavings = Math.max(0, this.currentCosts - this.urwayMonthlyFee);
+                    this.currentCosts = this.fleetSize * 200 * (this.operatingHours / 12); // Base costs
+                    const totalMonthlyCosts = this.currentCosts + this.urwayMonthlyFee;
+                    this.netProfit = this.monthlyRevenue - totalMonthlyCosts;
+                    this.profitMargin = ((this.netProfit / this.monthlyRevenue) * 100).toFixed(1);
                     
                     // ROI calculations
-                    const monthlyProfit = this.monthlyRevenue - this.urwayMonthlyFee;
-                    this.netProfit = monthlyProfit * 12;
-                    this.profitMargin = Math.round((this.netProfit / this.annualRevenue) * 100);
+                    const initialInvestment = this.urwayMonthlyFee * 3; // 3 months platform fee
+                    this.roiMonths = Math.ceil(initialInvestment / this.netProfit);
+                    this.annualROI = ((this.netProfit * 12 - initialInvestment) / initialInvestment * 100).toFixed(1);
                     
-                    // Payback period (if there are implementation costs)
-                    const implementationCost = 5000; // Estimated setup cost
-                    const monthlyNetSavings = this.monthlySavings + (monthlyProfit - (this.monthlyRevenue - this.currentCosts));
-                    this.roiMonths = monthlyNetSavings > 0 ? Math.ceil(implementationCost / monthlyNetSavings) : 0;
+                    // Break-even point
+                    const tripsToBreakEven = Math.ceil(initialInvestment / (this.avgTripRevenue * 0.8)); // 80% margin per trip
+                    this.breakEvenPoint = tripsToBreakEven + ' trips';
                     
-                    // Annual ROI
-                    const totalInvestment = implementationCost + (this.urwayMonthlyFee * 12);
-                    this.annualROI = this.netProfit > 0 ? Math.round((this.netProfit / totalInvestment) * 100) : 0;
+                    // Growth projections
+                    const monthlyGrowthRate = 0.05; // 5% monthly growth
+                    this.threeMonthRevenue = this.monthlyRevenue * Math.pow(1 + monthlyGrowthRate, 3);
+                    this.sixMonthRevenue = this.monthlyRevenue * Math.pow(1 + monthlyGrowthRate, 6);
+                    this.twelveMonthRevenue = this.monthlyRevenue * Math.pow(1 + monthlyGrowthRate, 12);
                     
-                    // 3-year projections with growth
-                    const annualGrowthRate = 0.15; // 15% annual growth
-                    this.year1Profit = this.netProfit;
-                    this.year2Profit = Math.round(this.year1Profit * (1 + annualGrowthRate));
-                    this.year3Profit = Math.round(this.year2Profit * (1 + annualGrowthRate));
+                    // 3-year profit calculations
+                    this.year1Profit = this.netProfit * 12;
+                    this.year2Profit = this.year1Profit * 1.5; // 50% growth year 2
+                    this.year3Profit = this.year2Profit * 1.4; // 40% growth year 3
+                    this.threeYearProfit = this.year1Profit + this.year2Profit + this.year3Profit;
                     
-                    this.year1Growth = Math.round(((this.year1Profit - (this.annualRevenue - this.currentCosts * 12)) / Math.abs(this.annualRevenue - this.currentCosts * 12)) * 100);
-                    this.year2Growth = Math.round(((this.year2Profit - this.year1Profit) / this.year1Profit) * 100);
-                    this.year3Growth = Math.round(((this.year3Profit - this.year2Profit) / this.year2Profit) * 100);
+                    this.year1Growth = '50';
+                    this.year2Growth = '40';
+                    this.year3Growth = '30';
+                    
+                    // Cost savings breakdown
+                    this.dispatchSavings = Math.floor(this.fleetSize * 150 * (this.operatingHours / 12)); // Automation savings
+                    this.routeSavings = Math.floor(this.dailyTrips * this.fleetSize * 5 * 30); // Route optimization
+                    this.adminSavings = Math.floor(this.fleetSize * 100); // Admin time reduction
+                    this.insuranceSavings = Math.floor(this.fleetSize * 50); // Compliance and insurance
+                    
+                    this.monthlySavings = this.dispatchSavings + this.routeSavings + this.adminSavings + this.insuranceSavings;
                 }
             }
         }
-    </script>
-    
-    <script>
+        
         // Initialize Lucide icons
         lucide.createIcons();
     </script>
