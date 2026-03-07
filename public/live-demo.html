@@ -100,14 +100,47 @@
     <!-- Main Demo Dashboard -->
     <section class="py-8">
         <div class="max-w-7xl mx-auto px-6">
+            <!-- Demo Tabs -->
+            <div class="bg-white rounded-xl shadow-lg mb-6">
+                <div class="border-b border-gray-200">
+                    <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                        <button @click="activeTab = 'dispatch'" 
+                                :class="activeTab === 'dispatch' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                class="py-4 px-1 border-b-2 font-medium text-sm">
+                            Dispatch Console
+                        </button>
+                        <button @click="activeTab = 'booking'" 
+                                :class="activeTab === 'booking' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                class="py-4 px-1 border-b-2 font-medium text-sm">
+                            Customer Booking
+                        </button>
+                        <button @click="activeTab = 'admin'" 
+                                :class="activeTab === 'admin' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                class="py-4 px-1 border-b-2 font-medium text-sm">
+                            Admin Console
+                        </button>
+                        <button @click="activeTab = 'rider'" 
+                                :class="activeTab === 'rider' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                class="py-4 px-1 border-b-2 font-medium text-sm">
+                            Rider App
+                        </button>
+                        <button @click="activeTab = 'driver'" 
+                                :class="activeTab === 'driver' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                class="py-4 px-1 border-b-2 font-medium text-sm">
+                            Driver App
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
             <div class="grid lg:grid-cols-3 gap-6">
                 
                 <!-- Live Dispatch Map -->
-                <div class="lg:col-span-2">
+                <div class="lg:col-span-2" x-show="activeTab === 'dispatch'">
                     <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                         <div class="p-4 border-b border-gray-200">
                             <div class="flex items-center justify-between">
-                                <h2 class="text-lg font-bold text-gray-900">Live Dispatch Map</h2>
+                                <h2 class="text-lg font-bold text-gray-900">Live Dispatch Console</h2>
                                 <div class="flex items-center space-x-2">
                                     <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
                                     <span class="text-sm text-green-600">Live</span>
@@ -166,6 +199,164 @@
                                 <div class="flex items-center space-x-2">
                                     <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
                                     <span>Active Trip</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Booking Interface -->
+                <div class="lg:col-span-2" x-show="activeTab === 'booking'">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="p-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-bold text-gray-900">Customer Booking Interface</h2>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
+                                    <span class="text-sm text-green-600">Live Demo</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6">
+                            <!-- Booking Form -->
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-4">Book Your Ride</h3>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Pickup Location</label>
+                                            <div class="relative">
+                                                <i data-lucide="map-pin" class="w-5 h-5 text-gray-400 absolute left-3 top-3"></i>
+                                                <input type="text" placeholder="Enter pickup address" 
+                                                       class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Drop-off Location</label>
+                                            <div class="relative">
+                                                <i data-lucide="flag" class="w-5 h-5 text-gray-400 absolute left-3 top-3"></i>
+                                                <input type="text" placeholder="Enter destination" 
+                                                       class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Service Type</label>
+                                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg" title="Service Type">
+                                                <option>Black Sedan</option>
+                                                <option>Black SUV</option>
+                                                <option>Luxury Vehicle</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">When</label>
+                                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg" title="Booking Time">
+                                                <option>Now</option>
+                                                <option>Schedule Later</option>
+                                            </select>
+                                        </div>
+                                        <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
+                                            Get Quote & Book
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-4">Quote Preview</h3>
+                                    <div class="bg-gray-50 rounded-lg p-4">
+                                        <div class="space-y-3">
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">Estimated Fare</span>
+                                                <span class="font-bold text-lg">$45.00</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">Distance</span>
+                                                <span>12.5 miles</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">Estimated Time</span>
+                                                <span>25 minutes</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">Driver ETA</span>
+                                                <span class="text-green-600">8 minutes</span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4 pt-4 border-t border-gray-200">
+                                            <div class="flex items-center space-x-2">
+                                                <img src="https://picsum.photos/seed/driver1/40/40.jpg" alt="Driver" class="w-10 h-10 rounded-full">
+                                                <div>
+                                                    <p class="font-medium">John Smith</p>
+                                                    <p class="text-sm text-gray-600">⭐ 4.9 • Black Sedan</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Console -->
+                <div class="lg:col-span-2" x-show="activeTab === 'admin'">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="p-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-bold text-gray-900">Admin Console</h2>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
+                                    <span class="text-sm text-green-600">Live Demo</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6">
+                            <div class="grid md:grid-cols-3 gap-6">
+                                <div class="bg-blue-50 rounded-lg p-4">
+                                    <h3 class="font-semibold text-blue-900 mb-2">Total Revenue</h3>
+                                    <p class="text-2xl font-bold text-blue-600">$12,450</p>
+                                    <p class="text-sm text-blue-600">+15% from last month</p>
+                                </div>
+                                <div class="bg-green-50 rounded-lg p-4">
+                                    <h3 class="font-semibold text-green-900 mb-2">Active Users</h3>
+                                    <p class="text-2xl font-bold text-green-600">1,247</p>
+                                    <p class="text-sm text-green-600">+8% from last week</p>
+                                </div>
+                                <div class="bg-purple-50 rounded-lg p-4">
+                                    <h3 class="font-semibold text-purple-900 mb-2">Completion Rate</h3>
+                                    <p class="text-2xl font-bold text-purple-600">98.2%</p>
+                                    <p class="text-sm text-purple-600">Above target</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <h3 class="font-semibold text-gray-900 mb-4">Recent Transactions</h3>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full">
+                                        <thead>
+                                            <tr class="border-b border-gray-200">
+                                                <th class="text-left py-2 text-sm font-medium text-gray-700">Time</th>
+                                                <th class="text-left py-2 text-sm font-medium text-gray-700">Customer</th>
+                                                <th class="text-left py-2 text-sm font-medium text-gray-700">Amount</th>
+                                                <th class="text-left py-2 text-sm font-medium text-gray-700">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="border-b border-gray-100">
+                                                <td class="py-2 text-sm">2:34 PM</td>
+                                                <td class="py-2 text-sm">Sarah Johnson</td>
+                                                <td class="py-2 text-sm font-medium">$32.50</td>
+                                                <td class="py-2 text-sm"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Completed</span></td>
+                                            </tr>
+                                            <tr class="border-b border-gray-100">
+                                                <td class="py-2 text-sm">2:28 PM</td>
+                                                <td class="py-2 text-sm">Mike Davis</td>
+                                                <td class="py-2 text-sm font-medium">$45.00</td>
+                                                <td class="py-2 text-sm"><span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">In Progress</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -390,6 +581,7 @@
         function liveDemo() {
             return {
                 // Demo state
+                activeTab: 'dispatch',
                 drivers: [],
                 activeTrips: [],
                 metrics: {
