@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Services Dashboard - UWD</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .notification { position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: 5px; color: white; z-index: 1000; }
+        .notification.success { background: #10b981; }
+        .notification.error { background: #ef4444; }
+        .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin: 10px 0; }
+        .chart-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 10px 0; }
+        .btn-primary { background: #3b82f6; color: white; padding: 8px 16px; border-radius: 5px; text-decoration: none; }
+        .btn-secondary { background: #6b7280; color: white; padding: 8px 16px; border-radius: 5px; text-decoration: none; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal-content { background: white; margin: 5% auto; padding: 20px; border-radius: 10px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-button { background: #f3f4f6; color: #374151; padding: 10px 20px; border: none; cursor: pointer; }
+        .tab-button.active { background: #3b82f6; color: white; }
+        .progress-ring { transform: rotate(-90deg); }
+        .task-card { transition: transform 0.2s ease; }
+        .task-card:hover { transform: translateY(-2px); }
+        .specialist-card { transition: transform 0.2s ease; }
+        .specialist-card:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center">
+                    <i class="fas fa-cogs text-blue-600 text-2xl mr-3"></i>
+                    <h1 class="text-2xl font-bold text-gray-900">Setup Services Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500">Tenant: <span id="tenant-name" class="font-medium">Goldravenia</span></span>
+                    <button onclick="refreshSetupData()" class="btn-secondary">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh
+                    </button>
+                    <button onclick="generateSetupReport()" class="btn-primary">
+                        <i class="fas fa-chart-bar mr-2"></i>Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Setup Overview -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Setup Overview</h2>
+            <div id="setup-overview">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-90">Setup Status</p>
+                                <p class="text-2xl font-bold">NOT STARTED</p>
+                            </div>
+                            <i class="fas fa-tasks text-3xl opacity-50"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-90">Tasks Completed</p>
+                                <p class="text-2xl font-bold">0</p>
+                            </div>
+                            <i class="fas fa-check-circle text-3xl opacity-50"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-90">Days to Launch</p>
+                                <p class="text-2xl font-bold">30</p>
+                            </div>
+                            <i class="fas fa-calendar text-3xl opacity-50"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-90">Specialist</p>
+                                <p class="text-2xl font-bold">Not Assigned</p>
+                            </div>
+                            <i class="fas fa-user-tie text-3xl opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab Navigation -->
+        <section class="mb-6">
+            <div class="flex space-x-1 bg-gray-200 p-1 rounded-lg">
+                <button class="tab-button active" onclick="switchTab('tasks')">Tasks</button>
+                <button class="tab-button" onclick="switchTab('timeline')">Timeline</button>
+                <button class="tab-button" onclick="switchTab('specialists')">Specialists</button>
+                <button class="tab-button" onclick="switchTab('assignments')">Assignments</button>
+                <button class="tab-button" onclick="switchTab('packages')">Packages</button>
+                <button class="tab-button" onclick="switchTab('resources')">Resources</button>
+                <button class="tab-button" onclick="switchTab('feedback')">Feedback</button>
+                <button class="tab-button" onclick="switchTab('metrics')">Metrics</button>
+            </div>
+        </section>
+
+        <!-- Tab Content -->
+        <section>
+            <!-- Tasks Tab -->
+            <div id="tasks-tab" class="tab-content active">
+                <div class="chart-container">
+                    <div id="tasks-section">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading onboarding tasks...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Tab -->
+            <div id="timeline-tab" class="tab-content">
+                <div class="chart-container">
+                    <div id="timeline-section">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading implementation timeline...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Specialists Tab -->
+            <div id="specialists-tab" class="tab-content">
+                <div class="chart-container">
+                    <div id="specialists-section">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading available specialists...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assignments Tab -->
+            <div id="assignments-tab" class="tab-content">
+                <div class="chart-container">
+                    <div id="assignments-section">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading specialist assignments...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Packages Tab -->
+            <div id="packages-tab" class="tab-content">
+                <div class="chart-container">
+                    <div id="packages-section">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading setup packages...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resources Tab -->
+            <div id="resources-tab" class="tab-content">
+                <div class="chart-container">
+                    <div id="resources-section">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading setup resources...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Tab -->
+            <div id="feedback-tab" class="tab-content">
+                <div class="chart-container">
+                    <div id="feedback-section">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading customer feedback...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Tab -->
+            <div id="metrics-tab" class="tab-content">
+                <div class="chart-container">
+                    <div id="metrics-section">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading success metrics...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Add Task Modal -->
+    <div id="add-task-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Add Onboarding Task</h3>
+                <button onclick="closeModal('add-task-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="add-task-form">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Task Name *</label>
+                    <input type="text" name="task_name" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Task Description</label>
+                    <textarea name="task_description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Task Category *</label>
+                    <select name="task_category" required class="w-full px-3 py-2 border border-gray-300 rounded-md" aria-label="Select task category" title="Select task category">
+                        <option value="">Select category</option>
+                        <option value="initial_setup">Initial Setup</option>
+                        <option value="configuration">Configuration</option>
+                        <option value="integration">Integration</option>
+                        <option value="training">Training</option>
+                        <option value="testing">Testing</option>
+                        <option value="launch">Launch</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Task Type *</label>
+                    <select name="task_type" required class="w-full px-3 py-2 border border-gray-300 rounded-md" aria-label="Select task type" title="Select task type">
+                        <option value="">Select type</option>
+                        <option value="automated">Automated</option>
+                        <option value="manual">Manual</option>
+                        <option value="specialist_required">Specialist Required</option>
+                        <option value="customer_action">Customer Action</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Estimated Duration (hours)</label>
+                    <input type="number" name="estimated_duration_hours" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Priority *</label>
+                    <select name="priority" required class="w-full px-3 py-2 border border-gray-300 rounded-md" aria-label="Select priority" title="Select priority">
+                        <option value="">Select priority</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Assigned To *</label>
+                    <select name="assigned_to" required class="w-full px-3 py-2 border border-gray-300 rounded-md" aria-label="Select assignee" title="Select assignee">
+                        <option value="">Select assignee</option>
+                        <option value="system">System</option>
+                        <option value="specialist">Specialist</option>
+                        <option value="customer">Customer</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                    <input type="datetime-local" name="due_date" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('add-task-modal')" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Assign Specialist Modal -->
+    <div id="assign-specialist-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Assign Specialist</h3>
+                <button onclick="closeModal('assign-specialist-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="assign-specialist-form">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Specialist *</label>
+                    <select name="specialist_id" required class="w-full px-3 py-2 border border-gray-300 rounded-md" aria-label="Select specialist" title="Select specialist">
+                        <option value="">Select specialist</option>
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Assignment Notes</label>
+                    <textarea name="assignment_notes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Estimated Completion Date</label>
+                    <input type="datetime-local" name="estimated_completion_date" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('assign-specialist-modal')" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Assign Specialist</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Submit Feedback Modal -->
+    <div id="submit-feedback-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Submit Feedback</h3>
+                <button onclick="closeModal('submit-feedback-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="submit-feedback-form">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Feedback Type *</label>
+                    <select name="feedback_type" required class="w-full px-3 py-2 border border-gray-300 rounded-md" aria-label="Select feedback type" title="Select feedback type">
+                        <option value="">Select type</option>
+                        <option value="setup_completion">Setup Completion</option>
+                        <option value="milestone_completion">Milestone Completion</option>
+                        <option value="general">General</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Overall Rating *</label>
+                    <select name="overall_rating" required class="w-full px-3 py-2 border border-gray-300 rounded-md" aria-label="Select rating" title="Select rating">
+                        <option value="">Select rating</option>
+                        <option value="5">5 - Excellent</option>
+                        <option value="4">4 - Good</option>
+                        <option value="3">3 - Average</option>
+                        <option value="2">2 - Poor</option>
+                        <option value="1">1 - Very Poor</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Specialist Rating</label>
+                    <select name="specialist_rating" class="w-full px-3 py-2 border border-gray-300 rounded-md" aria-label="Select specialist rating" title="Select specialist rating">
+                        <option value="">Select rating</option>
+                        <option value="5">5 - Excellent</option>
+                        <option value="4">4 - Good</option>
+                        <option value="3">3 - Average</option>
+                        <option value="2">2 - Poor</option>
+                        <option value="1">1 - Very Poor</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Process Rating</label>
+                    <select name="process_rating" class="w-full px-3 py-2 border border-gray-300 rounded-md" aria-label="Select process rating" title="Select process rating">
+                        <option value="">Select rating</option>
+                        <option value="5">5 - Excellent</option>
+                        <option value="4">4 - Good</option>
+                        <option value="3">3 - Average</option>
+                        <option value="2">2 - Poor</option>
+                        <option value="1">1 - Very Poor</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Timeline Rating</label>
+                    <select name="timeline_rating" class="w-full px-3 py-2 border border-gray-300 rounded-md" aria-label="Select timeline rating" title="Select timeline rating">
+                        <option value="">Select rating</option>
+                        <option value="5">5 - Excellent</option>
+                        <option value="4">4 - Good</option>
+                        <option value="3">3 - Average</option>
+                        <option value="2">2 - Poor</option>
+                        <option value="1">1 - Very Poor</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Feedback</label>
+                    <textarea name="feedback_text" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Improvement Suggestions</label>
+                    <textarea name="improvement_suggestions" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="would_recommend" class="mr-2">
+                        <span class="text-sm text-gray-600">Would you recommend our setup services?</span>
+                    </label>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('submit-feedback-modal')" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Submit Feedback</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/templates/js/setup-services-multi-tenant-service.js"></script>
+    <script>
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        function refreshSetupData() {
+            if (window.setupDashboard) {
+                window.setupDashboard.refreshAllData();
+            }
+        }
+
+        function generateSetupReport() {
+            if (window.setupDashboard) {
+                const endDate = new Date().toISOString().split('T')[0];
+                const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                
+                window.setupDashboard.setupService.generateSetupReport('progress', startDate, endDate)
+                    .then(() => {
+                        alert('Setup report generated successfully!');
+                    })
+                    .catch(error => {
+                        alert('Failed to generate report: ' + error.message);
+                    });
+            }
+        }
+
+        function addTask() {
+            document.getElementById('add-task-modal').style.display = 'block';
+        }
+
+        function assignSpecialist() {
+            document.getElementById('assign-specialist-modal').style.display = 'block';
+            // Populate specialist options
+            if (window.setupDashboard && window.setupDashboard.specialists) {
+                const select = document.querySelector('#assign-specialist-form select[name="specialist_id"]');
+                select.innerHTML = '<option value="">Select specialist</option>' +
+                    window.setupDashboard.specialists.map(specialist => 
+                        `<option value="${specialist.id}">${specialist.specialist_name} - ${specialist.availability_status}</option>`
+                    ).join('');
+            }
+        }
+
+        function submitFeedback() {
+            document.getElementById('submit-feedback-modal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Handle add task form submission
+        document.getElementById('add-task-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const taskData = {
+                task_name: formData.get('task_name'),
+                task_description: formData.get('task_description'),
+                task_category: formData.get('task_category'),
+                task_type: formData.get('task_type'),
+                estimated_duration_hours: parseInt(formData.get('estimated_duration_hours')) || 0,
+                priority: formData.get('priority'),
+                assigned_to: formData.get('assigned_to'),
+                due_date: formData.get('due_date')
+            };
+
+            try {
+                await window.setupDashboard.setupService.addTask(taskData);
+                closeModal('add-task-modal');
+                e.target.reset();
+                await window.setupDashboard.loadOnboardingTasks();
+                alert('Task added successfully!');
+            } catch (error) {
+                alert('Error adding task: ' + error.message);
+            }
+        });
+
+        // Handle assign specialist form submission
+        document.getElementById('assign-specialist-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const assignmentData = {
+                specialist_id: parseInt(formData.get('specialist_id')),
+                assignment_notes: formData.get('assignment_notes'),
+                estimated_completion_date: formData.get('estimated_completion_date')
+            };
+
+            try {
+                await window.setupDashboard.setupService.assignSpecialist(assignmentData.specialist_id, assignmentData);
+                closeModal('assign-specialist-modal');
+                e.target.reset();
+                await window.setupDashboard.loadSpecialistAssignments();
+                alert('Specialist assigned successfully!');
+            } catch (error) {
+                alert('Error assigning specialist: ' + error.message);
+            }
+        });
+
+        // Handle submit feedback form submission
+        document.getElementById('submit-feedback-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const feedbackData = {
+                feedback_type: formData.get('feedback_type'),
+                overall_rating: parseInt(formData.get('overall_rating')),
+                specialist_rating: parseInt(formData.get('specialist_rating')) || null,
+                process_rating: parseInt(formData.get('process_rating')) || null,
+                timeline_rating: parseInt(formData.get('timeline_rating')) || null,
+                feedback_text: formData.get('feedback_text'),
+                improvement_suggestions: formData.get('improvement_suggestions'),
+                would_recommend: formData.has('would_recommend')
+            };
+
+            try {
+                await window.setupDashboard.setupService.submitFeedback(feedbackData);
+                closeModal('submit-feedback-modal');
+                e.target.reset();
+                await window.setupDashboard.loadFeedback();
+                alert('Feedback submitted successfully!');
+            } catch (error) {
+                alert('Error submitting feedback: ' + error.message);
+            }
+        });
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
