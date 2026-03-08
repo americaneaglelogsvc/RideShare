@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Store Optimization Dashboard - UWD</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .notification { position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: 5px; color: white; z-index: 1000; }
+        .notification.success { background: #10b981; }
+        .notification.error { background: #ef4444; }
+        .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin: 10px 0; }
+        .chart-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 10px 0; }
+        .btn-primary { background: #3b82f6; color: white; padding: 8px 16px; border-radius: 5px; text-decoration: none; }
+        .btn-secondary { background: #6b7280; color: white; padding: 8px 16px; border-radius: 5px; text-decoration: none; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal-content { background: white; margin: 5% auto; padding: 20px; border-radius: 10px; width: 90%; max-width: 600px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-button { background: #f3f4f6; color: #374151; padding: 10px 20px; border: none; cursor: pointer; }
+        .tab-button.active { background: #3b82f6; color: white; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center">
+                    <i class="fas fa-store text-blue-600 text-2xl mr-3"></i>
+                    <h1 class="text-2xl font-bold text-gray-900">App Store Optimization Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500">Tenant: <span id="tenant-name" class="font-medium">Goldravenia</span></span>
+                    <button onclick="refreshASOData()" class="btn-secondary">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh
+                    </button>
+                    <button onclick="generateASOReport()" class="btn-primary">
+                        <i class="fas fa-chart-bar mr-2"></i>Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- ASO Score Overview -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">ASO Performance Overview</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm opacity-90">ASO Score</p>
+                            <p class="text-2xl font-bold" id="aso-score">0/100</p>
+                        </div>
+                        <i class="fas fa-chart-line text-3xl opacity-50"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm opacity-90">Total Downloads</p>
+                            <p class="text-2xl font-bold" id="total-downloads">0</p>
+                        </div>
+                        <i class="fas fa-download text-3xl opacity-50"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm opacity-90">Conversion Rate</p>
+                            <p class="text-2xl font-bold" id="conversion-rate">0%</p>
+                        </div>
+                        <i class="fas fa-percentage text-3xl opacity-50"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm opacity-90">Avg Rating</p>
+                            <p class="text-2xl font-bold" id="avg-rating">0.0</p>
+                        </div>
+                        <i class="fas fa-star text-3xl opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab Navigation -->
+        <section class="mb-6">
+            <div class="flex space-x-1 bg-gray-200 p-1 rounded-lg">
+                <button class="tab-button active" onclick="switchTab('performance')">Performance</button>
+                <button class="tab-button" onclick="switchTab('reviews')">Reviews</button>
+                <button class="tab-button" onclick="switchTab('keywords')">Keywords</button>
+                <button class="tab-button" onclick="switchTab('ab-tests')">A/B Tests</button>
+                <button class="tab-button" onclick="switchTab('competitors')">Competitors</button>
+                <button class="tab-button" onclick="switchTab('automation')">Automation</button>
+            </div>
+        </section>
+
+        <!-- Tab Content -->
+        <section>
+            <!-- Performance Tab -->
+            <div id="performance-tab" class="tab-content active">
+                <div class="chart-container">
+                    <h3 class="text-lg font-semibold mb-4">Performance Charts</h3>
+                    <div id="performance-charts">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading performance data...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews Tab -->
+            <div id="reviews-tab" class="tab-content">
+                <div class="chart-container">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">App Store Reviews</h3>
+                        <select id="review-filter" class="px-3 py-2 border border-gray-300 rounded-md" aria-label="Filter reviews by status" title="Filter reviews by status">
+                            <option value="all">All Reviews</option>
+                            <option value="pending">Pending Response</option>
+                            <option value="responded">Responded</option>
+                            <option value="flagged">Flagged</option>
+                        </select>
+                    </div>
+                    <div id="review-section">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading reviews...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Keywords Tab -->
+            <div id="keywords-tab" class="tab-content">
+                <div class="chart-container">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">Keyword Performance</h3>
+                        <button onclick="addKeyword()" class="btn-primary">
+                            <i class="fas fa-plus mr-2"></i>Add Keyword
+                        </button>
+                    </div>
+                    <div id="keyword-section">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading keyword data...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- A/B Tests Tab -->
+            <div id="ab-tests-tab" class="tab-content">
+                <div class="chart-container">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">A/B Testing</h3>
+                        <button onclick="createABTest()" class="btn-primary">
+                            <i class="fas fa-plus mr-2"></i>Create Test
+                        </button>
+                    </div>
+                    <div id="ab-tests-section">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading A/B tests...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Competitors Tab -->
+            <div id="competitors-tab" class="tab-content">
+                <div class="chart-container">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">Competitor Analysis</h3>
+                        <button onclick="addCompetitor()" class="btn-primary">
+                            <i class="fas fa-plus mr-2"></i>Add Competitor
+                        </button>
+                    </div>
+                    <div id="competitor-section">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading competitor data...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Automation Tab -->
+            <div id="automation-tab" class="tab-content">
+                <div class="chart-container">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">Automation Rules</h3>
+                        <button onclick="createAutomationRule()" class="btn-primary">
+                            <i class="fas fa-plus mr-2"></i>Create Rule
+                        </button>
+                    </div>
+                    <div id="automation-section">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading automation rules...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Create AB Test Modal -->
+    <div id="create-ab-test-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Create A/B Test</h3>
+                <button onclick="closeModal('create-ab-test-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="create-ab-test-form">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Test Name</label>
+                    <input type="text" name="test_name" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Platform</label>
+                    <select name="platform" required class="w-full px-3 py-2 border border-gray-300 rounded-md" aria-label="Select platform" title="Select platform">
+                        <option value="">Select platform</option>
+                        <option value="ios">iOS</option>
+                        <option value="android">Android</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Asset Type</label>
+                    <select name="asset_type" required class="w-full px-3 py-2 border border-gray-300 rounded-md" aria-label="Select asset type" title="Select asset type">
+                        <option value="">Select type</option>
+                        <option value="icon">App Icon</option>
+                        <option value="screenshots">Screenshots</option>
+                        <option value="description">Description</option>
+                        <option value="keywords">Keywords</option>
+                    </select>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Variant A</label>
+                        <textarea name="variant_a" rows="3" required class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Variant B</label>
+                        <textarea name="variant_b" rows="3" required class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('create-ab-test-modal')" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Create Test</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/templates/js/aso-multi-tenant-service.js"></script>
+    <script>
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        function refreshASOData() {
+            if (window.asoDashboard) {
+                window.asoDashboard.refreshAllData();
+            }
+        }
+
+        function generateASOReport() {
+            if (window.asoDashboard) {
+                const endDate = new Date().toISOString().split('T')[0];
+                const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                
+                window.asoDashboard.asoService.generateASOReport(startDate, endDate)
+                    .then(() => {
+                        alert('ASO report generated successfully!');
+                    })
+                    .catch(error => {
+                        alert('Failed to generate report: ' + error.message);
+                    });
+            }
+        }
+
+        function createABTest() {
+            document.getElementById('create-ab-test-modal').style.display = 'block';
+        }
+
+        function addKeyword() {
+            // Implementation for adding keywords
+            console.log('Add keyword functionality');
+        }
+
+        function addCompetitor() {
+            // Implementation for adding competitors
+            console.log('Add competitor functionality');
+        }
+
+        function createAutomationRule() {
+            // Implementation for creating automation rules
+            console.log('Create automation rule functionality');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Handle create AB test form submission
+        document.getElementById('create-ab-test-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const testData = {
+                test_name: formData.get('test_name'),
+                platform: formData.get('platform'),
+                asset_type: formData.get('asset_type'),
+                variant_a: formData.get('variant_a'),
+                variant_b: formData.get('variant_b')
+            };
+
+            try {
+                await window.asoDashboard.asoService.createABTest(testData);
+                closeModal('create-ab-test-modal');
+                e.target.reset();
+                alert('A/B test created successfully!');
+            } catch (error) {
+                alert('Error creating A/B test: ' + error.message);
+            }
+        });
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
