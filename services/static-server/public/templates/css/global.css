@@ -1,0 +1,301 @@
+/* Global B2B Infrastructure Platform Styles */
+
+/* B2B Brand Colors - Infrastructure Focus */
+:root {
+  /* Primary Infrastructure Colors */
+  --b2b-primary: #1e40af;
+  --b2b-primary-dark: #1e3a8a;
+  --b2b-primary-light: #3b82f6;
+  --b2b-accent: #d4a017;
+  --b2b-accent-light: #f59e0b;
+  
+  /* Enterprise Colors */
+  --enterprise-blue: #0f172a;
+  --enterprise-gray: #475569;
+  --success-green: #10b981;
+  --warning-amber: #f59e0b;
+  --error-red: #ef4444;
+  
+  /* Typography */
+  --font-b2b: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Inter', sans-serif;
+}
+
+/* B2B Component Styles */
+.b2b-hero {
+  background: linear-gradient(135deg, var(--enterprise-blue) 0%, var(--b2b-primary-dark) 100%);
+  color: white;
+}
+
+.b2b-section {
+  padding: 5rem 0;
+}
+
+.b2b-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* B2B Typography */
+.b2b-headline {
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  color: var(--enterprise-blue);
+}
+
+.b2b-subheadline {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  color: var(--enterprise-gray);
+  margin-bottom: 2rem;
+}
+
+/* B2B Button Styles */
+.btn-demo-primary {
+  background: var(--b2b-primary);
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-demo-primary:hover {
+  background: var(--b2b-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.btn-demo-secondary {
+  background: transparent;
+  color: var(--b2b-primary);
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  border: 2px solid var(--b2b-primary);
+  cursor: pointer;
+}
+
+.btn-demo-secondary:hover {
+  background: var(--b2b-primary);
+  color: white;
+}
+
+/* B2B Card Styles */
+.b2b-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+}
+
+.b2b-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+}
+
+.b2b-card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--enterprise-blue);
+  margin-bottom: 1rem;
+}
+
+.b2b-card-description {
+  color: var(--enterprise-gray);
+  line-height: 1.6;
+}
+
+/* B2B Trust Signals */
+.trust-logos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
+  padding: 3rem 0;
+  background: #f8fafc;
+}
+
+.trust-logo {
+  height: 40px;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.trust-logo:hover {
+  opacity: 1;
+}
+
+/* B2B Metrics */
+.b2b-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  margin: 3rem 0;
+}
+
+.b2b-metric {
+  text-align: center;
+}
+
+.b2b-metric-number {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--b2b-primary);
+  margin-bottom: 0.5rem;
+}
+
+.b2b-metric-label {
+  color: var(--enterprise-gray);
+  font-weight: 500;
+}
+
+/* B2B Feature Grid */
+.b2b-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin: 3rem 0;
+}
+
+.b2b-feature {
+  text-align: left;
+}
+
+.b2b-feature-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--b2b-primary);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+/* B2B Form Styles */
+.b2b-form {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.b2b-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.b2b-input:focus {
+  outline: none;
+  border-color: var(--b2b-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.b2b-label {
+  display: block;
+  font-weight: 600;
+  color: var(--enterprise-blue);
+  margin-bottom: 0.5rem;
+}
+
+/* B2B Pricing Styles */
+.b2b-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin: 3rem 0;
+}
+
+.b2b-pricing-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  text-align: center;
+  border: 2px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.b2b-pricing-card.featured {
+  border-color: var(--b2b-primary);
+  transform: scale(1.05);
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+}
+
+.b2b-price {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--b2b-primary);
+  margin-bottom: 0.5rem;
+}
+
+.b2b-price-period {
+  color: var(--enterprise-gray);
+  font-weight: 500;
+}
+
+/* B2B Responsive Design */
+@media (max-width: 768px) {
+  .b2b-headline {
+    font-size: 2.5rem;
+  }
+  
+  .b2b-subheadline {
+    font-size: 1.125rem;
+  }
+  
+  .b2b-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .trust-logos {
+    flex-wrap: wrap;
+    gap: 2rem;
+  }
+  
+  .b2b-pricing-card.featured {
+    transform: scale(1);
+  }
+}
+
+/* B2B Animation Classes */
+.fade-in-up {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeInUp 0.8s ease forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* B2B Utility Classes */
+.text-b2b-primary { color: var(--b2b-primary); }
+.text-b2b-dark { color: var(--enterprise-blue); }
+.text-b2b-gray { color: var(--enterprise-gray); }
+.bg-b2b-primary { background-color: var(--b2b-primary); }
+.bg-b2b-light { background-color: #f8fafc; }
+.border-b2b { border-color: var(--b2b-primary); }

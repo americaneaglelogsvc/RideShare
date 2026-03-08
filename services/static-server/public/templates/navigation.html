@@ -1,0 +1,68 @@
+<!-- Unified B2B Navigation Component - Infrastructure Focus -->
+<nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+        <div class="flex items-center justify-between">
+            <!-- Logo -->
+            <a href="/" class="flex items-center space-x-3 group">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center transform transition-transform group-hover:scale-105">
+                    <i data-lucide="server" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <span class="font-bold text-xl text-gray-900">UrWay Dispatch</span>
+                    <div class="text-xs text-gray-500 font-medium">Infrastructure Platform</div>
+                </div>
+            </a>
+            
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="/" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Platform</a>
+                <a href="/pricing.html" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Pricing</a>
+                <a href="/for-operators.html" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">For Operators</a>
+                <a href="/contact.html" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Contact</a>
+                <button onclick="openDemoCalendar()" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center">
+                    <i data-lucide="calendar" class="w-4 h-4 mr-2"></i>
+                    Request a Demo
+                </button>
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <i data-lucide="menu" class="w-6 h-6 text-gray-700"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Navigation -->
+        <div id="mobileMenu" class="hidden md:hidden py-4 border-t border-gray-200">
+            <div class="flex flex-col space-y-3">
+                <a href="/" class="text-gray-700 hover:text-blue-600 font-medium py-2 transition-colors">Platform</a>
+                <a href="/pricing.html" class="text-gray-700 hover:text-blue-600 font-medium py-2 transition-colors">Pricing</a>
+                <a href="/for-operators.html" class="text-gray-700 hover:text-blue-600 font-medium py-2 transition-colors">For Operators</a>
+                <a href="/contact.html" class="text-gray-700 hover:text-blue-600 font-medium py-2 transition-colors">Contact</a>
+                <button onclick="openDemoCalendar()" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center">
+                    <i data-lucide="calendar" class="w-4 h-4 mr-2"></i>
+                    Request a Demo
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+// Mobile menu toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    
+    if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', function() {
+            mobileMenu.classList.toggle('hidden');
+        });
+    }
+});
+
+// Demo calendar integration
+function openDemoCalendar() {
+    // Replace with actual calendar widget integration
+    window.location.href = '/contact.html#demo-booking';
+}
+</script>

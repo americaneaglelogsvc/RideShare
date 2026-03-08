@@ -35,7 +35,55 @@
         
         .theme-preview:hover {
             transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Phone Mockup Styles */
+        .phone-mockup {
+            position: relative;
+        }
+        
+        .phone-frame {
+            background: #1a1a1a;
+            border-radius: 2rem;
+            padding: 0.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+        }
+        
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1.5rem;
+            height: 0.25rem;
+            background: #4a5568;
+            border-radius: 0.125rem;
+        }
+        
+        .phone-screen {
+            border-radius: 1.5rem;
+            height: 300px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* CSS Variables for Theme System */
+        :root {
+            --brand-primary: #d4a017;
+            --brand-secondary: #0f172a;
+            --brand-accent: #f59e0b;
+            --brand-surface: #fef3c7;
+            --brand-text: #1f2937;
+            --brand-textLight: #6b7280;
+            --brand-gradient: linear-gradient(135deg, #d4a017 0%, #f59e0b 100%);
+        }
+        
+        /* Theme Transition Animations */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
         
         .mobile-frame {
@@ -62,18 +110,73 @@
 </head>
 <body class="bg-gray-50" x-data="brandingShowcase()">
     
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-                <a href="/" class="flex items-center space-x-2">
-                    <i data-lucide="car" class="w-8 h-8 text-blue-600"></i>
-                    <span class="text-xl font-bold text-gray-900">UrWay Dispatch</span>
-                </a>
-                <a href="/" class="text-blue-600 hover:text-blue-700 font-medium">← Back to Home</a>
-            </div>
+    <!-- Universal Navigation Container -->
+<!-- Progressive Enhancement Styles -->
+<style>
+  .js-only { display: block !important; }
+  .no-js-nav { display: none !important; }
+  
+  /* Fallback styles for no-JavaScript browsers */
+  noscript .js-only { display: none !important; }
+  noscript .no-js-nav { display: block !important; }
+</style>
+
+<!-- Universal Navigation Container -->
+<div id="global-navigation" class="js-only">
+  <!-- Navigation will be dynamically rendered here -->
+</div>
+
+<!-- Progressive Enhancement Scripts -->
+<script src="/templates/js/navigation-config.js"></script>
+<script src="/templates/js/page-context.js"></script>
+<script src="/templates/js/navigation-performance.js"></script>
+<script src="/templates/js/navigation-renderer.js"></script>
+
+<script>
+  // Initialize navigation when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    const currentPath = window.PAGE_CONTEXT.normalizePathname(window.location.pathname);
+    renderNavigation('global-navigation', currentPath);
+    initializeMobileMenu();
+  });
+  
+  // Handle client-side routing (if applicable)
+  window.addEventListener('popstate', function() {
+    const currentPath = window.PAGE_CONTEXT.normalizePathname(window.location.pathname);
+    renderNavigation('global-navigation', currentPath);
+  });
+  
+  // Handle navigation after dynamic content changes
+  window.addEventListener('navigation-update', function() {
+    const currentPath = window.PAGE_CONTEXT.normalizePathname(window.location.pathname);
+    renderNavigation('global-navigation', currentPath);
+  });
+</script>
+
+<!-- Fallback Navigation for browsers with JavaScript disabled -->
+<noscript>
+  <style>
+    .js-only { display: none !important; }
+    .no-js-nav { display: block !important; }
+  </style>
+  <nav class="bg-white shadow-sm sticky top-0 z-50 no-js-nav">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <a href="/" class="flex items-center space-x-2">
+          <i data-lucide="server" class="w-8 h-8 text-blue-600"></i>
+          <span class="text-xl font-bold text-gray-900">UrWay Dispatch</span>
+        </a>
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2">
+            <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
+            <span class="text-sm text-purple-600 font-medium">Branding Demo</span>
+          </div>
+          <a href="/" class="text-blue-600 hover:text-blue-700 font-medium">← Back to Home</a>
         </div>
-    </nav>
+      </div>
+    </div>
+  </nav>
+</noscript>
 
     <!-- Hero Section -->
     <section class="bg-gradient-to-br from-blue-600 to-purple-700 text-white py-16">
@@ -93,15 +196,13 @@
         <div class="max-w-6xl mx-auto px-6">
             <div class="flex justify-center">
                 <div class="bg-gray-100 rounded-lg p-1 inline-flex">
-                    <button @click="activeTheme = 'goldravenia'" 
-                            :class="activeTheme === 'goldravenia' ? 'bg-yellow-500 text-white shadow-md' : 'text-gray-600'"
-                            class="px-6 py-3 rounded-md font-medium transition-all">
-                        🏆 GoldRavenia (Luxury)
+                    <button data-theme-switcher="elegance" 
+                            class="px-6 py-3 rounded-md font-medium transition-all hover:scale-105">
+                        🏆 Elegance Theme (Luxury)
                     </button>
-                    <button @click="activeTheme = 'blackravenia'" 
-                            :class="activeTheme === 'blackravenia' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-600'"
-                            class="px-6 py-3 rounded-md font-medium transition-all">
-                        🚀 BlackRavenia (Premium)
+                    <button data-theme-switcher="modernDark" 
+                            class="px-6 py-3 rounded-md font-medium transition-all hover:scale-105">
+                        🚀 Modern Dark Theme (Premium)
                     </button>
                 </div>
             </div>
@@ -112,8 +213,8 @@
     <section class="py-16">
         <div class="max-w-6xl mx-auto px-6">
             <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-gray-900 mb-4">
-                    Live <span x-text="activeTheme === 'goldravenia' ? 'GoldRavenia' : 'BlackRavenia'"></span> Experience
+                <h2 class="text-3xl font-bold text-gray-900 mb-4" data-theme-header>
+                    Live Elegance Experience
                 </h2>
                 <p class="text-xl text-gray-600">
                     See your brand in action across mobile apps, customer website, and admin console
@@ -125,61 +226,58 @@
                 <!-- Mobile App Preview -->
                 <div class="theme-preview bg-white rounded-xl p-6">
                     <h3 class="text-lg font-bold text-gray-900 mb-4">Mobile Apps</h3>
-                    <div class="mobile-frame mx-auto" style="max-width: 200px;">
-                        <div class="mobile-screen" :class="activeTheme + '-theme'">
-                            <div class="p-4 h-full flex flex-col">
-                                <!-- App Header -->
-                                <div class="flex items-center justify-between mb-4">
-                                    <div class="flex items-center space-x-2">
-                                        <div class="w-8 h-8 rounded-full flex items-center justify-center"
-                                             :style="activeTheme === 'goldravenia' ? 'background: var(--brand-primary)' : 'background: var(--brand-primary)'">
-                                            <i data-lucide="car" class="w-4 h-4 text-white"></i>
+                    <div class="phone-mockup mx-auto" style="max-width: 200px;">
+                        <div class="phone-frame">
+                            <div class="phone-screen" style="background: var(--brand-surface);">
+                                <div class="p-4 h-full flex flex-col">
+                                    <!-- App Header -->
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center"
+                                                 style="background: var(--brand-primary);">
+                                                <i data-lucide="car" class="w-4 h-4 text-white"></i>
+                                            </div>
+                                            <span class="font-bold text-sm" style="color: var(--brand-primary);">
+                                                <span data-theme-label>Elegance</span>
+                                            </span>
                                         </div>
-                                        <span class="font-bold text-sm"
-                                              :style="activeTheme === 'goldravenia' ? 'color: var(--brand-primary)' : 'color: var(--brand-primary)'">
-                                            <span x-text="activeTheme === 'goldravenia' ? 'GoldRavenia' : 'BlackRavenia'"></span>
-                                        </span>
-                                    </div>
-                                    <i data-lucide="menu" class="w-5 h-5 text-gray-600"></i>
-                                </div>
-                                
-                                <!-- Booking Interface -->
-                                <div class="flex-1 space-y-3">
-                                    <div class="p-3 rounded-lg"
-                                         :style="activeTheme === 'goldravenia' ? 'background: #fef3c7' : 'background: #f3f4f6'">
-                                        <div class="text-xs font-medium mb-1"
-                                             :style="activeTheme === 'goldravenia' ? 'color: var(--brand-primary)' : 'color: var(--brand-primary)'">
-                                            Where to?
-                                        </div>
-                                        <div class="text-xs text-gray-600">Enter pickup location</div>
+                                        <i data-lucide="menu" class="w-5 h-5 text-gray-600"></i>
                                     </div>
                                     
-                                    <div class="p-3 rounded-lg"
-                                         :style="activeTheme === 'goldravenia' ? 'background: #fef3c7' : 'background: #f3f4f6'">
-                                        <div class="text-xs font-medium mb-1"
-                                             :style="activeTheme === 'goldravenia' ? 'color: var(--brand-primary)' : 'color: var(--brand-primary)'">
-                                            Drop-off
+                                    <!-- Booking Interface -->
+                                    <div class="flex-1 space-y-3">
+                                        <div class="p-3 rounded-lg" style="background: var(--brand-surface);">
+                                            <div class="text-xs font-medium mb-1" style="color: var(--brand-primary);">
+                                                Where to?
+                                            </div>
+                                            <div class="text-xs text-gray-600">Enter pickup location</div>
                                         </div>
-                                        <div class="text-xs text-gray-600">Enter destination</div>
+                                        
+                                        <div class="p-3 rounded-lg" style="background: var(--brand-surface);">
+                                            <div class="text-xs font-medium mb-1" style="color: var(--brand-primary);">
+                                                Drop-off
+                                            </div>
+                                            <div class="text-xs text-gray-600">Enter destination</div>
+                                        </div>
+                                        
+                                        <button class="w-full py-2 rounded-lg text-white text-sm font-medium"
+                                                style="background: var(--brand-gradient);">
+                                            Book Ride
+                                        </button>
                                     </div>
                                     
-                                    <button class="w-full py-2 rounded-lg text-white text-sm font-medium"
-                                            :style="activeTheme === 'goldravenia' ? 'background: var(--brand-gradient)' : 'background: var(--brand-gradient)'">
-                                        Book Ride
-                                    </button>
-                                </div>
-                                
-                                <!-- Bottom Navigation -->
-                                <div class="flex justify-around pt-3 border-t border-gray-200">
-                                    <i data-lucide="home" class="w-4 h-4" 
-                                       :style="activeTheme === 'goldravenia' ? 'color: var(--brand-primary)' : 'color: var(--brand-primary)'"></i>
-                                    <i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i>
-                                    <i data-lucide="user" class="w-4 h-4 text-gray-400"></i>
+                                    <!-- Bottom Navigation -->
+                                    <div class="flex justify-around pt-3 border-t border-gray-200">
+                                        <i data-lucide="home" class="w-4 h-4" style="color: var(--brand-primary);"></i>
+                                        <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
+                                        <i data-lucide="user" class="w-4 h-4 text-gray-400"></i>
+                                        <i data-lucide="settings" class="w-4 h-4 text-gray-400"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <p class="text-center text-sm text-gray-600 mt-4">Rider & Driver Apps</p>
+                    <p class="text-center text-sm text-gray-600 mt-4">Branded Mobile Apps</p>
                 </div>
 
                 <!-- Customer Website Preview -->
@@ -525,6 +623,10 @@
                 Start with our templates or create something completely unique to your business
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button data-copy-tokens class="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-50 transition-colors shadow-lg flex items-center justify-center">
+                    <i data-lucide="copy" class="w-5 h-5 mr-2"></i>
+                    Copy Design Tokens
+                </button>
                 <button onclick="window.location.href='/roi-calculator.html'" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-50 transition-colors shadow-lg">
                     Calculate ROI
                 </button>
@@ -535,13 +637,26 @@
         </div>
     </section>
 
+    <!-- Universal Footer Container -->
+    <div id="global-footer" class="js-only">
+      <!-- Footer will be dynamically rendered here -->
+    </div>
+
+    <!-- Progressive Enhancement Scripts -->
+    <script src="/templates/js/footer-config.js"></script>
+    <script src="/templates/js/footer-renderer.js"></script>
+    <script src="/templates/js/design-system.js"></script>
+
     <script>
         function brandingShowcase() {
             return {
-                activeTheme: 'goldravenia',
+                activeTheme: 'elegance',
                 
                 init() {
-                    // Initialize with default theme
+                    // Initialize design system
+                    if (typeof window.DESIGN_SYSTEM !== 'undefined') {
+                        window.DESIGN_SYSTEM.init();
+                    }
                 }
             }
         }
