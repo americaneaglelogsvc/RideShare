@@ -1,0 +1,40 @@
+<svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="180" height="180" fill="#1A1A1A" rx="32"/>
+  
+  <!-- Apple Touch Icon -->
+  <g transform="translate(45, 45)">
+    <!-- Winged Shield Focus -->
+    <g transform="translate(0, 0)">
+      <!-- Shield Base -->
+      <path d="M45 11 L45 68 Q45 90 67.5 101 Q90 90 90 68 L90 11 Z" 
+            fill="#E4CD96" stroke="#BA8E48" stroke-width="3"/>
+      
+      <!-- Wings -->
+      <path d="M39 22 Q24 34 14 56 Q24 68 39 80 L39 22 Z" 
+            fill="#E4CD96" stroke="#BA8E48" stroke-width="2"/>
+      
+      <path d="M96 22 Q111 34 121 56 Q111 68 96 80 L96 22 Z" 
+            fill="#E4CD96" stroke="#BA8E48" stroke-width="2"/>
+      
+      <!-- Simplified Eagle Heads -->
+      <g transform="translate(28, 28)">
+        <circle cx="0" cy="0" r="11" fill="#E4CD96" stroke="#BA8E48" stroke-width="1"/>
+        <path d="M-4 -3 Q0 -5 4 -3" fill="none" stroke="#BA8E48" stroke-width="1"/>
+        <circle cx="-3" cy="-1" r="1" fill="#BA8E48"/>
+        <circle cx="3" cy="-1" r="1" fill="#BA8E48"/>
+      </g>
+      
+      <g transform="translate(107, 28)">
+        <circle cx="0" cy="0" r="11" fill="#E4CD96" stroke="#BA8E48" stroke-width="1"/>
+        <path d="M-4 -3 Q0 -5 4 -3" fill="none" stroke="#BA8E48" stroke-width="1"/>
+        <circle cx="-3" cy="-1" r="1" fill="#BA8E48"/>
+        <circle cx="3" cy="-1" r="1" fill="#BA8E48"/>
+      </g>
+      
+      <!-- GR Monogram -->
+      <text x="67.5" y="56" font-family="serif" font-size="22" font-weight="bold" 
+            text-anchor="middle" fill="#1A1A1A">GR</text>
+    </g>
+  </g>
+</svg>

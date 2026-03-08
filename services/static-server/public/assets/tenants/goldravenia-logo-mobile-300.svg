@@ -1,0 +1,29 @@
+<svg width="300" height="60" viewBox="0 0 300 60" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="300" height="60" fill="#1A1A1A"/>
+  
+  <!-- Simplified Horizontal Mark (300px) -->
+  <g transform="translate(10, 12)">
+    <!-- Simplified Winged Shield -->
+    <g transform="translate(0, 0)">
+      <!-- Shield Base -->
+      <path d="M17 2 L17 22 Q17 30 25 35 Q33 30 33 22 L33 2 Z" 
+            fill="#E4CD96" stroke="#BA8E48" stroke-width="1"/>
+      
+      <!-- Simplified Wings -->
+      <path d="M15 5 Q10 10 7 17 Q10 20 15 22 L15 5 Z" 
+            fill="#E4CD96" stroke="#BA8E48" stroke-width="1"/>
+      
+      <path d="M35 5 Q40 10 43 17 Q40 20 35 22 L35 5 Z" 
+            fill="#E4CD96" stroke="#BA8E48" stroke-width="1"/>
+      
+      <!-- Simplified GR Monogram -->
+      <text x="25" y="20" font-family="serif" font-size="10" font-weight="bold" 
+            text-anchor="middle" fill="#1A1A1A">GR</text>
+    </g>
+    
+    <!-- Brand Name Only (No Tagline) -->
+    <text x="55" y="20" font-family="serif" font-size="16" font-weight="bold" 
+          text-anchor="start" fill="#E4CD96">GOLDRAVENIA</text>
+  </g>
+</svg>

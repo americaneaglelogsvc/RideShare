@@ -1,0 +1,33 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="192" height="192" fill="#1A1A1A" rx="24"/>
+  
+  <!-- GoldRavenia Mobile Icon -->
+  <g transform="translate(46, 46)">
+    <!-- Shield Outline -->
+    <path d="M50 10 L50 70 Q50 90 70 100 Q90 90 90 70 L90 10 Z" 
+          fill="none" stroke="#E4CD96" stroke-width="4"/>
+    
+    <!-- Winged Shield Outline -->
+    <path d="M45 15 Q25 30 20 50 Q25 60 45 75 L45 15 Z" 
+          fill="none" stroke="#E4CD96" stroke-width="3"/>
+    
+    <path d="M95 15 Q115 30 120 50 Q115 60 95 75 L95 15 Z" 
+          fill="none" stroke="#E4CD96" stroke-width="3"/>
+    
+    <!-- Simplified Eagle Heads Outline -->
+    <g transform="translate(30, 35)">
+      <circle cx="0" cy="0" r="12" fill="none" stroke="#E4CD96" stroke-width="2"/>
+      <path d="M-6 -3 Q0 -8 6 -3" fill="none" stroke="#E4CD96" stroke-width="2"/>
+    </g>
+    
+    <g transform="translate(110, 35)">
+      <circle cx="0" cy="0" r="12" fill="none" stroke="#E4CD96" stroke-width="2"/>
+      <path d="M-6 -3 Q0 -8 6 -3" fill="none" stroke="#E4CD96" stroke-width="2"/>
+    </g>
+    
+    <!-- GR Monogram Outline -->
+    <text x="70" y="65" font-family="serif" font-size="32" font-weight="bold" 
+          text-anchor="middle" fill="#E4CD96">GR</text>
+  </g>
+</svg>

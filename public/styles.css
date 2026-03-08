@@ -104,16 +104,38 @@
   --brand-accent-light: #fbbf24;
 }
 
-/* GoldRavenia Typography & Layout System */
+/* GoldRavenia Typography & Layout System - CRITICAL CORRECTIVE ACTION */
 [data-tenant="goldravenia"] {
-  /* Typography */
-  --brand-font-serif: 'Playfair Display', serif;
-  --brand-font-sans: 'Inter', sans-serif;
+  /* AUTHENTIC TYPEFACE MAPPING */
+  --brand-font-serif: 'Playfair Display', serif; /* Brand Typeface - for H1, H2 headings */
+  --brand-font-sans: 'Inter', sans-serif; /* Functional UI Typeface - body, forms, navigation */
   
   /* Layout Architecture */
-  --brand-spacing-large: 150px;
+  --brand-spacing-large: 150px; /* Negative space requirement */
   --brand-spacing-medium: 80px;
   --brand-spacing-small: 40px;
+}
+
+/* GoldRavenia Global Typography Application */
+[data-tenant="goldravenia"] h1,
+[data-tenant="goldravenia"] h2 {
+  font-family: var(--brand-font-serif);
+  font-weight: 700;
+  color: var(--brand-primary);
+}
+
+[data-tenant="goldravenia"] body,
+[data-tenant="goldravenia"] p,
+[data-tenant="goldravenia"] nav,
+[data-tenant="goldravenia"] .navigation,
+[data-tenant="goldravenia"] form,
+[data-tenant="goldravenia"] input,
+[data-tenant="goldravenia"] button,
+[data-tenant="goldravenia"] .menu,
+[data-tenant="goldravenia"] .ui-element {
+  font-family: var(--brand-font-sans);
+  font-weight: 500;
+  color: var(--brand-text);
 }
 
 /* GoldRavenia Typography Classes */
@@ -224,26 +246,26 @@
   -webkit-text-fill-color: var(--brand-primary) !important;
 }
 
-/* GoldRavenia Theme - Luxury Black Car (DEFINITIVE VISUAL SYSTEM) */
+/* GoldRavenia Theme - ZERO TOLERANCE DEFINITIVE COLOR SYSTEM */
 [data-tenant="goldravenia"] {
-  --brand-primary: #C7A008;
-  --brand-primary-dark: #B08F07;
-  --brand-primary-light: #D1B018;
-  --brand-primary-hover: #D1B018;
-  --brand-accent: #1A1A1A;
-  --brand-accent-light: #2A2A2A;
-  --brand-accent-dark: #0F0F0F;
-  --brand-secondary: #2A2A2A;
+  /* ABSOLUTE EXTRACTIVE COLORS FROM GolDarveniaFinalLogo.png - ZERO TOLERANCE */
+  --brand-primary: #B69B60; /* Core Brand Gold - Rich bronze gold */
+  --brand-primary-dark: #775B3A; /* Shadow Gold - Cool Umber Sepia Gold */
+  --brand-primary-light: #C8A970;
+  --brand-primary-hover: #775B3A; /* Shadow definitions */
+  --brand-accent: #000000; /* Core Background - Absolute Pitch Black */
+  --brand-accent-light: #000000; /* NO VARIATION - ABSOLUTE PITCH BLACK */
+  --brand-accent-dark: #000000; /* NO VARIATION - ABSOLUTE PITCH BLACK */
+  --brand-secondary: #000000; /* NO VARIATION - ABSOLUTE PITCH BLACK */
   --brand-text: #FFFFFF;
   --brand-text-secondary: #E1E1E1;
   --brand-text-muted: #B8B8C8;
-  --brand-background: #1A1A1A;
-  --brand-surface: #2A2A2A;
-  --brand-border: #C7A008;
-  --brand-logo: url('/assets/tenants/goldravenia-logo-winner.svg');
-  --brand-crest: url('/assets/tenants/goldravenia-crest.svg');
-  --brand-icon: url('/assets/tenants/goldravenia-icon.svg');
-  --brand-shadow: 0 4px 20px rgba(199, 160, 8, 0.3);
+  --brand-background: #000000; /* Core Background - Absolute Pitch Black */
+  --brand-surface: #000000; /* NO VARIATION - ABSOLUTE PITCH BLACK */
+  --brand-border: #B69B60; /* Core Brand Gold for borders */
+  --brand-logo: url('/assets/tenants/goldravenia-logo-winner.svg?v=20250308002');
+  --brand-shadow: 0 4px 20px rgba(182, 155, 96, 0.3); /* Core Brand Gold shadow */
+  --brand-shadow-deep: 0 6px 25px rgba(119, 91, 58, 0.4); /* Umber Sepia Gold for depth */
 }
 
 /* BlackRavenia Theme - Premium SUV */
@@ -406,6 +428,70 @@
   --brand-logo: url('/assets/tenants/urbanrush-logo.svg');
   --brand-gradient: linear-gradient(135deg, #dc2626 0%, #fca5a5 100%);
   --brand-shadow: 0 4px 20px rgba(220, 38, 38, 0.3);
+}
+
+/* GoldRavenia Universal Accent Color Application - FORCED CORRECTION */
+[data-tenant="goldravenia"] {
+  background-color: #000000 !important; /* ABSOLUTE PITCH BLACK - NO VARIATION */
+}
+
+/* FORCED ABSOLUTE BACKGROUND OVERRIDE */
+[data-tenant="goldravenia"] body,
+[data-tenant="goldravenia"] html,
+[data-tenant="goldravenia"] .container,
+[data-tenant="goldravenia"] .main,
+[data-tenant="goldravenia"] .section,
+[data-tenant="goldravenia"] .background {
+  background-color: #000000 !important;
+  background-image: none !important;
+}
+
+/* Universal Accent Color (Core Brand Gold #B69B60) - FORCED */
+[data-tenant="goldravenia"] .btn-primary,
+[data-tenant="goldravenia"] .btn-primary:hover,
+[data-tenant="goldravenia"] button.primary,
+[data-tenant="goldravenia"] a.primary,
+[data-tenant="goldravenia"] .active,
+[data-tenant="goldravenia"] .selected {
+  background-color: #B69B60 !important; /* FORCED CORE BRAND GOLD */
+  border-color: #B69B60 !important;
+  color: #000000 !important; /* ABSOLUTE PITCH BLACK TEXT */
+}
+
+[data-tenant="goldravenia"] a,
+[data-tenant="goldravenia"] .link,
+[data-tenant="goldravenia"] .text-link {
+  color: #B69B60 !important; /* FORCED CORE BRAND GOLD */
+}
+
+[data-tenant="goldravenia"] .border-accent,
+[data-tenant="goldravenia"] input:focus,
+[data-tenant="goldravenia"] textarea:focus,
+[data-tenant="goldravenia"] select:focus {
+  border-color: #B69B60 !important; /* FORCED CORE BRAND GOLD */
+  box-shadow: 0 0 0 2px rgba(182, 155, 96, 0.2) !important;
+}
+
+/* Accent Depth (Shadow Gold #775B3A) - FORCED */
+[data-tenant="goldravenia"] .btn-primary:hover,
+[data-tenant="goldravenia"] button.primary:hover,
+[data-tenant="goldravenia"] .cta-button:hover {
+  background-color: #775B3A !important; /* FORCED SHADOW GOLD */
+  box-shadow: 0 6px 25px rgba(119, 91, 58, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+[data-tenant="goldravenia"] .btn-primary:focus,
+[data-tenant="goldravenia"] button.primary:focus {
+  box-shadow: 0 0 0 3px rgba(182, 155, 96, 0.3), 0 6px 25px rgba(119, 91, 58, 0.4) !important;
+}
+
+/* Golden Divider Lines - FORCED */
+[data-tenant="goldravenia"] .divider,
+[data-tenant="goldravenia"] .section-divider {
+  border-color: #B69B60 !important; /* FORCED CORE BRAND GOLD */
+  border-width: 1px;
+  opacity: 0.8;
 }
 
 /* Theme transition utilities */

@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UrWay Dispatch - Mobile Experience Showcase</title>
+    <meta name="description" content="Experience the UrWay Dispatch mobile platform with interactive screen samples and real-world user flows">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        
+        .mobile-frame {
+            background: #1a1a1a;
+            border-radius: 2.5rem;
+            padding: 0.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+        
+        .mobile-frame::before {
+            content: '';
+            position: absolute;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8rem;
+            height: 1.5rem;
+            background: #000;
+            border-radius: 1rem;
+        }
+        
+        .mobile-screen {
+            background: white;
+            border-radius: 2rem;
+            overflow: hidden;
+            height: 600px;
+            position: relative;
+        }
+        
+        .screen-content {
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 25px;
+            background: black;
+            border-radius: 0 0 15px 15px;
+            z-index: 10;
+        }
+        
+        .mobile-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-around;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .nav-item.active {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .nav-item:hover {
+            background: #f3f4f6;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .animate-slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .tenant-gold {
+            --brand-primary: #d4a017;
+            --brand-secondary: #0f172a;
+            --brand-accent: #f59e0b;
+        }
+        
+        .tenant-black {
+            --brand-primary: #1a1a1a;
+            --brand-secondary: #ffffff;
+            --brand-accent: #3b82f6;
+        }
+        
+        .theme-gold .bg-brand { background: #d4a017; }
+        .theme-gold .text-brand { color: #d4a017; }
+        .theme-gold .border-brand { border-color: #d4a017; }
+        
+        .theme-black .bg-brand { background: #1a1a1a; }
+        .theme-black .text-brand { color: #1a1a1a; }
+        .theme-black .border-brand { border-color: #1a1a1a; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div x-data="mobileShowcase()" x-init="init()" class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <i data-lucide="car" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-900">UrWay Dispatch</h1>
+                            <p class="text-sm text-gray-600">Mobile Experience Showcase</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Controls -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Device Selector -->
+                        <div class="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+                            <button @click="switchDevice('phone')" :class="device === 'phone' ? 'bg-white shadow-sm' : ''" class="px-3 py-1 rounded text-sm font-medium transition-all">
+                                Phone
+                            </button>
+                            <button @click="switchDevice('tablet')" :class="device === 'tablet' ? 'bg-white shadow-sm' : ''" class="px-3 py-1 rounded text-sm font-medium transition-all">
+                                Tablet
+                            </button>
+                        </div>
+                        
+                        <!-- Theme Selector -->
+                        <div class="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+                            <button @click="switchTheme('default')" :class="theme === 'default' ? 'bg-white shadow-sm' : ''" class="px-3 py-1 rounded text-sm font-medium transition-all">
+                                Default
+                            </button>
+                            <button @click="switchTheme('gold')" :class="theme === 'gold' ? 'bg-white shadow-sm' : ''" class="px-3 py-1 rounded text-sm font-medium transition-all">
+                                Gold
+                            </button>
+                            <button @click="switchTheme('black')" :class="theme === 'black' ? 'bg-white shadow-sm' : ''" class="px-3 py-1 rounded text-sm font-medium transition-all">
+                                Black
+                            </button>
+                        </div>
+                        
+                        <!-- App Selector -->
+                        <div class="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+                            <button @click="switchApp('rider')" :class="app === 'rider' ? 'bg-white shadow-sm' : ''" class="px-3 py-1 rounded text-sm font-medium transition-all">
+                                Rider
+                            </button>
+                            <button @click="switchApp('driver')" :class="app === 'driver' ? 'bg-white shadow-sm' : ''" class="px-3 py-1 rounded text-sm font-medium transition-all">
+                                Driver
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Hero Section -->
+            <section class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                    Experience the <span class="text-blue-600">Future of Transportation</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Interact with our mobile apps to see how riders book premium rides and drivers manage their business. 
+                    Switch between themes to see tenant customization in action.
+                </p>
+            </section>
+
+            <!-- Mobile Showcase -->
+            <section class="mb-16">
+                <div class="flex justify-center">
+                    <div class="mobile-frame" :class="device === 'tablet' ? 'scale-110' : ''">
+                        <div class="mobile-screen theme-gold" :class="`theme-${theme}`">
+                            <div class="notch"></div>
+                            <div class="screen-content">
+                                <!-- Dynamic Screen Content -->
+                                <div x-html="getCurrentScreen()" class="animate-fade-in"></div>
+                            </div>
+                            
+                            <!-- Mobile Navigation -->
+                            <div class="mobile-nav">
+                                <template x-if="app === 'rider'">
+                                    <div class="nav-item" :class="currentScreen === 'home' ? 'active' : ''" @click="navigateTo('home')">
+                                        <i data-lucide="home" class="w-5 h-5"></i>
+                                        <span class="text-xs mt-1">Home</span>
+                                    </div>
+                                </template>
+                                <template x-if="app === 'driver'">
+                                    <div class="nav-item" :class="currentScreen === 'dashboard' ? 'active' : ''" @click="navigateTo('dashboard')">
+                                        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                                        <span class="text-xs mt-1">Dashboard</span>
+                                    </div>
+                                </template>
+                                
+                                <div class="nav-item" :class="currentScreen === 'booking' || currentScreen === 'trip' ? 'active' : ''" @click="navigateTo(app === 'rider' ? 'booking' : 'trip')">
+                                    <i data-lucide="map-pin" class="w-5 h-5"></i>
+                                    <span class="text-xs mt-1" x-text="app === 'rider' ? 'Book' : 'Trip'"></span>
+                                </div>
+                                
+                                <div class="nav-item" :class="currentScreen === 'history' || currentScreen === 'earnings' ? 'active' : ''" @click="navigateTo(app === 'rider' ? 'history' : 'earnings')">
+                                    <i data-lucide="clock" class="w-5 h-5"></i>
+                                    <span class="text-xs mt-1" x-text="app === 'rider' ? 'History' : 'Earnings'"></span>
+                                </div>
+                                
+                                <div class="nav-item" :class="currentScreen === 'profile' ? 'active' : ''" @click="navigateTo('profile')">
+                                    <i data-lucide="user" class="w-5 h-5"></i>
+                                    <span class="text-xs mt-1">Profile</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Feature Highlights -->
+            <section class="grid md:grid-cols-3 gap-8 mb-16">
+                <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                        <i data-lucide="smartphone" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Mobile-First Design</h3>
+                    <p class="text-gray-600">Optimized for touch interactions with large buttons, intuitive navigation, and seamless user experience.</p>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                        <i data-lucide="palette" class="w-6 h-6 text-purple-600"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Tenant Branding</h3>
+                    <p class="text-gray-600">Custom themes, logos, and colors that match your brand identity for a white-label experience.</p>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                        <i data-lucide="zap" class="w-6 h-6 text-green-600"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Real-Time Features</h3>
+                    <p class="text-gray-600">Live tracking, instant notifications, and real-time updates for riders and drivers.</p>
+                </div>
+            </section>
+
+            <!-- Live Links -->
+            <section class="text-center bg-white rounded-xl p-8 shadow-lg">
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">Try the Live Apps</h3>
+                <p class="text-gray-600 mb-6">Experience the actual mobile applications in your browser</p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="https://urway-rider-73967865619.us-central1.run.app" 
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center min-h-[44px]">
+                        <i data-lucide="user" class="w-5 h-5 mr-2"></i>
+                        Rider App (Live)
+                    </a>
+                    
+                    <a href="https://urway-driver-73967865619.us-central1.run.app" 
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center min-h-[44px]">
+                        <i data-lucide="car" class="w-5 h-5 mr-2"></i>
+                        Driver App (Live)
+                    </a>
+                    
+                    <a href="https://rideoo-portal-73967865619.us-central1.run.app" 
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center justify-center min-h-[44px]">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5 mr-2"></i>
+                        Admin Portal (Live)
+                    </a>
+                </div>
+            </section>
+        </main>
+
+        <script>
+            function mobileShowcase() {
+                return {
+                    device: 'phone',
+                    theme: 'default',
+                    app: 'rider',
+                    currentScreen: 'home',
+                    
+                    init() {
+                        // Initialize Lucide icons
+                        setTimeout(() => lucide.createIcons(), 100);
+                    },
+                    
+                    switchDevice(device) {
+                        this.device = device;
+                    },
+                    
+                    switchTheme(theme) {
+                        this.theme = theme;
+                        setTimeout(() => lucide.createIcons(), 100);
+                    },
+                    
+                    switchApp(app) {
+                        this.app = app;
+                        this.currentScreen = app === 'rider' ? 'home' : 'dashboard';
+                        setTimeout(() => lucide.createIcons(), 100);
+                    },
+                    
+                    navigateTo(screen) {
+                        this.currentScreen = screen;
+                        setTimeout(() => lucide.createIcons(), 100);
+                    },
+                    
+                    getCurrentScreen() {
+                        if (this.app === 'rider') {
+                            return this.getRiderScreen();
+                        } else {
+                            return this.getDriverScreen();
+                        }
+                    },
+                    
+                    getRiderScreen() {
+                        const screens = {
+                            home: `
+                                <div class="p-4 pb-20">
+                                    <!-- Header -->
+                                    <div class="flex items-center justify-between mb-6">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-8 h-8 ${this.theme === 'gold' ? 'bg-yellow-500' : 'bg-blue-600'} rounded-lg flex items-center justify-center">
+                                                <i data-lucide="car" class="w-5 h-5 text-white"></i>
+                                            </div>
+                                            <span class="font-bold text-lg">UrWay Dispatch</span>
+                                        </div>
+                                        <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                                            <i data-lucide="user" class="w-5 h-5 text-gray-600"></i>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Welcome -->
+                                    <div class="mb-6">
+                                        <h1 class="text-2xl font-bold mb-2">Where to?</h1>
+                                        <p class="text-gray-600">Book a premium ride in seconds</p>
+                                    </div>
+                                    
+                                    <!-- Quick Booking -->
+                                    <div class="bg-white rounded-lg shadow-sm border p-4 mb-4">
+                                        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                            <i data-lucide="map-pin" class="w-5 h-5 text-blue-600"></i>
+                                            <div class="flex-1">
+                                                <p class="font-medium">Enter destination</p>
+                                                <p class="text-sm text-gray-500">On-demand ride</p>
+                                            </div>
+                                            <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Booking Options -->
+                                    <div class="grid grid-cols-3 gap-3 mb-4">
+                                        <div class="bg-white rounded-lg shadow-sm border p-3 text-center">
+                                            <i data-lucide="car" class="w-8 h-8 text-blue-600 mx-auto mb-2"></i>
+                                            <p class="font-medium text-sm">On-Demand</p>
+                                            <p class="text-xs text-gray-500">Ride now</p>
+                                        </div>
+                                        <div class="bg-white rounded-lg shadow-sm border p-3 text-center">
+                                            <i data-lucide="calendar" class="w-8 h-8 text-purple-600 mx-auto mb-2"></i>
+                                            <p class="font-medium text-sm">Schedule</p>
+                                            <p class="text-xs text-gray-500">Book ahead</p>
+                                        </div>
+                                        <div class="bg-white rounded-lg shadow-sm border p-3 text-center">
+                                            <i data-lucide="clock" class="w-8 h-8 text-green-600 mx-auto mb-2"></i>
+                                            <p class="font-medium text-sm">Hourly</p>
+                                            <p class="text-xs text-gray-500">By the hour</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Recent Destinations -->
+                                    <div class="bg-white rounded-lg shadow-sm border p-4">
+                                        <h3 class="font-semibold mb-3">Recent Destinations</h3>
+                                        <div class="space-y-3">
+                                            <div class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
+                                                <i data-lucide="map-pin" class="w-4 h-4 text-blue-600"></i>
+                                                <div class="flex-1">
+                                                    <p class="font-medium text-sm">O'Hare Airport</p>
+                                                    <p class="text-xs text-gray-500">Terminal 1, Chicago</p>
+                                                </div>
+                                                <span class="text-sm font-semibold text-blue-600">$45.50</span>
+                                            </div>
+                                            <div class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
+                                                <i data-lucide="map-pin" class="w-4 h-4 text-blue-600"></i>
+                                                <div class="flex-1">
+                                                    <p class="font-medium text-sm">Downtown</p>
+                                                    <p class="text-xs text-gray-500">Michigan Avenue</p>
+                                                </div>
+                                                <span class="text-sm font-semibold text-blue-600">$28.00</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `,
+                            
+                            booking: `
+                                <div class="p-4 pb-20">
+                                    <!-- Header -->
+                                    <div class="flex items-center space-x-3 mb-6">
+                                        <i data-lucide="arrow-left" class="w-6 h-6 text-gray-600"></i>
+                                        <h1 class="text-lg font-semibold">Book Your Ride</h1>
+                                    </div>
+                                    
+                                    <!-- Booking Form -->
+                                    <div class="space-y-4">
+                                        <div class="bg-white rounded-lg shadow-sm border p-4">
+                                            <label class="block text-sm font-medium mb-2">
+                                                <i data-lucide="map-pin" class="w-4 h-4 inline mr-1"></i>
+                                                Pickup Location
+                                            </label>
+                                            <input type="text" placeholder="Enter pickup address" 
+                                                   class="w-full px-3 py-2 border rounded-lg text-base min-h-[44px]">
+                                        </div>
+                                        
+                                        <div class="bg-white rounded-lg shadow-sm border p-4">
+                                            <label class="block text-sm font-medium mb-2">
+                                                <i data-lucide="map-pin" class="w-4 h-4 inline mr-1"></i>
+                                                Dropoff Location
+                                            </label>
+                                            <input type="text" placeholder="Enter destination" 
+                                                   class="w-full px-3 py-2 border rounded-lg text-base min-h-[44px]">
+                                        </div>
+                                        
+                                        <div class="bg-white rounded-lg shadow-sm border p-4">
+                                            <label class="block text-sm font-medium mb-2">Vehicle Category</label>
+                                            <select class="w-full px-3 py-2 border rounded-lg text-base min-h-[44px]">
+                                                <option>Black Sedan</option>
+                                                <option>Black SUV</option>
+                                                <option>Black EV</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold min-h-[44px]">
+                                            Get Quote
+                                        </button>
+                                    </div>
+                                </div>
+                            `,
+                            
+                            profile: `
+                                <div class="p-4 pb-20">
+                                    <!-- Header -->
+                                    <div class="flex items-center space-x-3 mb-6">
+                                        <i data-lucide="arrow-left" class="w-6 h-6 text-gray-600"></i>
+                                        <h1 class="text-lg font-semibold">Profile</h1>
+                                    </div>
+                                    
+                                    <!-- Profile Info -->
+                                    <div class="bg-white rounded-lg shadow-sm border p-4 mb-4">
+                                        <div class="flex items-center space-x-4 mb-4">
+                                            <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                                                <i data-lucide="user" class="w-8 h-8 text-gray-600"></i>
+                                            </div>
+                                            <div>
+                                                <h2 class="font-semibold text-lg">John Doe</h2>
+                                                <p class="text-gray-600">john.doe@example.com</p>
+                                                <p class="text-sm text-green-600">Premium Member</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Menu Items -->
+                                    <div class="bg-white rounded-lg shadow-sm border">
+                                        <div class="p-4 border-b hover:bg-gray-50">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-3">
+                                                    <i data-lucide="credit-card" class="w-5 h-5 text-gray-600"></i>
+                                                    <span>Payment Methods</span>
+                                                </div>
+                                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                                            </div>
+                                        </div>
+                                        <div class="p-4 border-b hover:bg-gray-50">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-3">
+                                                    <i data-lucide="map-pin" class="w-5 h-5 text-gray-600"></i>
+                                                    <span>Saved Places</span>
+                                                </div>
+                                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                                            </div>
+                                        </div>
+                                        <div class="p-4 border-b hover:bg-gray-50">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-3">
+                                                    <i data-lucide="bell" class="w-5 h-5 text-gray-600"></i>
+                                                    <span>Notifications</span>
+                                                </div>
+                                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                                            </div>
+                                        </div>
+                                        <div class="p-4 hover:bg-gray-50">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-3">
+                                                    <i data-lucide="settings" class="w-5 h-5 text-gray-600"></i>
+                                                    <span>Settings</span>
+                                                </div>
+                                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `,
+                            
+                            history: `
+                                <div class="p-4 pb-20">
+                                    <!-- Header -->
+                                    <div class="flex items-center space-x-3 mb-6">
+                                        <i data-lucide="arrow-left" class="w-6 h-6 text-gray-600"></i>
+                                        <h1 class="text-lg font-semibold">Ride History</h1>
+                                    </div>
+                                    
+                                    <!-- Ride List -->
+                                    <div class="space-y-3">
+                                        <div class="bg-white rounded-lg shadow-sm border p-4">
+                                            <div class="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <p class="font-medium">Downtown to O'Hare</p>
+                                                    <p class="text-sm text-gray-600">March 5, 2024 • 2:30 PM</p>
+                                                </div>
+                                                <span class="font-semibold">$45.50</span>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">Completed</span>
+                                                <button class="text-sm text-blue-600">View Receipt</button>
+                                                <button class="text-sm text-blue-600">Rate Driver</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="bg-white rounded-lg shadow-sm border p-4">
+                                            <div class="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <p class="font-medium">Michigan Avenue</p>
+                                                    <p class="text-sm text-gray-600">March 4, 2024 • 6:15 PM</p>
+                                                </div>
+                                                <span class="font-semibold">$28.00</span>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">Completed</span>
+                                                <button class="text-sm text-blue-600">View Receipt</button>
+                                                <span class="text-sm text-gray-400">Rated 5★</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="bg-white rounded-lg shadow-sm border p-4">
+                                            <div class="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <p class="font-medium">United Center</p>
+                                                    <p class="text-sm text-gray-600">March 3, 2024 • 8:45 PM</p>
+                                                </div>
+                                                <span class="font-semibold">$35.00</span>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">Completed</span>
+                                                <button class="text-sm text-blue-600">View Receipt</button>
+                                                <span class="text-sm text-gray-400">Rated 4★</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `
+                        };
+                        
+                        return screens[this.currentScreen] || screens.home;
+                    },
+                    
+                    getDriverScreen() {
+                        const screens = {
+                            dashboard: `
+                                <div class="p-4 pb-20">
+                                    <!-- Header -->
+                                    <div class="flex items-center justify-between mb-6">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-8 h-8 ${this.theme === 'gold' ? 'bg-yellow-500' : 'bg-blue-600'} rounded-lg flex items-center justify-center">
+                                                <i data-lucide="car" class="w-5 h-5 text-white"></i>
+                                            </div>
+                                            <div>
+                                                <h1 class="font-bold text-lg">UrWay Driver</h1>
+                                                <p class="text-sm text-gray-600">Welcome back, Mike</p>
+                                            </div>
+                                        </div>
+                                        <i data-lucide="bell" class="w-6 h-6 text-gray-600"></i>
+                                    </div>
+                                    
+                                    <!-- Online Status -->
+                                    <div class="bg-white rounded-lg shadow-sm border p-4 mb-4">
+                                        <div class="flex justify-between items-center mb-3">
+                                            <div>
+                                                <h2 class="font-semibold">Driver Status</h2>
+                                                <p class="text-sm text-gray-600">You are online and available for rides</p>
+                                            </div>
+                                            <button class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium text-sm">
+                                                Go Offline
+                                            </button>
+                                        </div>
+                                        <div class="flex items-center space-x-2 text-sm text-green-600">
+                                            <i data-lucide="navigation" class="w-4 h-4"></i>
+                                            <span>Current location: Downtown Chicago</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Today's Stats -->
+                                    <div class="grid grid-cols-3 gap-3 mb-4">
+                                        <div class="bg-white rounded-lg shadow-sm border p-3 text-center">
+                                            <p class="text-sm text-gray-600">Today's Earnings</p>
+                                            <p class="text-xl font-bold text-green-600">$187.50</p>
+                                        </div>
+                                        <div class="bg-white rounded-lg shadow-sm border p-3 text-center">
+                                            <p class="text-sm text-gray-600">Trips</p>
+                                            <p class="text-xl font-bold text-blue-600">12</p>
+                                        </div>
+                                        <div class="bg-white rounded-lg shadow-sm border p-3 text-center">
+                                            <p class="text-sm text-gray-600">Online Time</p>
+                                            <p class="text-xl font-bold text-purple-600">6h 45m</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Quick Actions -->
+                                    <div class="bg-white rounded-lg shadow-sm border p-4">
+                                        <h3 class="font-semibold mb-3">Quick Actions</h3>
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <button class="p-3 border rounded-lg text-center hover:bg-gray-50">
+                                                <i data-lucide="map-pin" class="w-6 h-6 text-blue-600 mx-auto mb-1"></i>
+                                                <p class="text-sm">Current Trip</p>
+                                            </button>
+                                            <button class="p-3 border rounded-lg text-center hover:bg-gray-50">
+                                                <i data-lucide="dollar-sign" class="w-6 h-6 text-green-600 mx-auto mb-1"></i>
+                                                <p class="text-sm">Earnings</p>
+                                            </button>
+                                            <button class="p-3 border rounded-lg text-center hover:bg-gray-50">
+                                                <i data-lucide="calendar" class="w-6 h-6 text-orange-600 mx-auto mb-1"></i>
+                                                <p class="text-sm">Scheduled</p>
+                                            </button>
+                                            <button class="p-3 border rounded-lg text-center hover:bg-gray-50">
+                                                <i data-lucide="plane" class="w-6 h-6 text-purple-600 mx-auto mb-1"></i>
+                                                <p class="text-sm">Airport</p>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `,
+                            
+                            trip: `
+                                <div class="p-4 pb-20">
+                                    <!-- Header -->
+                                    <div class="flex items-center space-x-3 mb-6">
+                                        <i data-lucide="arrow-left" class="w-6 h-6 text-gray-600"></i>
+                                        <h1 class="text-lg font-semibold">Active Trip</h1>
+                                    </div>
+                                    
+                                    <!-- Trip Info -->
+                                    <div class="bg-white rounded-lg shadow-sm border p-4 mb-4">
+                                        <div class="flex justify-between items-start mb-3">
+                                            <div>
+                                                <p class="font-medium">Trip to O'Hare Airport</p>
+                                                <p class="text-sm text-gray-600">Terminal 1 • Passenger: Sarah Johnson</p>
+                                            </div>
+                                            <span class="text-2xl font-bold text-blue-600">$45.50</span>
+                                        </div>
+                                        
+                                        <!-- Timer -->
+                                        <div class="bg-blue-50 rounded-lg p-3 text-center mb-3">
+                                            <p class="text-sm text-blue-600 mb-1">Trip Duration</p>
+                                            <p class="text-2xl font-bold text-blue-800">00:12:45</p>
+                                        </div>
+                                        
+                                        <!-- Trip Status -->
+                                        <div class="space-y-2">
+                                            <div class="flex items-center space-x-2">
+                                                <i data-lucide="check-circle" class="w-4 h-4 text-green-600"></i>
+                                                <span class="text-sm">Picked up passenger</span>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <i data-lucide="navigation" class="w-4 h-4 text-blue-600"></i>
+                                                <span class="text-sm">En route to destination</span>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <i data-lucide="clock" class="w-4 h-4 text-gray-400"></i>
+                                                <span class="text-sm">ETA: 8 minutes</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Actions -->
+                                    <div class="space-y-3">
+                                        <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-medium">
+                                            Open Navigation
+                                        </button>
+                                        <button class="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-medium">
+                                            Contact Passenger
+                                        </button>
+                                        <button class="w-full bg-red-100 text-red-700 py-3 rounded-lg font-medium">
+                                            Report Issue
+                                        </button>
+                                    </div>
+                                </div>
+                            `,
+                            
+                            earnings: `
+                                <div class="p-4 pb-20">
+                                    <!-- Header -->
+                                    <div class="flex items-center space-x-3 mb-6">
+                                        <i data-lucide="arrow-left" class="w-6 h-6 text-gray-600"></i>
+                                        <h1 class="text-lg font-semibold">Earnings</h1>
+                                    </div>
+                                    
+                                    <!-- Summary Cards -->
+                                    <div class="grid grid-cols-2 gap-3 mb-4">
+                                        <div class="bg-white rounded-lg shadow-sm border p-3">
+                                            <p class="text-sm text-gray-600">Today</p>
+                                            <p class="text-xl font-bold text-green-600">$187.50</p>
+                                            <p class="text-xs text-gray-500">12 trips</p>
+                                        </div>
+                                        <div class="bg-white rounded-lg shadow-sm border p-3">
+                                            <p class="text-sm text-gray-600">This Week</p>
+                                            <p class="text-xl font-bold text-blue-600">$892.25</p>
+                                            <p class="text-xs text-gray-500">58 trips</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Weekly Breakdown -->
+                                    <div class="bg-white rounded-lg shadow-sm border p-4 mb-4">
+                                        <h3 class="font-semibold mb-3">This Week</h3>
+                                        <div class="space-y-2">
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-sm">Monday</span>
+                                                <span class="font-medium">$145.75</span>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-sm">Tuesday</span>
+                                                <span class="font-medium">$198.00</span>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-sm">Wednesday</span>
+                                                <span class="font-medium">$167.50</span>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-sm">Thursday</span>
+                                                <span class="font-medium">$187.50</span>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-sm">Friday</span>
+                                                <span class="font-medium">$193.50</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Recent Trips -->
+                                    <div class="bg-white rounded-lg shadow-sm border p-4">
+                                        <h3 class="font-semibold mb-3">Recent Trips</h3>
+                                        <div class="space-y-2">
+                                            <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                                                <div>
+                                                    <p class="text-sm font-medium">Downtown → O'Hare</p>
+                                                    <p class="text-xs text-gray-500">2:30 PM • 25 min</p>
+                                                </div>
+                                                <span class="font-medium text-green-600">$45.50</span>
+                                            </div>
+                                            <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                                                <div>
+                                                    <p class="text-sm font-medium">Loop → Lincoln Park</p>
+                                                    <p class="text-xs text-gray-500">1:15 PM • 18 min</p>
+                                                </div>
+                                                <span class="font-medium text-green-600">$32.00</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `,
+                            
+                            profile: `
+                                <div class="p-4 pb-20">
+                                    <!-- Header -->
+                                    <div class="flex items-center space-x-3 mb-6">
+                                        <i data-lucide="arrow-left" class="w-6 h-6 text-gray-600"></i>
+                                        <h1 class="text-lg font-semibold">Profile</h1>
+                                    </div>
+                                    
+                                    <!-- Driver Info -->
+                                    <div class="bg-white rounded-lg shadow-sm border p-4 mb-4">
+                                        <div class="flex items-center space-x-4 mb-4">
+                                            <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                                                <i data-lucide="user" class="w-8 h-8 text-gray-600"></i>
+                                            </div>
+                                            <div>
+                                                <h2 class="font-semibold text-lg">Mike Johnson</h2>
+                                                <p class="text-gray-600">mike.johnson@example.com</p>
+                                                <div class="flex items-center space-x-2 mt-1">
+                                                    <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">4.8★ Rating</span>
+                                                    <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">Premium Driver</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Vehicle Info -->
+                                    <div class="bg-white rounded-lg shadow-sm border p-4 mb-4">
+                                        <h3 class="font-semibold mb-3">Vehicle Information</h3>
+                                        <div class="space-y-2">
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">Make/Model</span>
+                                                <span class="font-medium">2022 Lexus ES350</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">License Plate</span>
+                                                <span class="font-medium">ABC 1234</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">Color</span>
+                                                <span class="font-medium">Black</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Menu Items -->
+                                    <div class="bg-white rounded-lg shadow-sm border">
+                                        <div class="p-4 border-b hover:bg-gray-50">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-3">
+                                                    <i data-lucide="file-text" class="w-5 h-5 text-gray-600"></i>
+                                                    <span>Documents</span>
+                                                </div>
+                                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                                            </div>
+                                        </div>
+                                        <div class="p-4 border-b hover:bg-gray-50">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-3">
+                                                    <i data-lucide="settings" class="w-5 h-5 text-gray-600"></i>
+                                                    <span>Settings</span>
+                                                </div>
+                                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                                            </div>
+                                        </div>
+                                        <div class="p-4 hover:bg-gray-50">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-3">
+                                                    <i data-lucide="help-circle" class="w-5 h-5 text-gray-600"></i>
+                                                    <span>Support</span>
+                                                </div>
+                                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `
+                        };
+                        
+                        return screens[this.currentScreen] || screens.dashboard;
+                    }
+                }
+            }
+        </script>
+    </div>
+</body>
+</html>

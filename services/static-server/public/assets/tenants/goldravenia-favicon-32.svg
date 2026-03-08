@@ -1,0 +1,25 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="32" height="32" fill="#1A1A1A" rx="6"/>
+  
+  <!-- Favicon -->
+  <g transform="translate(8, 8)">
+    <!-- Winged Shield Focus -->
+    <g transform="scale(0.8)">
+      <!-- Shield Base -->
+      <path d="M8 2 L8 12 Q8 16 12 18 Q16 16 16 12 L16 2 Z" 
+            fill="#E4CD96" stroke="#BA8E48" stroke-width="0.5"/>
+      
+      <!-- Simplified Wings -->
+      <path d="M7 4 Q4 6 3 10 Q4 14 7 16 L7 4 Z" 
+            fill="#E4CD96" stroke="#BA8E48" stroke-width="0.5"/>
+      
+      <path d="M17 4 Q20 6 21 10 Q20 14 17 16 L17 4 Z" 
+            fill="#E4CD96" stroke="#BA8E48" stroke-width="0.5"/>
+      
+      <!-- GR Monogram -->
+      <text x="12" y="12" font-family="serif" font-size="4" font-weight="bold" 
+            text-anchor="middle" fill="#1A1A1A">GR</text>
+    </g>
+  </g>
+</svg>

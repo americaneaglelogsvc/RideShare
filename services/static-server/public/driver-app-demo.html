@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver App Demo - UrWay Dispatch</title>
+    <meta name="description" content="Interactive demo of the driver mobile app interface. See how drivers manage trips, earnings, and schedules.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        
+        .mobile-frame {
+            max-width: 375px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            height: 812px;
+            position: relative;
+        }
+        
+        .mobile-screen {
+            height: 100%;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .trip-card {
+            transition: all 0.2s ease;
+        }
+        
+        .trip-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100" x-data="driverAppDemo()">
+    <!-- Demo Controls -->
+    <div class="bg-white border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-xl font-bold text-gray-900">Driver App Demo</h1>
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm font-medium text-gray-700">Screen:</label>
+                        <select x-model="currentScreen" @change="updateScreen()"
+                                class="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                            <option value="dashboard">Dashboard</option>
+                            <option value="earnings">Earnings</option>
+                            <option value="trips">Trip History</option>
+                            <option value="scheduled">Scheduled Rides</option>
+                            <option value="profile">Profile</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="window.close()" class="text-gray-500 hover:text-gray-700">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Frame -->
+    <div class="py-8">
+        <div class="mobile-frame">
+            <div class="mobile-screen">
+                
+                <!-- Dashboard Screen -->
+                <div x-show="currentScreen === 'dashboard'" class="h-full flex flex-col">
+                    <!-- Status Bar -->
+                    <div class="bg-white px-6 py-2 flex justify-between items-center text-xs">
+                        <span class="font-medium">9:41 AM</span>
+                        <div class="flex items-center space-x-1">
+                            <i data-lucide="wifi" class="w-3 h-3"></i>
+                            <i data-lucide="battery" class="w-3 h-3"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Header -->
+                    <div class="bg-white px-6 py-4 flex items-center justify-between border-b">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900">Hi, Michael!</h2>
+                            <p class="text-sm text-gray-600">Ready to earn?</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="text-right">
+                                <p class="text-sm text-gray-500">Today</p>
+                                <p class="text-lg font-bold text-green-600">$145.50</p>
+                            </div>
+                            <img src="https://picsum.photos/seed/driver/40/40.jpg" alt="Driver" class="w-10 h-10 rounded-full">
+                        </div>
+                    </div>
+                    
+                    <!-- Driver Status -->
+                    <div class="bg-white px-6 py-4 border-b">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Driver Status</p>
+                                <p class="text-xs text-gray-500">Tap to change availability</p>
+                            </div>
+                            <button @click="isOnline = !isOnline" 
+                                    :class="isOnline ? 'bg-green-500' : 'bg-gray-400'"
+                                    class="px-4 py-2 rounded-full text-white text-sm font-medium transition-colors">
+                                <span x-text="isOnline ? 'Online' : 'Offline'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Stats -->
+                    <div class="flex-1 bg-gray-50 px-6 py-6 overflow-y-auto">
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-white rounded-xl p-4 text-center">
+                                <i data-lucide="dollar-sign" class="w-8 h-8 text-green-600 mx-auto mb-2"></i>
+                                <p class="text-2xl font-bold text-gray-900">$145.50</p>
+                                <p class="text-sm text-gray-500">Today's Earnings</p>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 text-center">
+                                <i data-lucide="car" class="w-8 h-8 text-blue-600 mx-auto mb-2"></i>
+                                <p class="text-2xl font-bold text-gray-900">8</p>
+                                <p class="text-sm text-gray-500">Trips Today</p>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 text-center">
+                                <i data-lucide="clock" class="w-8 h-8 text-purple-600 mx-auto mb-2"></i>
+                                <p class="text-2xl font-bold text-gray-900">6.5h</p>
+                                <p class="text-sm text-gray-500">Hours Online</p>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 text-center">
+                                <i data-lucide="star" class="w-8 h-8 text-yellow-500 mx-auto mb-2"></i>
+                                <p class="text-2xl font-bold text-gray-900">4.9</p>
+                                <p class="text-sm text-gray-500">Rating</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Activity -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-900 mb-3">Recent Activity</h3>
+                            <div class="space-y-3">
+                                <div class="bg-white rounded-lg p-3 flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                        <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">Trip Completed</p>
+                                        <p class="text-sm text-gray-500">Downtown → O'Hare • $42.50</p>
+                                    </div>
+                                    <span class="text-xs text-gray-500">2:30 PM</span>
+                                </div>
+                                <div class="bg-white rounded-lg p-3 flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <i data-lucide="navigation" class="w-5 h-5 text-blue-600"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">Trip Started</p>
+                                        <p class="text-sm text-gray-500">123 Main St → 456 Oak Ave</p>
+                                    </div>
+                                    <span class="text-xs text-gray-500">1:15 PM</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Actions -->
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-3">Quick Actions</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button class="bg-white rounded-lg p-3 text-center hover:bg-gray-50">
+                                    <i data-lucide="calendar" class="w-6 h-6 text-blue-600 mx-auto mb-1"></i>
+                                    <p class="text-sm font-medium">Scheduled</p>
+                                </button>
+                                <button class="bg-white rounded-lg p-3 text-center hover:bg-gray-50">
+                                    <i data-lucide="history" class="w-6 h-6 text-gray-600 mx-auto mb-1"></i>
+                                    <p class="text-sm font-medium">History</p>
+                                </button>
+                                <button class="bg-white rounded-lg p-3 text-center hover:bg-gray-50">
+                                    <i data-lucide="message-circle" class="w-6 h-6 text-green-600 mx-auto mb-1"></i>
+                                    <p class="text-sm font-medium">Support</p>
+                                </button>
+                                <button class="bg-white rounded-lg p-3 text-center hover:bg-gray-50">
+                                    <i data-lucide="settings" class="w-6 h-6 text-gray-600 mx-auto mb-1"></i>
+                                    <p class="text-sm font-medium">Settings</p>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom Navigation -->
+                    <div class="bottom-nav">
+                        <div class="flex justify-around py-2">
+                            <button class="flex flex-col items-center p-2 text-blue-600">
+                                <i data-lucide="home" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Home</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Earnings</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="history" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">History</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="user" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Profile</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Earnings Screen -->
+                <div x-show="currentScreen === 'earnings'" class="h-full flex flex-col">
+                    <!-- Status Bar -->
+                    <div class="bg-white px-6 py-2 flex justify-between items-center text-xs">
+                        <span class="font-medium">9:41 AM</span>
+                        <div class="flex items-center space-x-1">
+                            <i data-lucide="wifi" class="w-3 h-3"></i>
+                            <i data-lucide="battery" class="w-3 h-3"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Header -->
+                    <div class="bg-white px-6 py-4 border-b">
+                        <h2 class="text-xl font-bold text-gray-900">Earnings</h2>
+                    </div>
+                    
+                    <!-- Earnings Content -->
+                    <div class="flex-1 bg-gray-50 px-6 py-6 overflow-y-auto">
+                        <!-- Today's Earnings -->
+                        <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white mb-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <p class="text-green-100 text-sm">Today's Earnings</p>
+                                    <p class="text-3xl font-bold">$145.50</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-green-100 text-sm">8 Trips</p>
+                                    <p class="text-green-100 text-sm">6.5 Hours</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div>
+                                    <p class="text-lg font-semibold">$18.19</p>
+                                    <p class="text-xs text-green-100">Per Hour</p>
+                                </div>
+                                <div class="border-l border-green-400 pl-4">
+                                    <p class="text-lg font-semibold">$18.19</p>
+                                    <p class="text-xs text-green-100">Per Trip</p>
+                                </div>
+                                <div class="border-l border-green-400 pl-4">
+                                    <p class="text-lg font-semibold">4.9</p>
+                                    <p class="text-xs text-green-100">Avg Rating</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Weekly Summary -->
+                        <div class="bg-white rounded-xl p-4 mb-6">
+                            <h3 class="font-semibold text-gray-900 mb-4">This Week</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Monday</span>
+                                    <span class="font-semibold">$125.00</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Tuesday</span>
+                                    <span class="font-semibold">$156.75</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Wednesday</span>
+                                    <span class="font-semibold">$142.25</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Thursday</span>
+                                    <span class="font-semibold">$168.50</span>
+                                </div>
+                                <div class="flex justify-between items-center bg-green-50 p-2 rounded">
+                                    <span class="text-green-700 font-medium">Today</span>
+                                    <span class="font-bold text-green-700">$145.50</span>
+                                </div>
+                                <div class="border-t pt-3 mt-3">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-semibold text-gray-900">Weekly Total</span>
+                                        <span class="text-xl font-bold text-green-600">$738.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Payment History -->
+                        <div class="bg-white rounded-xl p-4">
+                            <h3 class="font-semibold text-gray-900 mb-4">Recent Payouts</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <p class="font-medium text-gray-900">Weekly Payout</p>
+                                        <p class="text-sm text-gray-500">Dec 1-7, 2024</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-green-600">$892.50</p>
+                                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Paid</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <p class="font-medium text-gray-900">Weekly Payout</p>
+                                        <p class="text-sm text-gray-500">Nov 24-30, 2024</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-green-600">$756.25</p>
+                                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Paid</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom Navigation -->
+                    <div class="bottom-nav">
+                        <div class="flex justify-around py-2">
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="home" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Home</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-blue-600">
+                                <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Earnings</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="history" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">History</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="user" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Profile</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trip History Screen -->
+                <div x-show="currentScreen === 'trips'" class="h-full flex flex-col">
+                    <!-- Status Bar -->
+                    <div class="bg-white px-6 py-2 flex justify-between items-center text-xs">
+                        <span class="font-medium">9:41 AM</span>
+                        <div class="flex items-center space-x-1">
+                            <i data-lucide="wifi" class="w-3 h-3"></i>
+                            <i data-lucide="battery" class="w-3 h-3"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Header -->
+                    <div class="bg-white px-6 py-4 border-b">
+                        <h2 class="text-xl font-bold text-gray-900">Trip History</h2>
+                    </div>
+                    
+                    <!-- Trip List -->
+                    <div class="flex-1 bg-gray-50 px-6 py-4 overflow-y-auto">
+                        <!-- Filter Tabs -->
+                        <div class="flex space-x-2 mb-4">
+                            <button class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium">All</button>
+                            <button class="px-4 py-2 bg-white text-gray-600 rounded-lg text-sm">Completed</button>
+                            <button class="px-4 py-2 bg-white text-gray-600 rounded-lg text-sm">Cancelled</button>
+                        </div>
+                        
+                        <!-- Trip List -->
+                        <div class="space-y-3">
+                            <div class="trip-card bg-white rounded-xl p-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                            <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-900">Downtown → O'Hare</p>
+                                            <p class="text-sm text-gray-500">Dec 8, 2024 • 2:30 PM</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-gray-900">$42.50</p>
+                                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Completed</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between text-sm text-gray-600">
+                                    <span>18.5 mi • 35 min</span>
+                                    <div class="flex items-center space-x-2">
+                                        <img src="https://picsum.photos/seed/customer1/20/20.jpg" alt="Customer" class="w-5 h-5 rounded-full">
+                                        <span>John D.</span>
+                                        <div class="flex text-yellow-400 text-xs">
+                                            <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                            <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                            <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                            <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                            <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="trip-card bg-white rounded-xl p-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                            <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-900">Loop → Lincoln Park</p>
+                                            <p class="text-sm text-gray-500">Dec 8, 2024 • 11:15 AM</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-gray-900">$28.75</p>
+                                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Completed</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between text-sm text-gray-600">
+                                    <span>8.2 mi • 22 min</span>
+                                    <div class="flex items-center space-x-2">
+                                        <img src="https://picsum.photos/seed/customer2/20/20.jpg" alt="Customer" class="w-5 h-5 rounded-full">
+                                        <span>Sarah M.</span>
+                                        <div class="flex text-yellow-400 text-xs">
+                                            <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                            <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                            <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                            <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                            <i data-lucide="star" class="w-3 h-3"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="trip-card bg-white rounded-xl p-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                            <i data-lucide="x" class="w-5 h-5 text-red-600"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-900">River North → West Loop</p>
+                                            <p class="text-sm text-gray-500">Dec 8, 2024 • 9:00 AM</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-gray-900">$0.00</p>
+                                        <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">Cancelled</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between text-sm text-gray-600">
+                                    <span>Customer cancelled</span>
+                                    <span>No charge</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom Navigation -->
+                    <div class="bottom-nav">
+                        <div class="flex justify-around py-2">
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="home" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Home</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Earnings</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-blue-600">
+                                <i data-lucide="history" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">History</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="user" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Profile</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scheduled Rides Screen -->
+                <div x-show="currentScreen === 'scheduled'" class="h-full flex flex-col">
+                    <!-- Status Bar -->
+                    <div class="bg-white px-6 py-2 flex justify-between items-center text-xs">
+                        <span class="font-medium">9:41 AM</span>
+                        <div class="flex items-center space-x-1">
+                            <i data-lucide="wifi" class="w-3 h-3"></i>
+                            <i data-lucide="battery" class="w-3 h-3"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Header -->
+                    <div class="bg-white px-6 py-4 border-b">
+                        <h2 class="text-xl font-bold text-gray-900">Scheduled Rides</h2>
+                    </div>
+                    
+                    <!-- Scheduled Content -->
+                    <div class="flex-1 bg-gray-50 px-6 py-4 overflow-y-auto">
+                        <!-- Upcoming Rides -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-900 mb-3">Upcoming</h3>
+                            <div class="space-y-3">
+                                <div class="bg-white rounded-xl p-4 border-l-4 border-blue-500">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div>
+                                            <p class="font-medium text-gray-900">Airport Pickup - John Smith</p>
+                                            <p class="text-sm text-gray-500">Dec 10, 2024 • 6:00 AM</p>
+                                        </div>
+                                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Tomorrow</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600 mb-3">
+                                        <p>O'Hare Terminal 1 → Downtown Hotel</p>
+                                        <p>Black Sedan • Est. $45.00</p>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button class="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm font-medium">Accept</button>
+                                        <button class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg text-sm font-medium">Decline</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-white rounded-xl p-4 border-l-4 border-green-500">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div>
+                                            <p class="font-medium text-gray-900">Corporate Event - Sarah Johnson</p>
+                                            <p class="text-sm text-gray-500">Dec 12, 2024 • 7:00 PM</p>
+                                        </div>
+                                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">In 2 days</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600 mb-3">
+                                        <p>Hotel → Convention Center</p>
+                                        <p>Black SUV • Est. $35.00</p>
+                                    </div>
+                                    <div class="bg-green-50 p-2 rounded text-center">
+                                        <p class="text-sm text-green-700 font-medium">✓ Accepted</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Past Scheduled -->
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-3">Past Scheduled</h3>
+                            <div class="space-y-3">
+                                <div class="bg-white rounded-xl p-4 opacity-75">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div>
+                                            <p class="font-medium text-gray-900">Medical Appointment - Robert Davis</p>
+                                            <p class="text-sm text-gray-500">Dec 5, 2024 • 2:00 PM</p>
+                                        </div>
+                                        <span class="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">Completed</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600">
+                                        <p>Home → Medical Center</p>
+                                        <p>Black Sedan • $32.00</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom Navigation -->
+                    <div class="bottom-nav">
+                        <div class="flex justify-around py-2">
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="home" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Home</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Earnings</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="history" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">History</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="user" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Profile</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Screen -->
+                <div x-show="currentScreen === 'profile'" class="h-full flex flex-col">
+                    <!-- Status Bar -->
+                    <div class="bg-white px-6 py-2 flex justify-between items-center text-xs">
+                        <span class="font-medium">9:41 AM</span>
+                        <div class="flex items-center space-x-1">
+                            <i data-lucide="wifi" class="w-3 h-3"></i>
+                            <i data-lucide="battery" class="w-3 h-3"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Header -->
+                    <div class="bg-white px-6 py-4 border-b">
+                        <h2 class="text-xl font-bold text-gray-900">Profile</h2>
+                    </div>
+                    
+                    <!-- Profile Content -->
+                    <div class="flex-1 bg-gray-50 px-6 py-4 overflow-y-auto">
+                        <!-- Driver Info -->
+                        <div class="bg-white rounded-xl p-6 mb-4">
+                            <div class="flex items-center space-x-4 mb-4">
+                                <img src="https://picsum.photos/seed/driver/80/80.jpg" alt="Driver" class="w-20 h-20 rounded-full">
+                                <div class="flex-1">
+                                    <h3 class="text-xl font-bold text-gray-900">Michael Chen</h3>
+                                    <p class="text-gray-600">Driver ID: DRV-2024-0892</p>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <div class="flex text-yellow-400 text-sm">
+                                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                            <i data-lucide="star" class="w-4 h-4"></i>
+                                        </div>
+                                        <span class="text-sm text-gray-600">4.9 (324 rides)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Stats -->
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div>
+                                    <p class="text-2xl font-bold text-gray-900">4.9</p>
+                                    <p class="text-xs text-gray-500">Rating</p>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-gray-900">324</p>
+                                    <p class="text-xs text-gray-500">Total Rides</p>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-gray-900">98%</p>
+                                    <p class="text-xs text-gray-500">Acceptance</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Vehicle Info -->
+                        <div class="bg-white rounded-xl p-4 mb-4">
+                            <h3 class="font-semibold text-gray-900 mb-3">Vehicle Information</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Vehicle</span>
+                                    <span class="font-medium">2022 Toyota Camry</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">License Plate</span>
+                                    <span class="font-medium">ABC 1234</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Color</span>
+                                    <span class="font-medium">Black</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Insurance</span>
+                                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Valid</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Menu Items -->
+                        <div class="bg-white rounded-xl divide-y">
+                            <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="credit-card" class="w-5 h-5 text-gray-600"></i>
+                                    <span class="font-medium text-gray-900">Payment Settings</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                            </button>
+                            
+                            <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="file-text" class="w-5 h-5 text-gray-600"></i>
+                                    <span class="font-medium text-gray-900">Documents</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Verified</span>
+                                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                                </div>
+                            </button>
+                            
+                            <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="help-circle" class="w-5 h-5 text-gray-600"></i>
+                                    <span class="font-medium text-gray-900">Help & Support</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                            </button>
+                            
+                            <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50">
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="settings" class="w-5 h-5 text-gray-600"></i>
+                                    <span class="font-medium text-gray-900">Settings</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom Navigation -->
+                    <div class="bottom-nav">
+                        <div class="flex justify-around py-2">
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="home" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Home</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Earnings</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-gray-400">
+                                <i data-lucide="history" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">History</span>
+                            </button>
+                            <button class="flex flex-col items-center p-2 text-blue-600">
+                                <i data-lucide="user" class="w-6 h-6"></i>
+                                <span class="text-xs mt-1">Profile</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function driverAppDemo() {
+            return {
+                currentScreen: 'dashboard',
+                isOnline: true,
+                
+                updateScreen() {
+                    // Screen is updated via Alpine.js reactivity
+                    console.log('Screen changed to:', this.currentScreen);
+                }
+            }
+        }
+        
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

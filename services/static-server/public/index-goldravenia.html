@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en" data-tenant="goldravenia">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldRavenia Luxury Transportation | Premium Black Car Service</title>
+    <meta name="description" content="GoldRavenia Luxury Transportation provides premium black car service, executive transportation, and chauffeur services in Chicago North Shore and beyond.">
+    <meta name="keywords" content="luxury transportation, black car service, chauffeur, executive travel, GoldRavenia">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/tenants/goldravenia-logo-winner.png?v=20250308003">
+    
+    <!-- Preconnect and DNS Prefetch -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/styles.css?v=20250308003">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* DEFINITIVE GOLDRAVENIA HOMEPAGE STYLES */
+        * { 
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        /* FORCED Absolute Pitch Black Background */
+        html, body {
+            background-color: #000000 !important;
+            color: #FFFFFF !important;
+        }
+        
+        /* FORCED Brand Colors */
+        .brand-primary {
+            color: #B69B60 !important;
+            border-color: #B69B60 !important;
+        }
+        
+        .brand-bg {
+            background-color: #B69B60 !important;
+        }
+        
+        .brand-shadow {
+            color: #775B3A !important;
+            border-color: #775B3A !important;
+        }
+        
+        .brand-bg-shadow {
+            background-color: #775B3A !important;
+        }
+        
+        /* Navigation Styles */
+        .nav-logo {
+            background-image: url('/assets/tenants/goldravenia-logo-winner.png?v=20250308003');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            height: 60px;
+            width: 200px;
+        }
+        
+        .nav-link {
+            color: #B69B60 !important;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: #775B3A !important;
+        }
+        
+        /* Hero Section */
+        .hero-logo {
+            background-image: url('/assets/tenants/goldravenia-logo-winner.png?v=20250308003');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            height: 136px !important;
+            width: 400px;
+            margin: 0 auto 40px;
+        }
+        
+        /* Button Styles */
+        .btn-primary {
+            background-color: #B69B60 !important;
+            border-color: #B69B60 !important;
+            color: #000000 !important;
+            padding: 16px 32px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #775B3A !important;
+            border-color: #775B3A !important;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            border: 2px solid #B69B60 !important;
+            color: #B69B60 !important;
+            padding: 14px 30px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #B69B60 !important;
+            color: #000000 !important;
+        }
+        
+        /* Section Styles */
+        .section-border {
+            border-bottom: 1px solid #B69B60;
+            opacity: 0.3;
+        }
+        
+        /* Card Styles */
+        .service-card {
+            background-color: #000000 !important;
+            border: 1px solid #B69B60;
+            padding: 32px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .service-card:hover {
+            border-color: #775B3A;
+            transform: translateY(-4px);
+        }
+        
+        /* Form Styles */
+        .form-input {
+            background-color: #000000 !important;
+            border: 1px solid #B69B60 !important;
+            color: #FFFFFF !important;
+            padding: 12px 16px;
+            border-radius: 6px;
+        }
+        
+        .form-input:focus {
+            border-color: #775B3A !important;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(182, 155, 96, 0.2);
+        }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-fade-in-up {
+            animation: fadeInUp 1s ease-out;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .hero-logo {
+                width: 300px;
+                height: 100px !important;
+            }
+            
+            .nav-logo {
+                height: 40px;
+                width: 140px;
+            }
+        }
+    </style>
+</head>
+<body data-tenant="goldravenia">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50" style="background-color: #000000; border-bottom: 1px solid #B69B60;">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo -->
+                <div class="nav-logo"></div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex space-x-8">
+                    <a href="#home" class="nav-link font-medium">Home</a>
+                    <a href="#services" class="nav-link font-medium">Services</a>
+                    <a href="#about" class="nav-link font-medium">About</a>
+                    <a href="#contact" class="nav-link font-medium">Contact</a>
+                </div>
+                
+                <!-- CTA Button -->
+                <button class="btn-primary hidden md:block">
+                    Book Now
+                </button>
+                
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden text-white" id="mobileMenuBtn">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div class="hidden md:hidden" id="mobileMenu" style="background-color: #000000;">
+            <div class="px-4 py-4 space-y-4">
+                <a href="#home" class="nav-link block font-medium">Home</a>
+                <a href="#services" class="nav-link block font-medium">Services</a>
+                <a href="#about" class="nav-link block font-medium">About</a>
+                <a href="#contact" class="nav-link block font-medium">Contact</a>
+                <button class="btn-primary w-full">Book Now</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="min-h-screen flex items-center justify-center px-4 pt-20" style="background-color: #000000;">
+        <div class="text-center animate-fade-in-up">
+            <!-- Hero Logo -->
+            <div class="hero-logo"></div>
+            
+            <!-- Hero Content -->
+            <h1 class="font-serif text-5xl md:text-7xl font-bold mb-6 brand-primary">
+                GoldRavenia
+            </h1>
+            
+            <h2 class="text-2xl md:text-3xl font-light mb-8" style="color: #775B3A;">
+                Luxury Transportation
+            </h2>
+            
+            <p class="text-lg md:text-xl mb-12 max-w-2xl mx-auto" style="color: #E1E1E1;">
+                Experience unparalleled luxury and professionalism with Chicago's premier black car service. 
+                From executive travel to special occasions, we deliver excellence in every journey.
+            </p>
+            
+            <!-- Hero CTA Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button class="btn-primary text-lg">
+                    Reserve Your Ride
+                </button>
+                <button class="btn-secondary text-lg">
+                    View Fleet
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-20 section-border" style="background-color: #000000;">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="font-serif text-4xl md:text-5xl font-bold mb-4 brand-primary">
+                    Premium Services
+                </h2>
+                <p class="text-xl" style="color: #775B3A;">
+                    Tailored transportation solutions for every occasion
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Executive Transportation -->
+                <div class="service-card">
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-6 rounded-full brand-bg flex items-center justify-center">
+                            <svg class="w-8 h-8" fill="#000000" viewBox="0 0 24 24">
+                                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                            </svg>
+                        </div>
+                        <h3 class="font-serif text-2xl font-bold mb-4 brand-primary">
+                            Executive Transportation
+                        </h3>
+                        <p class="mb-6" style="color: #E1E1E1;">
+                            Professional chauffeur service for business executives, corporate events, and important meetings. 
+                            Punctual, discreet, and impeccably maintained vehicles.
+                        </p>
+                        <button class="btn-secondary w-full">
+                            Learn More
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Airport Transfers -->
+                <div class="service-card">
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-6 rounded-full brand-bg flex items-center justify-center">
+                            <svg class="w-8 h-8" fill="#000000" viewBox="0 0 24 24">
+                                <path d="M21 16v-2l-8-4V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V10l-8 4v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                            </svg>
+                        </div>
+                        <h3 class="font-serif text-2xl font-bold mb-4 brand-primary">
+                            Airport Transfers
+                        </h3>
+                        <p class="mb-6" style="color: #E1E1E1;">
+                            Seamless airport transportation with flight tracking, meet-and-greet service, 
+                            and luggage assistance. Available 24/7 for all Chicago airports.
+                        </p>
+                        <button class="btn-secondary w-full">
+                            Learn More
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Special Events -->
+                <div class="service-card">
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-6 rounded-full brand-bg flex items-center justify-center">
+                            <svg class="w-8 h-8" fill="#000000" viewBox="0 0 24 24">
+                                <path d="M17 12h-5v5l5-5zM16 1c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM4 6c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM12 4c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"/>
+                            </svg>
+                        </div>
+                        <h3 class="font-serif text-2xl font-bold mb-4 brand-primary">
+                            Special Events
+                        </h3>
+                        <p class="mb-6" style="color: #E1E1E1;">
+                            Luxury transportation for weddings, galas, concerts, and special occasions. 
+                            Arrive in style and make a lasting impression.
+                        </p>
+                        <button class="btn-secondary w-full">
+                            Learn More
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 section-border" style="background-color: #000000;">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="font-serif text-4xl md:text-5xl font-bold mb-6 brand-primary">
+                        The GoldRavenia Standard
+                    </h2>
+                    <p class="text-lg mb-6" style="color: #E1E1E1;">
+                        For over a decade, GoldRavenia has been the benchmark for luxury transportation in Chicago. 
+                        Our commitment to excellence is reflected in every aspect of our service.
+                    </p>
+                    <p class="text-lg mb-8" style="color: #E1E1E1;">
+                        From our meticulously maintained fleet of premium vehicles to our professionally trained chauffeurs, 
+                        we ensure that every journey exceeds your expectations. Your safety, comfort, and satisfaction 
+                        are our highest priorities.
+                    </p>
+                    
+                    <!-- Features -->
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full brand-bg flex items-center justify-center mr-4">
+                                <svg class="w-6 h-6" fill="#000000" viewBox="0 0 24 24">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold brand-primary">Professional Chauffeurs</h4>
+                                <p style="color: #775B3A;">Extensively trained and background-checked</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full brand-bg flex items-center justify-center mr-4">
+                                <svg class="w-6 h-6" fill="#000000" viewBox="0 0 24 24">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold brand-primary">Premium Fleet</h4>
+                                <p style="color: #775B3A;">Luxury sedans, SUVs, and executive vehicles</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full brand-bg flex items-center justify-center mr-4">
+                                <svg class="w-6 h-6" fill="#000000" viewBox="0 0 24 24">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold brand-primary">24/7 Service</h4>
+                                <p style="color: #775B3A;">Available whenever you need us</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats -->
+                <div class="grid grid-cols-2 gap-8">
+                    <div class="text-center">
+                        <div class="text-5xl font-bold brand-primary mb-2">10+</div>
+                        <div style="color: #775B3A;">Years of Excellence</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-5xl font-bold brand-primary mb-2">50K+</div>
+                        <div style="color: #775B3A;">Happy Clients</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-5xl font-bold brand-primary mb-2">100+</div>
+                        <div style="color: #775B3A;">Premium Vehicles</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-5xl font-bold brand-primary mb-2">24/7</div>
+                        <div style="color: #775B3A;">Availability</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20" style="background-color: #000000;">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="font-serif text-4xl md:text-5xl font-bold mb-4 brand-primary">
+                    Reserve Your Journey
+                </h2>
+                <p class="text-xl" style="color: #775B3A;">
+                    Experience luxury transportation at its finest
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
+                <!-- Contact Form -->
+                <div>
+                    <form class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <input type="text" placeholder="First Name" class="form-input w-full">
+                            <input type="text" placeholder="Last Name" class="form-input w-full">
+                        </div>
+                        
+                        <input type="email" placeholder="Email Address" class="form-input w-full">
+                        <input type="tel" placeholder="Phone Number" class="form-input w-full">
+                        
+                        <select class="form-input w-full">
+                            <option value="">Select Service</option>
+                            <option value="executive">Executive Transportation</option>
+                            <option value="airport">Airport Transfer</option>
+                            <option value="event">Special Event</option>
+                            <option value="other">Other</option>
+                        </select>
+                        
+                        <textarea placeholder="Additional Details" rows="4" class="form-input w-full"></textarea>
+                        
+                        <button type="submit" class="btn-primary w-full text-lg">
+                            Submit Reservation Request
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Contact Information -->
+                <div>
+                    <div class="space-y-8">
+                        <div>
+                            <h3 class="font-serif text-2xl font-bold mb-4 brand-primary">
+                                Contact Information
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 rounded-full brand-bg flex items-center justify-center mr-4">
+                                        <svg class="w-6 h-6" fill="#000000" viewBox="0 0 24 24">
+                                            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold brand-primary">Phone</h4>
+                                        <p style="color: #775B3A;">+1-312-555-GOLD</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 rounded-full brand-bg flex items-center justify-center mr-4">
+                                        <svg class="w-6 h-6" fill="#000000" viewBox="0 0 24 24">
+                                            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold brand-primary">Email</h4>
+                                        <p style="color: #775B3A;">info@goldravenia.com</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 rounded-full brand-bg flex items-center justify-center mr-4">
+                                        <svg class="w-6 h-6" fill="#000000" viewBox="0 0 24 24">
+                                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold brand-primary">Service Area</h4>
+                                        <p style="color: #775B3A;">Chicago North Shore & Beyond</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-serif text-2xl font-bold mb-4 brand-primary">
+                                Service Hours
+                            </h3>
+                            <div class="space-y-2" style="color: #775B3A;">
+                                <p>Monday - Friday: 24 Hours</p>
+                                <p>Saturday - Sunday: 24 Hours</p>
+                                <p>Holidays: 24 Hours</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-serif text-2xl font-bold mb-4 brand-primary">
+                                Emergency Booking
+                            </h3>
+                            <p style="color: #775B3A;">
+                                Need immediate service? Call our 24/7 hotline for last-minute reservations.
+                            </p>
+                            <button class="btn-secondary mt-4">
+                                Call Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12" style="background-color: #000000; border-top: 1px solid #B69B60;">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Logo & Description -->
+                <div class="md:col-span-1">
+                    <div class="nav-logo mb-4"></div>
+                    <p style="color: #775B3A;">
+                        Chicago's premier luxury transportation service, delivering excellence in every journey.
+                    </p>
+                </div>
+                
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="font-semibold brand-primary mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#services" class="nav-link">Services</a></li>
+                        <li><a href="#about" class="nav-link">About Us</a></li>
+                        <li><a href="#contact" class="nav-link">Contact</a></li>
+                        <li><a href="#" class="nav-link">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Services -->
+                <div>
+                    <h4 class="font-semibold brand-primary mb-4">Services</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="nav-link">Executive Transportation</a></li>
+                        <li><a href="#" class="nav-link">Airport Transfers</a></li>
+                        <li><a href="#" class="nav-link">Special Events</a></li>
+                        <li><a href="#" class="nav-link">Corporate Accounts</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Contact -->
+                <div>
+                    <h4 class="font-semibold brand-primary mb-4">Get in Touch</h4>
+                    <ul class="space-y-2" style="color: #775B3A;">
+                        <li>+1-312-555-GOLD</li>
+                        <li>info@goldravenia.com</li>
+                        <li>Chicago North Shore, IL</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-8 pt-8 text-center" style="border-top: 1px solid #B69B60; opacity: 0.3;">
+                <p style="color: #775B3A;">
+                    © 2026 GoldRavenia Luxury Transportation. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/app.js?v=20250308003"></script>
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        });
+        
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Form submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you for your reservation request. We will contact you shortly to confirm details.');
+        });
+    </script>
+</body>
+</html>

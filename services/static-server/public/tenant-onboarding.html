@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenant Onboarding - UrWay Dispatch</title>
+    <meta name="description" content="Complete your UrWay Dispatch tenant onboarding. Set up your transportation business with our comprehensive platform.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .gradient-text { background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .step-indicator { transition: all 0.3s ease; }
+        .step-indicator.active { background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); }
+        .step-indicator.completed { background: #10b981; }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="tenantOnboarding()">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="/" class="flex items-center space-x-2">
+                <i data-lucide="car" class="w-8 h-8 text-blue-600"></i>
+                <span class="text-xl font-bold text-gray-900">UrWay Dispatch</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="/about.html" class="text-gray-600 hover:text-blue-600">About</a>
+                <a href="/platform.html" class="text-gray-600 hover:text-blue-600">Platform</a>
+                <a href="/for-operators.html" class="text-gray-600 hover:text-blue-600">For Operators</a>
+                <a href="/branding-showcase.html" class="text-gray-600 hover:text-blue-600">Branding</a>
+                <a href="/live-demo.html" class="text-gray-600 hover:text-blue-600">Live Demo</a>
+                <a href="/roi-simulator.html" class="text-gray-600 hover:text-blue-600">ROI Simulator</a>
+                <a href="/contact.html" class="text-gray-600 hover:text-blue-600">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-br from-blue-600 to-purple-700 text-white py-16">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-6">
+                Launch Your <span class="gradient-text">Transportation Business</span>
+            </h1>
+            <p class="text-xl text-blue-100 max-w-2xl mx-auto">
+                Complete your onboarding in minutes and start accepting rides today
+            </p>
+        </div>
+    </section>
+
+    <!-- Progress Steps -->
+    <section class="py-8 bg-white border-b">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="flex items-center justify-between">
+                <template x-for="(step, index) in steps" :key="step.id">
+                    <div class="flex items-center"
+                         :class="index < steps.length - 1 ? 'flex-1' : ''">
+                        <div class="step-indicator w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold"
+                             :class="{
+                                 'active': currentStep === step.id,
+                                 'completed': currentStep > step.id,
+                                 'bg-gray-300': currentStep < step.id
+                             }">
+                            <span x-show="currentStep > step.id">✓</span>
+                            <span x-show="currentStep <= step.id" x-text="step.id"></span>
+                        </div>
+                        <div class="ml-3 hidden md:block">
+                            <p class="text-sm font-medium text-gray-900" x-text="step.title"></p>
+                            <p class="text-xs text-gray-500" x-text="step.description"></p>
+                        </div>
+                        <div class="flex-1 h-1 bg-gray-200 mx-4" x-show="index < steps.length - 1"></div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </section>
+
+    <!-- Onboarding Form -->
+    <section class="py-16">
+        <div class="max-w-4xl mx-auto px-6">
+            <form x-on:submit.prevent="nextStep()" class="space-y-8">
+                
+                <!-- Step 1: Business Information -->
+                <div x-show="currentStep === 1" x-transition>
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Business Information</h2>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Company Name *</label>
+                                <input type="text" x-model="formData.companyName" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="ABC Transportation">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Legal Structure *</label>
+                                <select x-model="formData.legalStructure" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" title="Legal Structure">
+                                    <option value="">Select structure</option>
+                                    <option value="sole-proprietor">Sole Proprietor</option>
+                                    <option value="llc">LLC</option>
+                                    <option value="corporation">Corporation</option>
+                                    <option value="partnership">Partnership</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Business Email *</label>
+                                <input type="email" x-model="formData.businessEmail" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="contact@yourcompany.com">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                                <input type="tel" x-model="formData.phoneNumber" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="(555) 123-4567">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Service Area *</label>
+                                <textarea x-model="formData.serviceArea" required rows="3"
+                                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                          placeholder="Cities, airports, and areas you serve (e.g., Chicago O'Hare, Downtown Chicago, Suburbs)"></textarea>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Business Address *</label>
+                                <input type="text" x-model="formData.businessAddress" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="123 Main St, City, State 12345">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Fleet Configuration -->
+                <div x-show="currentStep === 2" x-transition>
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Fleet Configuration</h2>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Total Fleet Size *</label>
+                                <input type="number" x-model="formData.fleetSize" required min="1"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="Number of vehicles">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Primary Vehicle Types *</label>
+                                <div class="space-y-2">
+                                    <template x-for="vehicleType in vehicleTypes">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" :value="vehicleType.id" x-model="formData.vehicleTypes"
+                                                   class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span x-text="vehicleType.name"></span>
+                                        </label>
+                                    </template>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Driver Requirements *</label>
+                                <select x-model="formData.driverRequirements" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" title="Driver Requirements">
+                                    <option value="">Select requirements</option>
+                                    <option value="basic">Basic (License + Insurance)</option>
+                                    <option value="standard">Standard (Background Check)</option>
+                                    <option value="professional">Professional (Chauffeur License)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Insurance Coverage *</label>
+                                <select x-model="formData.insuranceCoverage" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" title="Insurance Coverage">
+                                    <option value="">Select coverage</option>
+                                    <option value="state-minimum">State Minimum</option>
+                                    <option value="commercial">Commercial Auto</option>
+                                    <option value="comprehensive">Comprehensive Fleet</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Pricing Setup -->
+                <div x-show="currentStep === 3" x-transition>
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Pricing Setup</h2>
+                        <p class="text-gray-600 mb-6">Configure your pricing structure. These can be adjusted later in your admin console.</p>
+                        <div class="space-y-6">
+                            <template x-for="vehicleType in selectedVehicleTypes" :key="vehicleType.id">
+                                <div class="border border-gray-200 rounded-lg p-6">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-4" x-text="vehicleType.name"></h3>
+                                    <div class="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Base Fare ($)</label>
+                                            <input type="number" x-model="formData.pricing[vehicleType.id].baseFare" 
+                                                   step="0.01" min="0" required
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Per Mile ($)</label>
+                                            <input type="number" x-model="formData.pricing[vehicleType.id].perMile" 
+                                                   step="0.01" min="0" required
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Per Minute ($)</label>
+                                            <input type="number" x-model="formData.pricing[vehicleType.id].perMinute" 
+                                                   step="0.01" min="0" required
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Minimum Fare ($)</label>
+                                            <input type="number" x-model="formData.pricing[vehicleType.id].minimumFare" 
+                                                   step="0.01" min="0" required
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Branding Customization -->
+                <div x-show="currentStep === 4" x-transition>
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Branding Customization</h2>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Company Logo</label>
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                                    <i data-lucide="upload" class="w-8 h-8 text-gray-400 mx-auto mb-2"></i>
+                                    <p class="text-sm text-gray-600">Click to upload or drag and drop</p>
+                                    <p class="text-xs text-gray-500">PNG, JPG up to 10MB</p>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
+                                <input type="color" x-model="formData.branding.primaryColor" value="#2563eb"
+                                       class="w-full h-10 border border-gray-300 rounded-lg cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Secondary Color</label>
+                                <input type="color" x-model="formData.branding.secondaryColor" value="#7c3aed"
+                                       class="w-full h-10 border border-gray-300 rounded-lg cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Desired Domain</label>
+                                <input type="text" x-model="formData.branding.domain"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="yourcompany.urwaydispatch.com">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5: Operational Settings -->
+                <div x-show="currentStep === 5" x-transition>
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Operational Settings</h2>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Business Hours *</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="time" x-model="formData.operational.businessHoursStart" required
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <span class="text-gray-500">to</span>
+                                    <input type="time" x-model="formData.operational.businessHoursEnd" required
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Dispatch Method *</label>
+                                <select x-model="formData.operational.dispatchMethod" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" title="Dispatch Method">
+                                    <option value="">Select method</option>
+                                    <option value="auto">Automatic Dispatch</option>
+                                    <option value="manual">Manual Dispatch</option>
+                                    <option value="hybrid">Hybrid (Auto + Manual)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Payment Methods *</label>
+                                <div class="space-y-2">
+                                    <template x-for="paymentMethod in paymentMethods">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" :value="paymentMethod.id" x-model="formData.operational.paymentMethods"
+                                                   class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span x-text="paymentMethod.name"></span>
+                                        </label>
+                                    </template>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Customer Support *</label>
+                                <select x-model="formData.operational.customerSupport" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" title="Customer Support">
+                                    <option value="">Select support level</option>
+                                    <option value="basic">Basic Support</option>
+                                    <option value="premium">Premium Support</option>
+                                    <option value="white-glove">White Glove Support</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 6: Review & Submit -->
+                <div x-show="currentStep === 6" x-transition>
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Review Your Information</h2>
+                        <div class="space-y-6">
+                            <div class="border-b border-gray-200 pb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Business Information</h3>
+                                <div class="grid md:grid-cols-2 gap-4 text-sm">
+                                    <div><strong>Company:</strong> <span x-text="formData.companyName"></span></div>
+                                    <div><strong>Legal Structure:</strong> <span x-text="formData.legalStructure"></span></div>
+                                    <div><strong>Email:</strong> <span x-text="formData.businessEmail"></span></div>
+                                    <div><strong>Phone:</strong> <span x-text="formData.phoneNumber"></span></div>
+                                    <div class="md:col-span-2"><strong>Service Area:</strong> <span x-text="formData.serviceArea"></span></div>
+                                </div>
+                            </div>
+                            
+                            <div class="border-b border-gray-200 pb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Fleet Configuration</h3>
+                                <div class="grid md:grid-cols-2 gap-4 text-sm">
+                                    <div><strong>Fleet Size:</strong> <span x-text="formData.fleetSize"></span></div>
+                                    <div><strong>Vehicle Types:</strong> <span x-text="selectedVehicleTypes.map(v => v.name).join(', ')"></span></div>
+                                </div>
+                            </div>
+
+                            <div class="border-b border-gray-200 pb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Pricing Summary</h3>
+                                <div class="space-y-2">
+                                    <template x-for="vehicleType in selectedVehicleTypes" :key="vehicleType.id">
+                                        <div class="text-sm">
+                                            <strong x-text="vehicleType.name + ':'"></strong>
+                                            Base: $<span x-text="formData.pricing[vehicleType.id].baseFare"></span> |
+                                            Per Mile: $<span x-text="formData.pricing[vehicleType.id].perMile"></span> |
+                                            Per Min: $<span x-text="formData.pricing[vehicleType.id].perMinute"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Terms & Conditions</h3>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <label class="flex items-start">
+                                        <input type="checkbox" x-model="formData.termsAccepted" required
+                                               class="mr-3 mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-600">
+                                            I agree to the UrWay Dispatch terms of service and privacy policy. 
+                                            I understand that my account will be subject to monthly platform fees based on my fleet size.
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="flex justify-between items-center mt-8">
+                    <button type="button" x-show="currentStep > 1" @click="previousStep()"
+                            class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                        Previous
+                    </button>
+                    <div x-show="currentStep === 1"></div>
+                    
+                    <div class="flex space-x-4">
+                        <button type="button" @click="saveProgress()"
+                                class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            Save Progress
+                        </button>
+                        <button type="submit" :disabled="!canProceed"
+                                class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="currentStep < 6">Next Step</span>
+                            <span x-show="currentStep === 6">Complete Onboarding</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Success Modal -->
+    <dialog id="success-modal" class="p-0 rounded-xl shadow-2xl backdrop:bg-black/50" :open="onboardingComplete">
+        <div class="bg-white rounded-xl max-w-lg w-full p-8 text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="check-circle" class="w-8 h-8 text-green-600"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">Welcome to UrWay Dispatch!</h3>
+            <p class="text-gray-600 mb-6">
+                Your onboarding is complete. Your account is being set up and you'll receive a confirmation email shortly.
+            </p>
+            <div class="space-y-3 text-left bg-gray-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-gray-900 mb-2">What's Next:</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li>• Check your email for account credentials</li>
+                    <li>• Access your admin dashboard</li>
+                    <li>• Add your drivers and vehicles</li>
+                    <li>• Start accepting rides!</li>
+                </ul>
+            </div>
+            <button onclick="window.location.href='/live-demo.html'" 
+                    class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors mt-6">
+                View Platform Demo
+            </button>
+        </div>
+    </dialog>
+
+    <script>
+        function tenantOnboarding() {
+            return {
+                currentStep: 1,
+                onboardingComplete: false,
+                
+                steps: [
+                    { id: 1, title: 'Business Info', description: 'Company details' },
+                    { id: 2, title: 'Fleet Setup', description: 'Vehicle configuration' },
+                    { id: 3, title: 'Pricing', description: 'Rate structure' },
+                    { id: 4, title: 'Branding', description: 'Customization' },
+                    { id: 5, title: 'Operations', description: 'Business settings' },
+                    { id: 6, title: 'Review', description: 'Confirm & submit' }
+                ],
+                
+                vehicleTypes: [
+                    { id: 'black-sedan', name: 'Black Sedan' },
+                    { id: 'black-suv', name: 'Black SUV' },
+                    { id: 'luxury-sedan', name: 'Luxury Sedan' },
+                    { id: 'luxury-suv', name: 'Luxury SUV' },
+                    { id: 'shuttle', name: 'Shuttle Van' },
+                    { id: 'wheelchair', name: 'Wheelchair Accessible' }
+                ],
+                
+                paymentMethods: [
+                    { id: 'credit-card', name: 'Credit Card' },
+                    { id: 'cash', name: 'Cash' },
+                    { id: 'invoice', name: 'Invoice' },
+                    { id: 'corporate-account', name: 'Corporate Account' }
+                ],
+                
+                formData: {
+                    selectedPlan: '',
+                    companyName: '',
+                    legalStructure: '',
+                    businessEmail: '',
+                    phoneNumber: '',
+                    serviceArea: '',
+                    businessAddress: '',
+                    fleetSize: '',
+                    vehicleTypes: [],
+                    driverRequirements: '',
+                    insuranceCoverage: '',
+                    pricing: {},
+                    branding: {
+                        primaryColor: '#2563eb',
+                        secondaryColor: '#7c3aed',
+                        domain: ''
+                    },
+                    operational: {
+                        businessHoursStart: '06:00',
+                        businessHoursEnd: '23:00',
+                        dispatchMethod: '',
+                        paymentMethods: [],
+                        customerSupport: ''
+                    },
+                    termsAccepted: false
+                },
+                
+                init() {
+                    // Initialize pricing for all vehicle types
+                    this.vehicleTypes.forEach(type => {
+                        this.formData.pricing[type.id] = {
+                            baseFare: 10.00,
+                            perMile: 2.50,
+                            perMinute: 0.55,
+                            minimumFare: 20.00
+                        };
+                    });
+                    
+                    // Handle URL parameters for plan selection
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const plan = urlParams.get('plan');
+                    if (plan) {
+                        this.formData.selectedPlan = plan;
+                        // Pre-fill some fields based on plan
+                        if (plan === 'starter') {
+                            this.formData.fleetSize = '5';
+                        } else if (plan === 'professional') {
+                            this.formData.fleetSize = '25';
+                        }
+                    }
+                },
+                
+                get selectedVehicleTypes() {
+                    return this.vehicleTypes.filter(type => this.formData.vehicleTypes.includes(type.id));
+                },
+                
+                get canProceed() {
+                    if (this.currentStep === 6) {
+                        return this.formData.termsAccepted;
+                    }
+                    
+                    // Basic validation for each step
+                    switch(this.currentStep) {
+                        case 1:
+                            return this.formData.companyName && this.formData.legalStructure && 
+                                   this.formData.businessEmail && this.formData.phoneNumber && 
+                                   this.formData.serviceArea && this.formData.businessAddress;
+                        case 2:
+                            return this.formData.fleetSize && this.formData.vehicleTypes.length > 0 &&
+                                   this.formData.driverRequirements && this.formData.insuranceCoverage;
+                        case 3:
+                            return this.selectedVehicleTypes.every(type => 
+                                this.formData.pricing[type.id].baseFare > 0 &&
+                                this.formData.pricing[type.id].perMile > 0 &&
+                                this.formData.pricing[type.id].perMinute > 0 &&
+                                this.formData.pricing[type.id].minimumFare > 0
+                            );
+                        case 4:
+                            return true; // Branding is optional
+                        case 5:
+                            return this.formData.operational.dispatchMethod && 
+                                   this.formData.operational.paymentMethods.length > 0 &&
+                                   this.formData.operational.customerSupport;
+                        default:
+                            return true;
+                    }
+                },
+                
+                nextStep() {
+                    if (this.currentStep === 6) {
+                        this.completeOnboarding();
+                    } else if (this.canProceed) {
+                        this.currentStep++;
+                    }
+                },
+                
+                previousStep() {
+                    if (this.currentStep > 1) {
+                        this.currentStep--;
+                    }
+                },
+                
+                generateDemoCaptcha() {
+                    const questions = [
+                        { q: "What is 15 + 7 × 2?", a: "29" },
+                        { q: "What is 100 - 43 ÷ 7?", a: "94" },
+                        { q: "What is 8 × 9 - 12?", a: "60" },
+                        { q: "What is 45 + 18 ÷ 3?", a: "51" },
+                        { q: "What is 25 × 4 - 30?", a: "70" },
+                        { q: "What is 144 ÷ 12 + 8?", a: "20" }
+                    ];
+                    
+                    const random = questions[Math.floor(Math.random() * questions.length)];
+                    const element = document.getElementById('demo-captcha-question');
+                    if (element) {
+                        element.textContent = random.q;
+                        element.dataset.answer = random.a;
+                    }
+                },
+                
+                saveProgress() {
+                    // Save to localStorage
+                    localStorage.setItem('tenantOnboardingProgress', JSON.stringify({
+                        step: this.currentStep,
+                        data: this.formData
+                    }));
+                    
+                    // Show success message
+                    alert('Progress saved successfully!');
+                },
+                
+                completeOnboarding() {
+                    // Simulate API call
+                    console.log('Onboarding data:', this.formData);
+                    
+                    // Show success modal
+                    this.onboardingComplete = true;
+                    
+                    // Track conversion
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'tenant_onboarding_completed', {
+                            'send_to': 'G-URWAY2026'
+                        });
+                    }
+                    
+                    // Clear saved progress
+                    localStorage.removeItem('tenantOnboardingProgress');
+                }
+            }
+        }
+        
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

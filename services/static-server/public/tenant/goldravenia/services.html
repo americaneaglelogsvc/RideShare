@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en" data-tenant="goldravenia">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services - GoldRavenia Luxury Transportation</title>
+    <meta name="description" content="GoldRavenia offers premium luxury transportation services including airport transfers, executive travel, special events, and chauffeur services throughout Chicago North Shore.">
+    <meta name="keywords" content="GoldRavenia services, luxury transportation, airport transfers, executive travel, chauffeur service, Chicago North Shore">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../../assets/tenants/goldravenia-logo-winner.png?v=20250308003">
+    
+    <!-- Preconnect and DNS Prefetch -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../../styles.css?v=20250308003">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* DEFINITIVE GOLDRAVENIA STYLES */
+        * { 
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        /* FORCED Absolute Pitch Black Background */
+        html, body {
+            background-color: #000000 !important;
+            color: #FFFFFF !important;
+        }
+        
+        /* FORCED Brand Colors */
+        .brand-primary {
+            color: #B69B60 !important;
+            border-color: #B69B60 !important;
+        }
+        
+        .brand-bg {
+            background-color: #B69B60 !important;
+        }
+        
+        .brand-shadow {
+            color: #775B3A !important;
+            border-color: #775B3A !important;
+        }
+        
+        .brand-bg-shadow {
+            background-color: #775B3A !important;
+        }
+        
+        /* Navigation Styles */
+        .nav-logo {
+            background-image: url('../../assets/tenants/goldravenia-logo-winner.png?v=20250308003');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            height: 60px;
+            width: 200px;
+        }
+        
+        .nav-link {
+            color: #B69B60 !important;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: #775B3A !important;
+        }
+        
+        /* Button Styles */
+        .btn-primary {
+            background-color: #B69B60 !important;
+            border-color: #B69B60 !important;
+            color: #000000 !important;
+            padding: 16px 32px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #775B3A !important;
+            border-color: #775B3A !important;
+        }
+    </style>
+</head>
+<body class="bg-black text-white">
+    <!-- Navigation -->
+    <nav class="bg-black border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/tenant/goldravenia/" class="flex items-center space-x-2">
+                    <div class="nav-logo"></div>
+                </a>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/tenant/goldravenia/" class="nav-link">Home</a>
+                    <a href="/tenant/goldravenia/services.html" class="nav-link">Services</a>
+                    <a href="/tenant/goldravenia/about.html" class="nav-link">About</a>
+                    <a href="/tenant/goldravenia/contact.html" class="nav-link">Contact</a>
+                    <button onclick="window.location.href='https://urway-rider-73967865619.us-central1.run.app'" class="btn-primary">
+                        Book Now
+                    </button>
+                </div>
+                
+                <!-- Mobile menu button -->
+                <button id="mobileMenuBtn" class="md:hidden" title="Toggle mobile menu">
+                    <i data-lucide="menu" class="w-6 h-6 text-white"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile Navigation -->
+            <div id="mobileMenu" class="hidden md:hidden py-4 border-t border-gray-800">
+                <div class="flex flex-col space-y-4">
+                    <a href="/tenant/goldravenia/" class="nav-link">Home</a>
+                    <a href="/tenant/goldravenia/services.html" class="nav-link">Services</a>
+                    <a href="/tenant/goldravenia/about.html" class="nav-link">About</a>
+                    <a href="/tenant/goldravenia/contact.html" class="nav-link">Contact</a>
+                    <button onclick="window.location.href='https://urway-rider-73967865619.us-central1.run.app'" class="btn-primary w-full">
+                        Book Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="py-20">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-6 font-serif">
+                <span class="brand-primary">Premium Services</span>
+            </h1>
+            <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+                Luxury transportation solutions tailored to your needs, serving Chicago North Shore and beyond.
+            </p>
+        </div>
+    </section>
+
+    <!-- Services Grid -->
+    <section class="py-16 border-t border-gray-800">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="grid md:grid-cols-2 gap-12">
+                <!-- Airport Transfers -->
+                <div class="bg-gray-900 rounded-lg p-8">
+                    <div class="w-16 h-16 brand-bg rounded-full flex items-center justify-center mb-6">
+                        <i data-lucide="plane" class="w-8 h-8 text-black"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 brand-primary">Airport Transfers</h3>
+                    <p class="text-gray-300 mb-6">
+                        Seamless airport transportation with flight tracking, meet-and-greet service, and luggage assistance. Available for O'Hare, Midway, and all Chicago area airports.
+                    </p>
+                    <ul class="text-gray-400 space-y-2 mb-6">
+                        <li>• Real-time flight monitoring</li>
+                        <li>• Professional meet-and-greet</li>
+                        <li>• Complimentary luggage handling</li>
+                        <li>• 24/7 availability</li>
+                    </ul>
+                    <button onclick="window.location.href='/tenant/goldravenia/contact.html'" class="btn-primary">
+                        Book Airport Transfer
+                    </button>
+                </div>
+
+                <!-- Executive Travel -->
+                <div class="bg-gray-900 rounded-lg p-8">
+                    <div class="w-16 h-16 brand-bg rounded-full flex items-center justify-center mb-6">
+                        <i data-lucide="briefcase" class="w-8 h-8 text-black"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 brand-primary">Executive Travel</h3>
+                    <p class="text-gray-300 mb-6">
+                        Premium transportation for business meetings, corporate events, and executive travel. Discreet, professional service that reflects your corporate standards.
+                    </p>
+                    <ul class="text-gray-400 space-y-2 mb-6">
+                        <li>• Executive luxury vehicles</li>
+                        <li>• Confidential and discreet service</li>
+                        <li>• Multiple stop scheduling</li>
+                        <li>• Corporate billing available</li>
+                    </ul>
+                    <button onclick="window.location.href='/tenant/goldravenia/contact.html'" class="btn-primary">
+                        Book Executive Service
+                    </button>
+                </div>
+
+                <!-- Special Events -->
+                <div class="bg-gray-900 rounded-lg p-8">
+                    <div class="w-16 h-16 brand-bg rounded-full flex items-center justify-center mb-6">
+                        <i data-lucide="champagne" class="w-8 h-8 text-black"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 brand-primary">Special Events</h3>
+                    <p class="text-gray-300 mb-6">
+                        Luxury transportation for weddings, galas, concerts, and special occasions. Arrive in style and make every moment memorable.
+                    </p>
+                    <ul class="text-gray-400 space-y-2 mb-6">
+                        <li>• Wedding day transportation</li>
+                        <li>• Red carpet service</li>
+                        <li>• Event coordination</li>
+                        <li>• Group transportation</li>
+                    </ul>
+                    <button onclick="window.location.href='/tenant/goldravenia/contact.html'" class="btn-primary">
+                        Book Event Service
+                    </button>
+                </div>
+
+                <!-- Hourly Chauffeur -->
+                <div class="bg-gray-900 rounded-lg p-8">
+                    <div class="w-16 h-16 brand-bg rounded-full flex items-center justify-center mb-6">
+                        <i data-lucide="clock" class="w-8 h-8 text-black"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 brand-primary">Hourly Chauffeur</h3>
+                    <p class="text-gray-300 mb-6">
+                        Flexible hourly service for shopping, tours, or when you need a dedicated chauffeur for the day. Your personal driver on standby.
+                    </p>
+                    <ul class="text-gray-400 space-y-2 mb-6">
+                        <li>• Minimum 3-hour booking</li>
+                        <li>• Flexible routing</li>
+                        <li>• Professional chauffeur</li>
+                        <li>• Luxury vehicle selection</li>
+                    </ul>
+                    <button onclick="window.location.href='/tenant/goldravenia/contact.html'" class="btn-primary">
+                        Book Hourly Service
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Service Areas -->
+    <section class="py-16 border-t border-gray-800">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4 font-serif">
+                    <span class="brand-primary">Service Areas</span>
+                </h2>
+                <p class="text-gray-300">Serving Chicago and surrounding communities with premium transportation</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <h3 class="text-xl font-semibold mb-4 brand-primary">Chicago North Shore</h3>
+                    <ul class="text-gray-400 space-y-2">
+                        <li>• Evanston</li>
+                        <li>• Wilmette</li>
+                        <li>• Kenilworth</li>
+                        <li>• Winnetka</li>
+                        <li>• Glencoe</li>
+                        <li>• Highland Park</li>
+                    </ul>
+                </div>
+                
+                <div class="text-center">
+                    <h3 class="text-xl font-semibold mb-4 brand-primary">Chicago Metro</h3>
+                    <ul class="text-gray-400 space-y-2">
+                        <li>• Downtown Chicago</li>
+                        <li>• Gold Coast</li>
+                        <li>• River North</li>
+                        <li>• Streeterville</li>
+                        <li>• Lincoln Park</li>
+                        <li>• Lakeview</li>
+                    </ul>
+                </div>
+                
+                <div class="text-center">
+                    <h3 class="text-xl font-semibold mb-4 brand-primary">Airport Coverage</h3>
+                    <ul class="text-gray-400 space-y-2">
+                        <li>• O'Hare International</li>
+                        <li>• Midway Airport</li>
+                        <li>• Gary/Chicago Airport</li>
+                        <li>• Waukegan Airport</li>
+                        <li>• Private Airfields</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Fleet Preview -->
+    <section class="py-16 border-t border-gray-800">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4 font-serif">
+                    <span class="brand-primary">Premium Fleet</span>
+                </h2>
+                <p class="text-gray-300">Luxury vehicles maintained to the highest standards</p>
+            </div>
+            
+            <div class="grid md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <img src="https://picsum.photos/seed/luxury-sedan/300/200.jpg" alt="Luxury Sedan" class="rounded-lg mb-4">
+                    <h4 class="font-semibold brand-primary">Executive Sedans</h4>
+                    <p class="text-sm text-gray-400">Mercedes, BMW, Cadillac</p>
+                </div>
+                
+                <div class="text-center">
+                    <img src="https://picsum.photos/seed/luxury-suv/300/200.jpg" alt="Luxury SUV" class="rounded-lg mb-4">
+                    <h4 class="font-semibold brand-primary">Luxury SUVs</h4>
+                    <p class="text-sm text-gray-400">Escalade, Navigator, GLS</p>
+                </div>
+                
+                <div class="text-center">
+                    <img src="https://picsum.photos/seed/luxury-van/300/200.jpg" alt="Luxury Van" class="rounded-lg mb-4">
+                    <h4 class="font-semibold brand-primary">Premium Vans</h4>
+                    <p class="text-sm text-gray-400">Sprinter, Transit, Suburban</p>
+                </div>
+                
+                <div class="text-center">
+                    <img src="https://picsum.photos/seed/stretch-limo/300/200.jpg" alt="Stretch Limousine" class="rounded-lg mb-4">
+                    <h4 class="font-semibold brand-primary">Stretch Limousines</h4>
+                    <p class="text-sm text-gray-400">Special events & groups</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 border-t border-gray-800">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-3xl font-bold mb-6 font-serif">
+                <span class="brand-primary">Ready to Experience Luxury?</span>
+            </h2>
+            <p class="text-gray-300 mb-8">
+                Contact our team today to arrange your premium transportation service.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="window.location.href='https://urway-rider-73967865619.us-central1.run.app'" class="btn-primary text-lg">
+                    Book Online
+                </button>
+                <button onclick="window.location.href='/tenant/goldravenia/contact.html'" class="border border-brand-primary text-brand-primary px-8 py-4 rounded-lg font-semibold text-lg hover:bg-brand-primary hover:text-black transition-colors">
+                    Contact Us
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black border-t border-gray-800 py-12">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex items-center justify-center space-x-2 mb-4">
+                <div class="w-8 h-8 brand-bg rounded-full flex items-center justify-center">
+                    <span class="text-black font-bold">GR</span>
+                </div>
+                <span class="text-xl font-bold brand-primary">GoldRavenia</span>
+            </div>
+            <p class="text-center text-gray-400 text-sm mb-4">
+                Chicago's premier luxury transportation service.
+            </p>
+            <div class="text-center text-gray-500 text-sm">
+                <p>&copy; 2026 GoldRavenia Luxury Transportation. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../../app.js?v=20250308003"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        });
+        
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

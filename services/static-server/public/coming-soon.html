@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UrWay Dispatch - Coming Soon</title>
+    <meta name="description" content="Enterprise rideshare platform launching soon. Transform your transportation business with our white-label solution.">
+    
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #d4a017 0%, #0f172a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 min-h-screen flex items-center justify-center">
+    <div class="text-center px-4 max-w-4xl mx-auto">
+        <!-- Logo/Brand -->
+        <div class="mb-8 float-animation">
+            <div class="w-24 h-24 mx-auto bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center shadow-2xl">
+                <i data-lucide="car" class="w-12 h-12 text-white"></i>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <h1 class="text-6xl md:text-7xl font-bold text-white mb-4">
+            <span class="gradient-text">UrWay Dispatch</span>
+        </h1>
+        
+        <h2 class="text-3xl md:text-4xl font-semibold text-yellow-400 mb-6">
+            Coming Soon
+        </h2>
+        
+        <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
+            Transform your transportation business with our enterprise rideshare platform. 
+            White-label branding, automated dispatch, and fleet management coming your way.
+        </p>
+        
+        <!-- Feature Highlights -->
+        <div class="grid md:grid-cols-3 gap-6 mb-12">
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+                <i data-lucide="zap" class="w-8 h-8 text-yellow-400 mx-auto mb-3"></i>
+                <h3 class="text-white font-semibold mb-2">Lightning Fast</h3>
+                <p class="text-gray-400 text-sm">Automated dispatch in seconds</p>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+                <i data-lucide="palette" class="w-8 h-8 text-yellow-400 mx-auto mb-3"></i>
+                <h3 class="text-white font-semibold mb-2">Your Brand</h3>
+                <p class="text-gray-400 text-sm">White-label customization</p>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+                <i data-lucide="shield-check" class="w-8 h-8 text-yellow-400 mx-auto mb-3"></i>
+                <h3 class="text-white font-semibold mb-2">Enterprise Grade</h3>
+                <p class="text-gray-400 text-sm">Bank-level security & compliance</p>
+            </div>
+        </div>
+        
+        <!-- CTA Section -->
+        <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-2xl p-8 max-w-md mx-auto shadow-2xl">
+            <h3 class="text-2xl font-bold text-slate-900 mb-4">Be First to Know</h3>
+            <p class="text-slate-800 mb-6">Get notified when we launch and receive early access pricing.</p>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input type="email" placeholder="Enter your email" class="flex-1 px-4 py-3 rounded-lg text-slate-900 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                <button class="px-6 py-3 bg-slate-900 text-white rounded-lg font-semibold hover:bg-slate-800 transition-colors">
+                    Notify Me
+                </button>
+            </div>
+        </div>
+        
+        <!-- Status -->
+        <div class="mt-12 text-gray-400">
+            <p class="mb-2">🚀 Platform Status: <span class="text-green-400">Active Development</span></p>
+            <p class="text-sm">Currently serving <span class="text-yellow-400 font-semibold">247 active drivers</span> and <span class="text-yellow-400 font-semibold">1,432 daily rides</span></p>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Simple email notification
+        document.querySelector('button').addEventListener('click', function() {
+            const email = document.querySelector('input[type="email"]').value;
+            if (email && email.includes('@')) {
+                this.textContent = '✓ Notified!';
+                this.classList.add('bg-green-600');
+                setTimeout(() => {
+                    this.textContent = 'Notify Me';
+                    this.classList.remove('bg-green-600');
+                    document.querySelector('input[type="email"]').value = '';
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>

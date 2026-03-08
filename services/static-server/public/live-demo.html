@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Platform Demo - UrWay Dispatch</title>
+    <meta name="description" content="Experience the UrWay Dispatch platform in real-time. Live demo of dispatch, driver management, and customer booking systems.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .map-container {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .map-grid {
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="liveDemo()">
+    
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/" class="flex items-center space-x-2">
+                    <i data-lucide="car" class="w-8 h-8 text-blue-600"></i>
+                    <span class="text-xl font-bold text-gray-900">UrWay Dispatch</span>
+                </a>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
+                        <span class="text-sm text-green-600 font-medium">Live Demo</span>
+                    </div>
+                    <a href="/" class="text-blue-600 hover:text-blue-700 font-medium">← Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Status Bar -->
+    <div class="bg-green-50 border-b border-green-200">
+        <div class="max-w-7xl mx-auto px-6 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="activity" class="w-4 h-4 text-green-600"></i>
+                        <span class="text-sm text-green-800 font-medium">System Status: Operational</span>
+                    </div>
+                    <div class="text-sm text-green-700">
+                        API Response: <span x-text="apiResponseTime + 'ms'" class="font-mono font-bold"></span>
+                    </div>
+                </div>
+                <div class="text-sm text-green-700">
+                    Last Updated: <span x-text="lastUpdate"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lead Capture Modal -->
+    <dialog id="lead-capture-modal" class="p-0 rounded-xl shadow-2xl backdrop:bg-black/50" :open="!demoUnlocked">
+        <div class="bg-white rounded-xl max-w-lg w-full">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-2xl font-bold text-gray-900">Start Your Demo</h3>
+                <p class="text-gray-600 mt-2">Tell us about your transportation business to unlock the full platform demo</p>
+            </div>
+            
+            <form class="p-6 space-y-4" onsubmit="unlockDemo(event)">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
+                    <input type="text" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Your transportation company">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Business Email *</label>
+                    <input type="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="your@company.com">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Fleet Size *</label>
+                    <select required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" title="Fleet Size">
+                        <option value="">Select fleet size</option>
+                        <option value="1-5">1-5 vehicles</option>
+                        <option value="6-20">6-20 vehicles</option>
+                        <option value="21-50">21-50 vehicles</option>
+                        <option value="51+">51+ vehicles</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Service Type *</label>
+                    <select required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" title="Service Type">
+                        <option value="">Select service type</option>
+                        <option value="black-car">Black Car Service</option>
+                        <option value="limo">Limousine</option>
+                        <option value="shuttle">Shuttle Service</option>
+                        <option value="taxi">Taxi Service</option>
+                        <option value="medical">Medical Transport</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <!-- CAPTCHA -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Prove you're human</label>
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-white px-4 py-2 rounded border border-gray-300 font-mono text-lg" id="demo-captcha-question">7 + 3 = ?</div>
+                        <input type="number" id="demo-captcha-answer" required class="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Answer">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                    <i data-lucide="play-circle" class="w-5 h-5 mr-2 inline"></i>
+                    Unlock Full Demo
+                </button>
+                
+                <p class="text-xs text-gray-500 text-center">
+                    We respect your privacy. Your information helps us customize your demo experience.
+                </p>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-br from-blue-600 to-purple-700 text-white py-12">
+        <div class="max-w-6xl mx-auto px-6">
+            <h1 class="text-3xl md:text-4xl font-bold mb-4">
+                Live Platform Demonstration
+            </h1>
+            <p class="text-xl text-blue-100 max-w-3xl">
+                Experience real-time dispatch, driver management, and customer booking in action
+            </p>
+        </div>
+    </section>
+
+    <!-- Main Demo Dashboard -->
+    <section class="py-8">
+        <div class="max-w-7xl mx-auto px-6">
+            <!-- Demo Tabs -->
+            <div class="bg-white rounded-xl shadow-lg mb-6">
+                <div class="border-b border-gray-200">
+                    <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                        <button @click="activeTab = 'dispatch'" 
+                                :class="activeTab === 'dispatch' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                class="py-4 px-1 border-b-2 font-medium text-sm">
+                            Dispatch Console
+                        </button>
+                        <button @click="activeTab = 'booking'" 
+                                :class="activeTab === 'booking' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                class="py-4 px-1 border-b-2 font-medium text-sm">
+                            Customer Booking
+                        </button>
+                        <button @click="activeTab = 'admin'" 
+                                :class="activeTab === 'admin' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                class="py-4 px-1 border-b-2 font-medium text-sm">
+                            Admin Console
+                        </button>
+                        <button @click="activeTab = 'rider'" 
+                                :class="activeTab === 'rider' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                class="py-4 px-1 border-b-2 font-medium text-sm">
+                            Rider App
+                        </button>
+                        <button @click="activeTab = 'driver'" 
+                                :class="activeTab === 'driver' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                class="py-4 px-1 border-b-2 font-medium text-sm">
+                            Driver App
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-6">
+                
+                <!-- Live Dispatch Map -->
+                <div class="lg:col-span-2" x-show="activeTab === 'dispatch'">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="p-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-bold text-gray-900">Live Dispatch Console</h2>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
+                                    <span class="text-sm text-green-600">Live</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="map-container h-96 relative">
+                            <div class="map-grid absolute inset-0"></div>
+                            
+                            <!-- Simulated Map Elements -->
+                            <template x-for="driver in drivers" :key="driver.id">
+                                <div class="absolute" 
+                                     :style="`left: ${driver.x}%; top: ${driver.y}%;`"
+                                     x-transition:enter="transition ease-out duration-300"
+                                     x-transition:enter-start="opacity-0 transform scale-0"
+                                     x-transition:enter-end="opacity-100 transform scale-100">
+                                    <div class="relative">
+                                        <!-- Driver Icon -->
+                                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                                            <i data-lucide="car" class="w-4 h-4 text-white"></i>
+                                        </div>
+                                        <!-- Driver Status -->
+                                        <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                                            <span x-text="driver.name"></span>
+                                            <span class="text-green-400" x-show="driver.status === 'available'"> • Available</span>
+                                            <span class="text-yellow-400" x-show="driver.status === 'busy'"> • Busy</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <!-- Active Trips -->
+                            <template x-for="trip in activeTrips" :key="trip.id">
+                                <div class="absolute" 
+                                     :style="`left: ${trip.x}%; top: ${trip.y}%;`"
+                                     x-transition:enter="transition ease-out duration-500"
+                                     x-transition:enter-start="opacity-0"
+                                     x-transition:enter-end="opacity-100">
+                                    <div class="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg pulse-dot">
+                                        <i data-lucide="map-pin" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <!-- Map Legend -->
+                            <div class="absolute bottom-4 left-4 bg-black bg-opacity-75 text-white p-3 rounded-lg text-xs">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <div class="w-3 h-3 bg-blue-600 rounded-full"></div>
+                                    <span>Available Driver</span>
+                                </div>
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <div class="w-3 h-3 bg-gray-600 rounded-full"></div>
+                                    <span>Busy Driver</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                    <span>Active Trip</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Booking Interface -->
+                <div class="lg:col-span-2" x-show="activeTab === 'booking'">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="p-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-bold text-gray-900">Customer Booking Interface</h2>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
+                                    <span class="text-sm text-green-600">Live Demo</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6">
+                            <!-- Booking Form -->
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-4">Book Your Ride</h3>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Pickup Location</label>
+                                            <div class="relative">
+                                                <i data-lucide="map-pin" class="w-5 h-5 text-gray-400 absolute left-3 top-3"></i>
+                                                <input type="text" placeholder="Enter pickup address" 
+                                                       class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Drop-off Location</label>
+                                            <div class="relative">
+                                                <i data-lucide="flag" class="w-5 h-5 text-gray-400 absolute left-3 top-3"></i>
+                                                <input type="text" placeholder="Enter destination" 
+                                                       class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Service Type</label>
+                                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg" title="Service Type">
+                                                <option>Black Sedan</option>
+                                                <option>Black SUV</option>
+                                                <option>Luxury Vehicle</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">When</label>
+                                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg" title="Booking Time">
+                                                <option>Now</option>
+                                                <option>Schedule Later</option>
+                                            </select>
+                                        </div>
+                                        <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
+                                            Get Quote & Book
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-4">Quote Preview</h3>
+                                    <div class="bg-gray-50 rounded-lg p-4">
+                                        <div class="space-y-3">
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">Estimated Fare</span>
+                                                <span class="font-bold text-lg">$45.00</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">Distance</span>
+                                                <span>12.5 miles</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">Estimated Time</span>
+                                                <span>25 minutes</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">Driver ETA</span>
+                                                <span class="text-green-600">8 minutes</span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4 pt-4 border-t border-gray-200">
+                                            <div class="flex items-center space-x-2">
+                                                <img src="https://picsum.photos/seed/driver1/40/40.jpg" alt="Driver" class="w-10 h-10 rounded-full">
+                                                <div>
+                                                    <p class="font-medium">John Smith</p>
+                                                    <p class="text-sm text-gray-600">⭐ 4.9 • Black Sedan</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Console -->
+                <div class="lg:col-span-2" x-show="activeTab === 'admin'">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="p-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-bold text-gray-900">Admin Console</h2>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
+                                    <span class="text-sm text-green-600">Live Demo</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6">
+                            <div class="grid md:grid-cols-3 gap-6">
+                                <div class="bg-blue-50 rounded-lg p-4">
+                                    <h3 class="font-semibold text-blue-900 mb-2">Total Revenue</h3>
+                                    <p class="text-2xl font-bold text-blue-600">$12,450</p>
+                                    <p class="text-sm text-blue-600">+15% from last month</p>
+                                </div>
+                                <div class="bg-green-50 rounded-lg p-4">
+                                    <h3 class="font-semibold text-green-900 mb-2">Active Users</h3>
+                                    <p class="text-2xl font-bold text-green-600">1,247</p>
+                                    <p class="text-sm text-green-600">+8% from last week</p>
+                                </div>
+                                <div class="bg-purple-50 rounded-lg p-4">
+                                    <h3 class="font-semibold text-purple-900 mb-2">Completion Rate</h3>
+                                    <p class="text-2xl font-bold text-purple-600">98.2%</p>
+                                    <p class="text-sm text-purple-600">Above target</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <h3 class="font-semibold text-gray-900 mb-4">Recent Transactions</h3>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full">
+                                        <thead>
+                                            <tr class="border-b border-gray-200">
+                                                <th class="text-left py-2 text-sm font-medium text-gray-700">Time</th>
+                                                <th class="text-left py-2 text-sm font-medium text-gray-700">Customer</th>
+                                                <th class="text-left py-2 text-sm font-medium text-gray-700">Amount</th>
+                                                <th class="text-left py-2 text-sm font-medium text-gray-700">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="border-b border-gray-100">
+                                                <td class="py-2 text-sm">2:34 PM</td>
+                                                <td class="py-2 text-sm">Sarah Johnson</td>
+                                                <td class="py-2 text-sm font-medium">$32.50</td>
+                                                <td class="py-2 text-sm"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Completed</span></td>
+                                            </tr>
+                                            <tr class="border-b border-gray-100">
+                                                <td class="py-2 text-sm">2:28 PM</td>
+                                                <td class="py-2 text-sm">Mike Davis</td>
+                                                <td class="py-2 text-sm font-medium">$45.00</td>
+                                                <td class="py-2 text-sm"><span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">In Progress</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Stats -->
+                <div class="space-y-6">
+                    <!-- Admin Console Metrics -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Admin Console Metrics</h3>
+                        <p class="text-sm text-gray-600 mb-4">Real-time business metrics from your admin dashboard</p>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Active Drivers</span>
+                                <span class="text-2xl font-bold text-blue-600" x-text="metrics.activeDrivers"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Active Trips</span>
+                                <span class="text-2xl font-bold text-green-600" x-text="metrics.activeTrips"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Revenue Today</span>
+                                <span class="text-2xl font-bold text-purple-600" x-text="'$' + metrics.revenueToday"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Avg Response Time</span>
+                                <span class="text-2xl font-bold text-orange-600" x-text="metrics.avgResponseTime + 's'"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Recent Activity</h3>
+                        <div class="space-y-3 max-h-64 overflow-y-auto">
+                            <template x-for="activity in recentActivity" :key="activity.id">
+                                <div class="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded-lg slide-in">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                                         :class="activity.type === 'trip' ? 'bg-green-100' : activity.type === 'driver' ? 'bg-blue-100' : 'bg-yellow-100'">
+                                        <i :data-lucide="activity.icon" class="w-4 h-4"
+                                           :class="activity.type === 'trip' ? 'text-green-600' : activity.type === 'driver' ? 'text-blue-600' : 'text-yellow-600'"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm text-gray-900" x-text="activity.message"></p>
+                                        <p class="text-xs text-gray-500" x-text="activity.time"></p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Features -->
+    <section class="py-16">
+        <div class="max-w-6xl mx-auto px-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">Interactive Features</h2>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Simulate Booking -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">🚗 Simulate Booking</h3>
+                    <div class="space-y-4">
+                        <input type="text" x-model="bookingData.pickup" placeholder="Pickup Location" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                               title="Pickup Location" aria-label="Pickup Location">
+                        <input type="text" x-model="bookingData.dropoff" placeholder="Drop-off Location" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                               title="Drop-off Location" aria-label="Drop-off Location">
+                        <select x-model="bookingData.vehicleType" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                title="Select Vehicle Type" aria-label="Select Vehicle Type">
+                            <option value="">Select Vehicle</option>
+                            <option value="sedan">Sedan</option>
+                            <option value="suv">SUV</option>
+                            <option value="luxury">Luxury</option>
+                        </select>
+                        <button @click="simulateBooking()" 
+                                class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Book Trip
+                        </button>
+                        <div x-show="bookingResult" class="p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p class="text-sm text-green-800" x-text="bookingResult"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Driver Management -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">👨‍✈️ Driver Management</h3>
+                    <div class="space-y-4">
+                        <div class="space-y-2">
+                            <template x-for="driver in drivers.slice(0, 3)" :key="driver.id">
+                                <div class="flex items-center justify-between p-2 border border-gray-200 rounded-lg">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                                            <i data-lucide="user" class="w-3 h-3 text-white"></i>
+                                        </div>
+                                        <span class="text-sm font-medium" x-text="driver.name"></span>
+                                    </div>
+                                    <button @click="toggleDriverStatus(driver.id)" 
+                                    class="text-xs px-2 py-1 rounded"
+                                    :class="driver.status === 'available' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'"
+                                    :title="'Toggle ' + driver.name + ' status'" :aria-label="'Toggle ' + driver.name + ' status'">
+                                        <span x-text="driver.status === 'available' ? 'Available' : 'Busy'"></span>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                        <button @click="addRandomDriver()" 
+                                class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                            Add Driver
+                        </button>
+                    </div>
+                </div>
+
+                <!-- System Controls -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">⚙️ System Controls</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Simulation Speed</label>
+                            <input type="range" x-model="simulationSpeed" min="1" max="10" 
+                                   @input="updateSimulationSpeed()"
+                                   class="w-full"
+                                   title="Simulation Speed" aria-label="Simulation Speed">
+                            <div class="text-xs text-gray-500">Speed: <span x-text="simulationSpeed"></span>x</div>
+                        </div>
+                        <button @click="toggleSimulation()" 
+                                class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                :title="isSimulating ? 'Pause Simulation' : 'Start Simulation'" 
+                                :aria-label="isSimulating ? 'Pause Simulation' : 'Start Simulation'">
+                            <span x-text="isSimulating ? 'Pause Simulation' : 'Start Simulation'"></span>
+                        </button>
+                        <button @click="resetDemo()" 
+                                class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors"
+                                title="Reset Demo" aria-label="Reset Demo">
+                            Reset Demo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tenant Interface Showcase -->
+    <section class="py-16 bg-gray-50" x-show="demoUnlocked">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Explore Your Complete Platform</h2>
+                <p class="text-xl text-gray-600">
+                    Click below to experience each interface as your own branded platform
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Your Microsite -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer" 
+                     onclick="openInterface('microsite')">
+                    <div class="h-48 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                        <div class="text-center text-white">
+                            <i data-lucide="globe" class="w-16 h-16 mx-auto mb-4"></i>
+                            <h3 class="text-xl font-bold">Your Microsite</h3>
+                            <p class="text-blue-100">Customer-facing website</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="font-semibold text-gray-900 mb-2">Branded Customer Portal</h4>
+                        <p class="text-gray-600 text-sm">Your fully branded website where customers book rides, view pricing, and manage their accounts.</p>
+                        <div class="mt-4 flex items-center text-blue-600 text-sm font-medium">
+                            <span>Explore Interface</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Your Rider App -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer" 
+                     onclick="openInterface('rider')">
+                    <div class="h-48 bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center">
+                        <div class="text-center text-white">
+                            <i data-lucide="smartphone" class="w-16 h-16 mx-auto mb-4"></i>
+                            <h3 class="text-xl font-bold">Your Rider App</h3>
+                            <p class="text-green-100">Mobile customer experience</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="font-semibold text-gray-900 mb-2">Customer Mobile App</h4>
+                        <p class="text-gray-600 text-sm">White-labeled mobile app for booking, tracking rides, and viewing trip history.</p>
+                        <div class="mt-4 flex items-center text-blue-600 text-sm font-medium">
+                            <span>Explore Interface</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Your Driver App -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer" 
+                     onclick="openInterface('driver')">
+                    <div class="h-48 bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
+                        <div class="text-center text-white">
+                            <i data-lucide="users" class="w-16 h-16 mx-auto mb-4"></i>
+                            <h3 class="text-xl font-bold">Your Driver App</h3>
+                            <p class="text-orange-100">Driver management</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="font-semibold text-gray-900 mb-2">Driver Mobile App</h4>
+                        <p class="text-gray-600 text-sm">Professional driver app for accepting rides, navigation, and earnings tracking.</p>
+                        <div class="mt-4 flex items-center text-blue-600 text-sm font-medium">
+                            <span>Explore Interface</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Your Dispatch Command Center -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer" 
+                     onclick="openInterface('dispatch')">
+                    <div class="h-48 bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                        <div class="text-center text-white">
+                            <i data-lucide="radio" class="w-16 h-16 mx-auto mb-4"></i>
+                            <h3 class="text-xl font-bold">Your Dispatch Center</h3>
+                            <p class="text-purple-100">Operations hub</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="font-semibold text-gray-900 mb-2">Dispatch Command Center</h4>
+                        <p class="text-gray-600 text-sm">Real-time dispatch console with driver tracking, route optimization, and fleet management.</p>
+                        <div class="mt-4 flex items-center text-blue-600 text-sm font-medium">
+                            <span>Explore Interface</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Your Admin Console -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer" 
+                     onclick="openInterface('admin')">
+                    <div class="h-48 bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center">
+                        <div class="text-center text-white">
+                            <i data-lucide="settings" class="w-16 h-16 mx-auto mb-4"></i>
+                            <h3 class="text-xl font-bold">Your Admin Console</h3>
+                            <p class="text-gray-300">Business management</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="font-semibold text-gray-900 mb-2">Admin Dashboard</h4>
+                        <p class="text-gray-600 text-sm">Complete business management with analytics, billing, customer support, and settings.</p>
+                        <div class="mt-4 flex items-center text-blue-600 text-sm font-medium">
+                            <span>Explore Interface</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schedule Call -->
+                <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer" 
+                     onclick="openCalendar()">
+                    <div class="h-48 flex items-center justify-center">
+                        <div class="text-center text-white">
+                            <i data-lucide="calendar" class="w-16 h-16 mx-auto mb-4"></i>
+                            <h3 class="text-xl font-bold">Schedule Your Call</h3>
+                            <p class="text-blue-100">Ready to get started?</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="font-semibold text-white mb-2">Talk With Our Team</h4>
+                        <p class="text-blue-100 text-sm">Schedule a personalized onboarding call to discuss your specific needs and launch your platform.</p>
+                        <div class="mt-4 flex items-center text-white text-sm font-medium">
+                            <span>Book Your Call</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+                                </div>
+                                <pre class="text-xs bg-gray-50 p-2 rounded overflow-x-auto" x-text="JSON.stringify(webhook.payload, null, 2)"></pre>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 bg-gradient-to-br from-blue-600 to-purple-700 text-white">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">
+                Ready to Experience the Full Platform?
+            </h2>
+            <p class="text-xl text-blue-100 mb-8">
+                This is just a glimpse. Schedule a personalized demo to see the complete system
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="window.location.href='/'" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-50 transition-colors shadow-lg">
+                    Schedule Full Demo
+                </button>
+                <button onclick="window.location.href='/roi-calculator.html'" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition-colors">
+                    Calculate ROI
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function liveDemo() {
+            return {
+                // Demo state
+                activeTab: 'dispatch',
+                demoUnlocked: false, // New property for lead capture
+                drivers: [],
+                activeTrips: [],
+                metrics: {
+                    activeDrivers: 0,
+                    activeTrips: 0,
+                    revenueToday: 0,
+                    avgResponseTime: 0
+                },
+                recentActivity: [],
+                apiCalls: [],
+                webhookEvents: [],
+                apiResponseTime: 0,
+                lastUpdate: '',
+                isSimulating: false,
+                simulationSpeed: 1,
+                
+                // Booking form
+                bookingData: {
+                    pickup: '',
+                    dropoff: '',
+                    vehicleType: ''
+                },
+                bookingResult: '',
+                
+                init() {
+                    this.initializeDemo();
+                    this.startSimulation();
+                },
+                
+                initializeDemo() {
+                    // Initialize drivers
+                    this.drivers = [
+                        { id: 1, name: 'John Smith', x: 20, y: 30, status: 'available' },
+                        { id: 2, name: 'Sarah Johnson', x: 60, y: 45, status: 'busy' },
+                        { id: 3, name: 'Mike Davis', x: 35, y: 70, status: 'available' },
+                        { id: 4, name: 'Emily Wilson', x: 80, y: 25, status: 'available' },
+                        { id: 5, name: 'David Brown', x: 45, y: 55, status: 'busy' }
+                    ];
+                    
+                    // Initialize active trips
+                    this.activeTrips = [
+                        { id: 1, x: 25, y: 35 },
+                        { id: 2, x: 70, y: 40 }
+                    ];
+                    
+                    // Initialize metrics
+                    this.updateMetrics();
+                    
+                    // Add initial activity
+                    this.addActivity('system', 'activity', 'Demo initialized with 5 drivers');
+                },
+                
+                updateMetrics() {
+                    this.metrics.activeDrivers = this.drivers.filter(d => d.status === 'available').length;
+                    this.metrics.activeTrips = this.activeTrips.length;
+                    this.metrics.revenueToday = Math.floor(Math.random() * 5000) + 2000;
+                    this.metrics.avgResponseTime = Math.floor(Math.random() * 180) + 120;
+                },
+                
+                startSimulation() {
+                    this.isSimulating = true;
+                    
+                    // Update simulation
+                    setInterval(() => {
+                        if (this.isSimulating) {
+                            this.simulateMovement();
+                            this.simulateActivity();
+                            this.updateMetrics();
+                            this.updateLastUpdate();
+                        }
+                    }, 2000 / this.simulationSpeed);
+                },
+                
+                simulateMovement() {
+                    // Random driver movement
+                    this.drivers.forEach(driver => {
+                        if (Math.random() > 0.7) {
+                            driver.x = Math.max(5, Math.min(95, driver.x + (Math.random() - 0.5) * 10));
+                            driver.y = Math.max(5, Math.min(95, driver.y + (Math.random() - 0.5) * 10));
+                        }
+                    });
+                    
+                    // Random trip movement
+                    this.activeTrips.forEach(trip => {
+                        trip.x = Math.max(5, Math.min(95, trip.x + (Math.random() - 0.5) * 5));
+                        trip.y = Math.max(5, Math.min(95, trip.y + (Math.random() - 0.5) * 5));
+                    });
+                },
+                
+                simulateActivity() {
+                    const activities = [
+                        { type: 'trip', message: 'New trip requested from Downtown to Airport', icon: 'map-pin' },
+                        { type: 'driver', message: 'Driver John Smith is now available', icon: 'user' },
+                        { type: 'revenue', message: 'Trip completed - $45.00 earned', icon: 'dollar-sign' },
+                        { type: 'system', message: 'All systems operational', icon: 'check-circle' }
+                    ];
+                    
+                    if (Math.random() > 0.6) {
+                        const activity = activities[Math.floor(Math.random() * activities.length)];
+                        this.addActivity(activity.type, activity.icon, activity.message);
+                    }
+                    
+                    // Simulate API calls
+                    if (Math.random() > 0.7) {
+                        this.simulateApiCall();
+                    }
+                },
+                
+                addActivity(type, icon, message) {
+                    this.recentActivity.unshift({
+                        id: Date.now(),
+                        type,
+                        icon,
+                        message,
+                        time: new Date().toLocaleTimeString()
+                    });
+                    
+                    // Keep only last 10 activities
+                    if (this.recentActivity.length > 10) {
+                        this.recentActivity.pop();
+                    }
+                },
+                
+                simulateApiCall() {
+                    const endpoints = [
+                        { method: 'GET', endpoint: '/api/drivers', response: { drivers: this.drivers.length } },
+                        { method: 'GET', endpoint: '/api/trips/active', response: { trips: this.activeTrips.length } },
+                        { method: 'POST', endpoint: '/api/bookings', response: { bookingId: 'BK' + Math.random().toString(36).substr(2, 9) } }
+                    ];
+                    
+                    const call = endpoints[Math.floor(Math.random() * endpoints.length)];
+                    const responseTime = Math.floor(Math.random() * 200) + 50;
+                    
+                    this.apiCalls.unshift({
+                        id: Date.now(),
+                        ...call,
+                        responseTime,
+                        status: 'success',
+                        response: call.response
+                    });
+                    
+                    // Keep only last 5 API calls
+                    if (this.apiCalls.length > 5) {
+                        this.apiCalls.pop();
+                    }
+                    
+                    this.apiResponseTime = responseTime;
+                },
+                
+                simulateBooking() {
+                    if (!this.bookingData.pickup || !this.bookingData.dropoff || !this.bookingData.vehicleType) {
+                        this.bookingResult = 'Please fill in all booking details';
+                        return;
+                    }
+                    
+                    // Simulate booking API call
+                    setTimeout(() => {
+                        this.bookingResult = `Trip booked! ${this.bookingData.vehicleType} from ${this.bookingData.pickup} to ${this.bookingData.dropoff}`;
+                        
+                        // Add activity
+                        this.addActivity('trip', 'map-pin', `New ${this.bookingData.vehicleType} trip booked`);
+                        
+                        // Add to active trips
+                        this.activeTrips.push({
+                            id: Date.now(),
+                            x: Math.random() * 80 + 10,
+                            y: Math.random() * 80 + 10
+                        });
+                        
+                        // Clear form
+                        this.bookingData = { pickup: '', dropoff: '', vehicleType: '' };
+                        
+                        setTimeout(() => {
+                            this.bookingResult = '';
+                        }, 5000);
+                    }, 1000);
+                },
+                
+                toggleDriverStatus(driverId) {
+                    const driver = this.drivers.find(d => d.id === driverId);
+                    if (driver) {
+                        driver.status = driver.status === 'available' ? 'busy' : 'available';
+                        this.addActivity('driver', 'user', `Driver ${driver.name} is now ${driver.status}`);
+                    }
+                },
+                
+                addRandomDriver() {
+                    const names = ['Alex Turner', 'Jessica Lee', 'Robert Kim', 'Maria Garcia', 'Tom Wilson'];
+                    const newDriver = {
+                        id: Date.now(),
+                        name: names[Math.floor(Math.random() * names.length)],
+                        x: Math.random() * 80 + 10,
+                        y: Math.random() * 80 + 10,
+                        status: 'available'
+                    };
+                    
+                    this.drivers.push(newDriver);
+                    this.addActivity('driver', 'user', `New driver ${newDriver.name} joined the fleet`);
+                },
+                
+                toggleSimulation() {
+                    this.isSimulating = !this.isSimulating;
+                },
+                
+                updateSimulationSpeed() {
+                    // Speed is updated reactively
+                },
+                
+                resetDemo() {
+                    this.initializeDemo();
+                    this.recentActivity = [];
+                    this.apiCalls = [];
+                    this.webhookEvents = [];
+                    this.bookingResult = '';
+                },
+                
+                updateLastUpdate() {
+                    this.lastUpdate = new Date().toLocaleTimeString();
+                }
+            }
+        }
+        
+        // Demo unlock and interface functions
+        function generateDemoCaptcha() {
+            const questions = [
+                { q: "What is 15 + 7 × 2?", a: "29" },
+                { q: "What is 100 - 43 ÷ 7?", a: "94" },
+                { q: "What is 8 × 9 - 12?", a: "60" },
+                { q: "What is 45 + 18 ÷ 3?", a: "51" },
+                { q: "What is 25 × 4 - 30?", a: "70" },
+                { q: "What is 144 ÷ 12 + 8?", a: "20" }
+            ];
+            
+            const random = questions[Math.floor(Math.random() * questions.length)];
+            const element = document.getElementById('demo-captcha-question');
+            if (element) {
+                element.textContent = random.q;
+                element.dataset.answer = random.a;
+            }
+        }
+        
+        function unlockDemo(event) {
+            event.preventDefault();
+            
+            const userAnswer = parseInt(document.getElementById('demo-captcha-answer').value);
+            const correctAnswer = parseInt(document.getElementById('demo-captcha-question').dataset.answer);
+            
+            if (userAnswer === correctAnswer) {
+                // Close modal and unlock demo
+                document.getElementById('lead-capture-modal').close();
+                
+                // Get Alpine data and unlock
+                const alpineData = document.querySelector('[x-data="liveDemo()"]').__x.$data;
+                alpineData.demoUnlocked = true;
+                
+                // Generate new CAPTCHA for next time
+                generateDemoCaptcha();
+                
+                // Track conversion
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'demo_unlocked', {
+                        'send_to': 'G-URWAY2026'
+                    });
+                }
+            } else {
+                alert('Incorrect CAPTCHA answer. Please try again.');
+                document.getElementById('demo-captcha-answer').value = '';
+                generateDemoCaptcha();
+            }
+        }
+        
+        function openInterface(type) {
+            // Track interface exploration
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'interface_explored', {
+                    'send_to': 'G-URWAY2026',
+                    'interface_type': type
+                });
+            }
+            
+            // Open actual interactive demo pages
+            const demoPages = {
+                'microsite': '/tenant-microsite-demo.html',
+                'rider': '/rider-app-demo.html',
+                'driver': '/driver-app-demo.html',
+                'dispatch': '/admin-console-demo.html',
+                'admin': '/admin-console-demo.html'
+            };
+            
+            if (demoPages[type]) {
+                window.open(demoPages[type], '_blank', 'width=400,height=800');
+            } else {
+                alert(`Opening ${type} interface...\n\nThis would open your branded ${type} interface with "Your Logo Here" branding.\n\nIn production, this would open: ${demoPages[type]}`);
+            }
+        }
+        
+        function openCalendar() {
+            // Track calendar booking request
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'calendar_requested', {
+                    'send_to': 'G-URWAY2026'
+                });
+            }
+            
+            // Open Google Calendar booking (would integrate with GCP)
+            const calendarUrl = 'https://calendar.google.com/calendar/u/0/selfsched?sts=20260307T090000&ste=20260307T170000&src=urwaydispatch.com';
+            window.open(calendarUrl, '_blank');
+        }
+        
+        // Initialize CAPTCHA on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            generateDemoCaptcha();
+        });
+    </script>
+    
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Re-initialize icons when Alpine.js updates DOM
+        document.addEventListener('alpine:initialized', () => {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

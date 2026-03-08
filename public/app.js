@@ -51,10 +51,12 @@ class UrWayApp {
   detectTenant() {
     const urlParams = new URLSearchParams(window.location.search);
     const subdomain = window.location.hostname.split('.')[0];
+    const pathSegment = window.location.pathname.split('/')[2]; // /tenant/{tenant}
     
-    // Priority: URL param > subdomain > localStorage > default
-    return urlParams.get('tenant') || 
-           (subdomain !== 'urwaydispatch' && subdomain !== 'www' ? subdomain : null) ||
+    // Enhanced priority: subdomain > path segment > URL param > localStorage > default
+    return (subdomain !== 'urwaydispatch' && subdomain !== 'www' ? subdomain : null) ||
+           (window.location.pathname.startsWith('/tenant/') ? pathSegment : null) ||
+           urlParams.get('tenant') ||
            localStorage.getItem('urway-tenant') ||
            'default';
   }
@@ -91,13 +93,13 @@ class UrWayApp {
       },
       'goldravenia': {
         name: 'GoldRavenia Luxury Transportation',
-        logo: '/assets/tenants/goldravenia-logo-winner.svg',
-        crest: '/assets/tenants/goldravenia-crest.svg',
-        icon: '/assets/tenants/goldravenia-icon.svg',
-        primaryColor: '#C7A008',
-        accentColor: '#1A1A1A',
-        backgroundColor: '#1A1A1A',
-        surfaceColor: '#2A2A2A',
+        logo: '../../assets/tenants/goldravenia-logo-winner.png',
+        crest: '../../assets/tenants/goldravenia-crest.svg',
+        icon: '../../assets/tenants/goldravenia-icon.svg',
+        primaryColor: '#B69B60',
+        accentColor: '#000000',
+        backgroundColor: '#000000',
+        surfaceColor: '#000000',
         textColor: '#FFFFFF',
         textSecondaryColor: '#E1E1E1',
         theme: 'dark',

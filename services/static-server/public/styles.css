@@ -1,0 +1,858 @@
+/* Modern CSS with Multi-tenant Support and Web 4.0 Standards */
+
+/* CSS Custom Properties for Dynamic Theming */
+:root {
+  /* Primary Brand Colors */
+  --brand-primary: #1e40af;
+  --brand-primary-dark: #1e3a8a;
+  --brand-primary-light: #3b82f6;
+  --brand-accent: #d4a017;
+  --brand-accent-light: #f59e0b;
+  
+  /* Neutral Colors */
+  --color-white: #ffffff;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  
+  /* Semantic Colors */
+  --color-success: #10b981;
+  --color-success-light: #34d399;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fbbf24;
+  --color-error: #ef4444;
+  --color-error-light: #f87171;
+  --color-info: #3b82f6;
+  --color-info-light: #60a5fa;
+  
+  /* Typography */
+  --font-family-primary: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 300ms ease-in-out;
+  --transition-slow: 500ms ease-in-out;
+  
+  /* Z-Index Scale */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+}
+
+/* Multi-tenant Theme Overrides */
+[data-theme="dark"] {
+  --color-white: #111827;
+  --color-gray-50: #1f2937;
+  --color-gray-100: #374151;
+  --color-gray-900: #f9fafb;
+  --color-gray-800: #f3f4f6;
+}
+
+[data-theme="custom-a"] {
+  --brand-primary: #7c3aed;
+  --brand-primary-dark: #6d28d9;
+  --brand-primary-light: #8b5cf6;
+  --brand-accent: #ec4899;
+  --brand-accent-light: #f472b6;
+}
+
+[data-theme="custom-b"] {
+  --brand-primary: #059669;
+  --brand-primary-dark: #047857;
+  --brand-primary-light: #10b981;
+  --brand-accent: #f59e0b;
+  --brand-accent-light: #fbbf24;
+}
+
+/* GoldRavenia Typography & Layout System - CRITICAL CORRECTIVE ACTION */
+[data-tenant="goldravenia"] {
+  /* AUTHENTIC TYPEFACE MAPPING */
+  --brand-font-serif: 'Playfair Display', serif; /* Brand Typeface - for H1, H2 headings */
+  --brand-font-sans: 'Inter', sans-serif; /* Functional UI Typeface - body, forms, navigation */
+  
+  /* Layout Architecture */
+  --brand-spacing-large: 150px; /* Negative space requirement */
+  --brand-spacing-medium: 80px;
+  --brand-spacing-small: 40px;
+}
+
+/* GoldRavenia Global Typography Application */
+[data-tenant="goldravenia"] h1,
+[data-tenant="goldravenia"] h2 {
+  font-family: var(--brand-font-serif);
+  font-weight: 700;
+  color: var(--brand-primary);
+}
+
+[data-tenant="goldravenia"] body,
+[data-tenant="goldravenia"] p,
+[data-tenant="goldravenia"] nav,
+[data-tenant="goldravenia"] .navigation,
+[data-tenant="goldravenia"] form,
+[data-tenant="goldravenia"] input,
+[data-tenant="goldravenia"] button,
+[data-tenant="goldravenia"] .menu,
+[data-tenant="goldravenia"] .ui-element {
+  font-family: var(--brand-font-sans);
+  font-weight: 500;
+  color: var(--brand-text);
+}
+
+/* GoldRavenia Typography Classes */
+.brand-serif { 
+  font-family: var(--brand-font-serif); 
+  font-weight: 700;
+}
+
+.brand-sans { 
+  font-family: var(--brand-font-sans); 
+  font-weight: 500;
+}
+
+/* GoldRavenia Layout Classes */
+.brand-central { 
+  text-align: center; 
+  margin: 0 auto;
+  max-width: 1200px;
+}
+
+.brand-spacing { 
+  padding: var(--brand-spacing-large); 
+  min-height: 100vh;
+}
+
+.brand-spacing-medium {
+  padding: var(--brand-spacing-medium);
+}
+
+.brand-spacing-small {
+  padding: var(--brand-spacing-small);
+}
+
+.brand-divider { 
+  border-top: 1px solid var(--brand-primary); 
+  margin: 60px 0;
+  position: relative;
+}
+
+.brand-divider::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 0;
+  right: 0;
+  border-top: 0.5px solid var(--brand-primary);
+}
+
+/* GoldRavenia Component Styles */
+[data-tenant="goldravenia"] body {
+  background-color: var(--brand-background);
+  color: var(--brand-text);
+  font-family: var(--brand-font-sans);
+}
+
+[data-tenant="goldravenia"] .brand-surface {
+  background-color: var(--brand-surface);
+  border: 1px solid var(--brand-border);
+  border-radius: 8px;
+}
+
+[data-tenant="goldravenia"] .brand-button {
+  background-color: var(--brand-primary);
+  color: var(--brand-accent);
+  border: none;
+  padding: 12px 24px;
+  font-family: var(--brand-font-sans);
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+[data-tenant="goldravenia"] .brand-button:hover {
+  background-color: var(--brand-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--brand-shadow);
+}
+
+[data-tenant="goldravenia"] .brand-text-primary {
+  color: var(--brand-text);
+}
+
+[data-tenant="goldravenia"] .brand-text-secondary {
+  color: var(--brand-text-secondary);
+}
+
+[data-tenant="goldravenia"] .brand-logo-display {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+}
+
+[data-tenant="goldravenia"] .brand-crest-display {
+  width: 60px;
+  height: 60px;
+}
+
+/* Remove all gradients for flat design */
+[data-tenant="goldravenia"] .brand-gradient,
+[data-tenant="goldravenia"] .brand-gradient-text {
+  background: none !important;
+  background-image: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: var(--brand-primary) !important;
+}
+
+/* GoldRavenia Theme - ZERO TOLERANCE DEFINITIVE COLOR SYSTEM */
+[data-tenant="goldravenia"] {
+  /* ABSOLUTE EXTRACTIVE COLORS FROM GolDarveniaFinalLogo.png - ZERO TOLERANCE */
+  --brand-primary: #B69B60; /* Core Brand Gold - Rich bronze gold */
+  --brand-primary-dark: #775B3A; /* Shadow Gold - Cool Umber Sepia Gold */
+  --brand-primary-light: #C8A970;
+  --brand-primary-hover: #775B3A; /* Shadow definitions */
+  --brand-accent: #000000; /* Core Background - Absolute Pitch Black */
+  --brand-accent-light: #000000; /* NO VARIATION - ABSOLUTE PITCH BLACK */
+  --brand-accent-dark: #000000; /* NO VARIATION - ABSOLUTE PITCH BLACK */
+  --brand-secondary: #000000; /* NO VARIATION - ABSOLUTE PITCH BLACK */
+  --brand-text: #FFFFFF;
+  --brand-text-secondary: #E1E1E1;
+  --brand-text-muted: #B8B8C8;
+  --brand-background: #000000; /* Core Background - Absolute Pitch Black */
+  --brand-surface: #000000; /* NO VARIATION - ABSOLUTE PITCH BLACK */
+  --brand-border: #B69B60; /* Core Brand Gold for borders */
+  --brand-logo: url('/assets/tenants/goldravenia-logo-winner.svg?v=20250308002');
+  --brand-shadow: 0 4px 20px rgba(182, 155, 96, 0.3); /* Core Brand Gold shadow */
+  --brand-shadow-deep: 0 6px 25px rgba(119, 91, 58, 0.4); /* Umber Sepia Gold for depth */
+}
+
+/* BlackRavenia Theme - Premium SUV */
+[data-tenant="blackravenia"] {
+  --brand-primary: #1a1a1a;
+  --brand-primary-dark: #000000;
+  --brand-primary-light: #333333;
+  --brand-accent: #d4af37;
+  --brand-accent-light: #f4d03f;
+  --brand-secondary: #666666;
+  --brand-text: #ffffff;
+  --brand-text-muted: #cccccc;
+  --brand-background: #0a0a0a;
+  --brand-surface: #1a1a1a;
+  --brand-border: #333333;
+  --brand-logo: url('/assets/tenants/blackravenia-logo.svg');
+  --brand-gradient: linear-gradient(135deg, #1a1a1a 0%, #d4af37 100%);
+  --brand-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+}
+
+/* SilverPeak Theme - Executive Chauffeur */
+[data-tenant="silverpeak"] {
+  --brand-primary: #6b7280;
+  --brand-primary-dark: #4b5563;
+  --brand-primary-light: #9ca3af;
+  --brand-accent: #c0c0c0;
+  --brand-accent-light: #e5e5e5;
+  --brand-secondary: #8b8c8e;
+  --brand-text: #ffffff;
+  --brand-text-muted: #d1d5db;
+  --brand-background: #374151;
+  --brand-surface: #4b5563;
+  --brand-border: #6b7280;
+  --brand-logo: url('/assets/tenants/silverpeak-logo.svg');
+  --brand-gradient: linear-gradient(135deg, #6b7280 0%, #c0c0c0 100%);
+  --brand-shadow: 0 4px 20px rgba(192, 192, 192, 0.3);
+}
+
+/* MetroFleet Theme - Standard Rideshare */
+[data-tenant="metrofleet"] {
+  --brand-primary: #2563eb;
+  --brand-primary-dark: #1d4ed8;
+  --brand-primary-light: #3b82f6;
+  --brand-accent: #f59e0b;
+  --brand-accent-light: #fbbf24;
+  --brand-secondary: #64748b;
+  --brand-text: #ffffff;
+  --brand-text-muted: #cbd5e1;
+  --brand-background: #1e293b;
+  --brand-surface: #334155;
+  --brand-border: #475569;
+  --brand-logo: url('/assets/tenants/metrofleet-logo.svg');
+  --brand-gradient: linear-gradient(135deg, #2563eb 0%, #f59e0b 100%);
+  --brand-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
+}
+
+/* NightOwl Theme - Late-Night */
+[data-tenant="nightowl"] {
+  --brand-primary: #7c3aed;
+  --brand-primary-dark: #6d28d9;
+  --brand-primary-light: #8b5cf6;
+  --brand-accent: #f472b6;
+  --brand-accent-light: #f9a8d4;
+  --brand-secondary: #a855f7;
+  --brand-text: #ffffff;
+  --brand-text-muted: #e9d5ff;
+  --brand-background: #2e1065;
+  --brand-surface: #4c1d95;
+  --brand-border: #6d28d9;
+  --brand-logo: url('/assets/tenants/nightowl-logo.svg');
+  --brand-gradient: linear-gradient(135deg, #7c3aed 0%, #f472b6 100%);
+  --brand-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
+}
+
+/* AeroTransit Theme - Airport Specialist */
+[data-tenant="aerotransit"] {
+  --brand-primary: #0ea5e9;
+  --brand-primary-dark: #0284c7;
+  --brand-primary-light: #38bdf8;
+  --brand-accent: #0f172a;
+  --brand-accent-light: #1e293b;
+  --brand-secondary: #64748b;
+  --brand-text: #ffffff;
+  --brand-text-muted: #bae6fd;
+  --brand-background: #0369a1;
+  --brand-surface: #0284c7;
+  --brand-border: #0ea5e9;
+  --brand-logo: url('/assets/tenants/aerotransit-logo.svg');
+  --brand-gradient: linear-gradient(135deg, #0ea5e9 0%, #0f172a 100%);
+  --brand-shadow: 0 4px 20px rgba(14, 165, 233, 0.3);
+}
+
+/* CorporateRide Theme - B2B Corporate */
+[data-tenant="corporateride"] {
+  --brand-primary: #1e293b;
+  --brand-primary-dark: #0f172a;
+  --brand-primary-light: #334155;
+  --brand-accent: #22c55e;
+  --brand-accent-light: #4ade80;
+  --brand-secondary: #475569;
+  --brand-text: #ffffff;
+  --brand-text-muted: #cbd5e1;
+  --brand-background: #0f172a;
+  --brand-surface: #1e293b;
+  --brand-border: #334155;
+  --brand-logo: url('/assets/tenants/corporateride-logo.svg');
+  --brand-gradient: linear-gradient(135deg, #1e293b 0%, #22c55e 100%);
+  --brand-shadow: 0 4px 20px rgba(34, 197, 94, 0.3);
+}
+
+/* GreenWave Theme - EV-Only Eco */
+[data-tenant="greenwave"] {
+  --brand-primary: #16a34a;
+  --brand-primary-dark: #15803d;
+  --brand-primary-light: #22c55e;
+  --brand-accent: #86efac;
+  --brand-accent-light: #bbf7d0;
+  --brand-secondary: #4ade80;
+  --brand-text: #ffffff;
+  --brand-text-muted: #dcfce7;
+  --brand-background: #14532d;
+  --brand-surface: #166534;
+  --brand-border: #16a34a;
+  --brand-logo: url('/assets/tenants/greenwave-logo.svg');
+  --brand-gradient: linear-gradient(135deg, #16a34a 0%, #86efac 100%);
+  --brand-shadow: 0 4px 20px rgba(22, 163, 74, 0.3);
+}
+
+/* LegacyLuxe Theme - Premium 24/7 */
+[data-tenant="legacyluxe"] {
+  --brand-primary: #78350f;
+  --brand-primary-dark: #451a03;
+  --brand-primary-light: #92400e;
+  --brand-accent: #fbbf24;
+  --brand-accent-light: #fde68a;
+  --brand-secondary: #b45309;
+  --brand-text: #ffffff;
+  --brand-text-muted: #fef3c7;
+  --brand-background: #451a03;
+  --brand-surface: #78350f;
+  --brand-border: #92400e;
+  --brand-logo: url('/assets/tenants/legacyluxe-logo.svg');
+  --brand-gradient: linear-gradient(135deg, #78350f 0%, #fbbf24 100%);
+  --brand-shadow: 0 4px 20px rgba(120, 53, 15, 0.3);
+}
+
+/* UrbanRush Theme - Budget Volume */
+[data-tenant="urbanrush"] {
+  --brand-primary: #dc2626;
+  --brand-primary-dark: #b91c1c;
+  --brand-primary-light: #ef4444;
+  --brand-accent: #fca5a5;
+  --brand-accent-light: #fecaca;
+  --brand-secondary: #ef4444;
+  --brand-text: #ffffff;
+  --brand-text-muted: #fee2e2;
+  --brand-background: #991b1b;
+  --brand-surface: #b91c1c;
+  --brand-border: #dc2626;
+  --brand-logo: url('/assets/tenants/urbanrush-logo.svg');
+  --brand-gradient: linear-gradient(135deg, #dc2626 0%, #fca5a5 100%);
+  --brand-shadow: 0 4px 20px rgba(220, 38, 38, 0.3);
+}
+
+/* GoldRavenia Universal Accent Color Application - FORCED CORRECTION */
+[data-tenant="goldravenia"] {
+  background-color: #000000 !important; /* ABSOLUTE PITCH BLACK - NO VARIATION */
+}
+
+/* FORCED ABSOLUTE BACKGROUND OVERRIDE */
+[data-tenant="goldravenia"] body,
+[data-tenant="goldravenia"] html,
+[data-tenant="goldravenia"] .container,
+[data-tenant="goldravenia"] .main,
+[data-tenant="goldravenia"] .section,
+[data-tenant="goldravenia"] .background {
+  background-color: #000000 !important;
+  background-image: none !important;
+}
+
+/* Universal Accent Color (Core Brand Gold #B69B60) - FORCED */
+[data-tenant="goldravenia"] .btn-primary,
+[data-tenant="goldravenia"] .btn-primary:hover,
+[data-tenant="goldravenia"] button.primary,
+[data-tenant="goldravenia"] a.primary,
+[data-tenant="goldravenia"] .active,
+[data-tenant="goldravenia"] .selected {
+  background-color: #B69B60 !important; /* FORCED CORE BRAND GOLD */
+  border-color: #B69B60 !important;
+  color: #000000 !important; /* ABSOLUTE PITCH BLACK TEXT */
+}
+
+[data-tenant="goldravenia"] a,
+[data-tenant="goldravenia"] .link,
+[data-tenant="goldravenia"] .text-link {
+  color: #B69B60 !important; /* FORCED CORE BRAND GOLD */
+}
+
+[data-tenant="goldravenia"] .border-accent,
+[data-tenant="goldravenia"] input:focus,
+[data-tenant="goldravenia"] textarea:focus,
+[data-tenant="goldravenia"] select:focus {
+  border-color: #B69B60 !important; /* FORCED CORE BRAND GOLD */
+  box-shadow: 0 0 0 2px rgba(182, 155, 96, 0.2) !important;
+}
+
+/* Accent Depth (Shadow Gold #775B3A) - FORCED */
+[data-tenant="goldravenia"] .btn-primary:hover,
+[data-tenant="goldravenia"] button.primary:hover,
+[data-tenant="goldravenia"] .cta-button:hover {
+  background-color: #775B3A !important; /* FORCED SHADOW GOLD */
+  box-shadow: 0 6px 25px rgba(119, 91, 58, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+[data-tenant="goldravenia"] .btn-primary:focus,
+[data-tenant="goldravenia"] button.primary:focus {
+  box-shadow: 0 0 0 3px rgba(182, 155, 96, 0.3), 0 6px 25px rgba(119, 91, 58, 0.4) !important;
+}
+
+/* Golden Divider Lines - FORCED */
+[data-tenant="goldravenia"] .divider,
+[data-tenant="goldravenia"] .section-divider {
+  border-color: #B69B60 !important; /* FORCED CORE BRAND GOLD */
+  border-width: 1px;
+  opacity: 0.8;
+}
+
+/* Theme transition utilities */
+.theme-transition {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.theme-transition-slow {
+  transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+}
+
+/* Base Styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.6;
+  color: var(--color-gray-900);
+  background-color: var(--color-white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Focus Management */
+:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Skip Links */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Hero Gradient */
+.hero-gradient {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 50%, #4c1d95 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 80%, rgba(212, 160, 23, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.2) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px); 
+  }
+  50% { 
+    transform: translateY(-20px); 
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1; 
+  }
+  50% { 
+    opacity: 0.8; 
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Utility Classes */
+.float-animation {
+  animation: float 6s ease-in-out infinite;
+}
+
+.pulse-animation {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--brand-accent) 0%, var(--brand-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+.card-hover {
+  transition: all var(--transition-normal);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+/* Loading States */
+.loading {
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.loaded {
+  opacity: 1;
+}
+
+/* Responsive Images */
+img {
+  max-width: 100%;
+  height: auto;
+  loading: lazy;
+}
+
+/* Form Elements */
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Touch Targets */
+@media (hover: none) and (pointer: coarse) {
+  button, a, input, select, textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  :root {
+    --color-white: #ffffff;
+    --color-gray-50: #f8f9fa;
+    --color-gray-100: #e9ecef;
+    --color-gray-900: #000000;
+    --color-gray-800: #212529;
+  }
+  
+  .hero-gradient {
+    background: linear-gradient(135deg, #0066cc 0%, #004499 50%, #003366 100%);
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .hero-gradient::before {
+    animation: none;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-white: #111827;
+    --color-gray-50: #1f2937;
+    --color-gray-100: #374151;
+    --color-gray-900: #f9fafb;
+    --color-gray-800: #f3f4f6;
+  }
+}
+
+/* Print Styles */
+@media print {
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  a, a:visited {
+    text-decoration: underline;
+  }
+  
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+  
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+}
+
+/* Performance Optimizations */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Container Queries Support */
+@container (width > 768px) {
+  .container-query-demo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+  }
+}
+
+/* Modern CSS Features */
+@supports (backdrop-filter: blur(10px)) {
+  .backdrop-blur {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
+
+@supports (aspect-ratio: 16/9) {
+  .aspect-video {
+    aspect-ratio: 16/9;
+  }
+}
+
+/* Container Queries */
+@container (min-width: 400px) {
+  .responsive-card {
+    padding: var(--space-lg);
+  }
+}
+
+/* Logical Properties */
+.logical-margin {
+  margin-inline: auto;
+  margin-block: var(--space-lg);
+}
+
+.logical-padding {
+  padding-inline: var(--space-lg);
+  padding-block: var(--space-md);
+}
+
+/* Modern Grid and Flexbox */
+.modern-grid {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.modern-flex {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-gray-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-gray-400);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-500);
+}
+
+/* Selection Color */
+::selection {
+  background-color: var(--brand-primary);
+  color: var(--color-white);
+}
+
+/* Focus Ring */
+.focus-ring:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

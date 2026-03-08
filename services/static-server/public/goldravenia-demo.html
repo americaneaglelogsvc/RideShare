@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en" data-tenant="goldravenia">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldRavenia Luxury Transportation - Premium Black Car Service</title>
+    <meta name="description" content="GoldRavenia Luxury Transportation provides premium black car service with professional chauffeurs. Experience luxury transportation in Chicago North Shore.">
+    <meta name="keywords" content="luxury transportation, black car service, chauffeur, Chicago, premium rides, executive transportation">
+    <meta name="author" content="GoldRavenia Luxury Transportation">
+    
+    <!-- Open Graph Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://goldravenia.urwaydispatch.com/">
+    <meta property="og:title" content="GoldRavenia Luxury Transportation - Premium Black Car Service">
+    <meta property="og:description" content="Experience luxury transportation with professional chauffeurs in Chicago North Shore. Premium black car service for executives and special occasions.">
+    <meta property="og:image" content="/assets/tenants/goldravenia-og-image.jpg">
+    <meta property="og:site_name" content="GoldRavenia Luxury Transportation">
+    
+    <!-- Twitter Card -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://goldravenia.urwaydispatch.com/">
+    <meta property="twitter:title" content="GoldRavenia Luxury Transportation">
+    <meta property="twitter:description" content="Premium black car service with professional chauffeurs in Chicago North Shore">
+    <meta property="twitter:image" content="/assets/tenants/goldravenia-og-image.jpg">
+    
+    <!-- PWA Tags -->
+    <meta name="theme-color" content="#C7A008">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="GoldRavenia">
+    <meta name="application-name" content="GoldRavenia Luxury Transportation">
+    <meta name="msapplication-TileColor" content="#C7A008">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/assets/tenants/goldravenia-icon.svg">
+    
+    <!-- Preconnect and DNS Prefetch -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="//goldravenia.urwaydispatch.com">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/styles.css?v=20250308001">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* GoldRavenia Custom Styles - PHASE 2 LOOK & FEEL APPLICATION */
+        * { 
+            font-family: 'Inter', sans-serif; /* Functional UI Typeface */
+        }
+        
+        .font-serif {
+            font-family: 'Playfair Display', serif; /* Brand Typeface */
+        }
+        
+        body {
+            background-color: #000000 !important; /* Core Background - Absolute Pitch Black */
+            color: #FFFFFF;
+            overflow-x: hidden;
+        }
+        
+        /* Header Logo Assets - 136px Minimum Height */
+        .header-logo-desktop {
+            background-image: url('/assets/tenants/goldravenia-logo-horizontal-1200.svg');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            height: 136px !important; /* Minimum height constraint */
+            width: 500px;
+            margin: 150px auto; /* 150px negative space */
+        }
+        
+        .header-logo-mobile {
+            background-image: url('/assets/tenants/goldravenia-logo-mobile-300.svg');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            height: 80px;
+            width: 250px;
+            margin: 150px auto; /* 150px negative space */
+        }
+        
+        /* Golden Divider Lines */
+        .golden-divider {
+            border: none;
+            border-top: 1px solid #B69B60;
+            opacity: 0.8;
+            margin: 40px 0;
+        }
+        
+        /* Remove all gradients for flat design */
+        .brand-gradient,
+        .brand-gradient-text {
+            background: none !important;
+            background-image: none !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+            -webkit-text-fill-color: #B69B60 !important; /* Core Brand Gold */
+        }
+        
+        /* Luxury animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 1s ease-out;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(199, 160, 8, 0.3), transparent);
+            background-size: 1000px 100%;
+            animation: shimmer 3s infinite;
+        }
+        
+        /* Button styles - FLAT DESIGN */
+        .brand-button {
+            background-color: #C7A008;
+            color: #1A1A1A;
+            border: none;
+            padding: 16px 32px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .brand-button:hover {
+            background-color: #D1B018;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(199, 160, 8, 0.4);
+        }
+        
+        .brand-button-outline {
+            background-color: transparent;
+            color: #C7A008;
+            border: 2px solid #C7A008;
+            padding: 14px 30px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .brand-button-outline:hover {
+            background-color: #C7A008;
+            color: #1A1A1A;
+            transform: translateY(-2px);
+        }
+        
+        /* Surface styles */
+        .brand-surface {
+            background-color: #2A2A2A;
+            border: 1px solid #C7A008;
+            border-radius: 8px;
+        }
+        
+        /* Text hierarchy */
+        .brand-heading {
+            color: #FFFFFF;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+        
+        .brand-subheading {
+            color: #E1E1E1;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+        }
+        
+        .brand-accent-text {
+            color: #C7A008;
+        }
+        
+        /* Divider */
+        .brand-divider {
+            border-top: 1px solid #C7A008;
+            margin: 80px 0;
+            position: relative;
+        }
+        
+        .brand-divider::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 0;
+            right: 0;
+            border-top: 0.5px solid #C7A008;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Skip to main content -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-brand-primary text-brand-accent px-4 py-2 rounded-md">
+        Skip to main content
+    </a>
+    
+    <!-- Header Navigation - MINIMALIST -->
+    <header class="fixed top-0 w-full bg-brand-background/95 backdrop-blur-sm z-50 border-b border-brand-primary/20">
+        <nav class="brand-central max-w-7xl px-6 py-6">
+            <div class="flex items-center justify-between">
+                <!-- Simplified Crest Logo -->
+                <div class="flex items-center space-x-4">
+                    <img src="/assets/tenants/goldravenia-crest.svg" alt="GoldRavenia" class="brand-crest-display">
+                    <span class="brand-serif text-2xl font-bold brand-accent-text">GoldRavenia</span>
+                </div>
+                
+                <!-- Navigation Menu - SANS-SERIF -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#services" class="brand-subheading hover:brand-accent-text px-3 py-2 text-sm transition-colors">Services</a>
+                    <a href="#fleet" class="brand-subheading hover:brand-accent-text px-3 py-2 text-sm transition-colors">Fleet</a>
+                    <a href="#experience" class="brand-subheading hover:brand-accent-text px-3 py-2 text-sm transition-colors">Experience</a>
+                    <a href="#contact" class="brand-subheading hover:brand-accent-text px-3 py-2 text-sm transition-colors">Contact</a>
+                    <button onclick="openBookingApp()" class="brand-button">
+                        Reserve Now
+                    </button>
+                </div>
+                
+                <!-- Mobile menu button -->
+                <button id="mobile-menu-button" class="md:hidden p-2 rounded-lg brand-subheading hover:brand-accent-text transition-colors" aria-label="Toggle mobile menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Mobile Navigation -->
+            <div id="mobile-menu" class="hidden md:hidden py-4 border-t border-brand-primary/20">
+                <div class="flex flex-col space-y-4">
+                    <a href="#services" class="brand-subheading hover:brand-accent-text px-3 py-2 text-base">Services</a>
+                    <a href="#fleet" class="brand-subheading hover:brand-accent-text px-3 py-2 text-base">Fleet</a>
+                    <a href="#experience" class="brand-subheading hover:brand-accent-text px-3 py-2 text-base">Experience</a>
+                    <a href="#contact" class="brand-subheading hover:brand-accent-text px-3 py-2 text-base">Contact</a>
+                    <button onclick="openBookingApp()" class="brand-button w-full">
+                        Reserve Now
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        <!-- Hero Section - EXCESSIVE NEGATIVE SPACE + CENTRAL SYMMETRY -->
+        <section class="brand-spacing min-h-screen flex items-center justify-center relative">
+            <!-- Background Elements -->
+            <div class="absolute inset-0">
+                <div class="absolute inset-0 bg-gradient-to-br from-brand-primary/5 via-transparent to-brand-accent/10"></div>
+            </div>
+            
+            <!-- Hero Content - CENTRAL ALIGNMENT -->
+            <div class="relative z-10 brand-central max-w-4xl mx-auto px-6 fade-in-up">
+                <!-- Luxury Badge -->
+                <div class="inline-flex items-center brand-surface px-8 py-4 rounded-full text-sm font-semibold mb-12 shimmer">
+                    <svg class="w-5 h-5 mr-3 brand-accent-text" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                    <span class="brand-accent-text">Chicago's Premier Luxury Transportation</span>
+                </div>
+                
+                <!-- Full Complex Logo - HERO ARTIFACT -->
+                <div class="mb-12">
+                    <img src="/assets/tenants/goldravenia-logo-winner.svg" alt="GoldRavenia Luxury Transportation" class="brand-logo-display">
+                </div>
+                
+                <!-- Main Heading - SANS-SERIF -->
+                <h1 class="text-5xl md:text-7xl font-bold mb-8 brand-heading leading-tight">
+                    Arrive in Style.<br>
+                    Travel in Luxury.
+                </h1>
+                
+                <!-- Description - SANS-SERIF -->
+                <p class="text-xl md:text-2xl brand-subheading mb-16 leading-relaxed max-w-3xl mx-auto">
+                    Experience the pinnacle of luxury transportation with GoldRavenia. 
+                    Professional chauffeurs, premium vehicles, and impeccable service for 
+                    your most important journeys.
+                </p>
+                
+                <!-- Primary CTAs - FLAT GOLD BUTTONS -->
+                <div class="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+                    <button onclick="openBookingApp()" class="brand-button">
+                        <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Reserve Your Ride
+                    </button>
+                    <button onclick="scrollToSection('services')" class="brand-button-outline">
+                        <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        Explore Services
+                    </button>
+                </div>
+                
+                <!-- Trust Indicators - MINIMALIST -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-12 max-w-2xl mx-auto">
+                    <div class="text-center">
+                        <div class="text-4xl font-bold brand-accent-text mb-3">15+</div>
+                        <div class="brand-subheading text-sm">Years of Excellence</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl font-bold brand-accent-text mb-3">10,000+</div>
+                        <div class="brand-subheading text-sm">Satisfied Clients</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl font-bold brand-accent-text mb-3">24/7</div>
+                        <div class="brand-subheading text-sm">Premium Service</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Golden Divider -->
+        <div class="brand-divider"></div>
+
+        <!-- Services Section -->
+        <section id="services" class="brand-spacing-medium">
+            <div class="brand-central max-w-7xl mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-8 brand-heading">Premium Services</h2>
+                    <p class="text-xl brand-subheading max-w-3xl mx-auto">
+                        Tailored luxury transportation solutions for every occasion
+                    </p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Executive Transport -->
+                    <div class="brand-surface p-8 hover:transform hover:-translate-y-2 transition-all duration-300">
+                        <div class="w-16 h-16 brand-accent-text mx-auto mb-6">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                                <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 100 4h2a2 2 0 100 4h2a1 1 0 100 2 2 2 0 01-2 2H6a2 2 0 01-2-2V5z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-semibold mb-4 brand-heading">Executive Transport</h3>
+                        <p class="brand-subheading mb-6">
+                            Professional transportation for corporate executives, meetings, and business events. 
+                            Punctual, discreet, and impeccably presented.
+                        </p>
+                        <ul class="space-y-2 brand-subheading text-sm">
+                            <li class="flex items-center">
+                                <svg class="w-4 h-4 brand-accent-text mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Complimentary Wi-Fi
+                            </li>
+                            <li class="flex items-center">
+                                <svg class="w-4 h-4 brand-accent-text mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Refreshments
+                            </li>
+                            <li class="flex items-center">
+                                <svg class="w-4 h-4 brand-accent-text mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Privacy Screens
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Airport Transfers -->
+                    <div class="brand-surface p-8 hover:transform hover:-translate-y-2 transition-all duration-300">
+                        <div class="w-16 h-16 brand-accent-text mx-auto mb-6">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-semibold mb-4 brand-heading">Airport Transfers</h3>
+                        <p class="brand-subheading mb-6">
+                            Seamless airport transportation with flight tracking, meet-and-greet service, 
+                            and luggage assistance. Available for ORD and MDW.
+                        </p>
+                        <ul class="space-y-2 brand-subheading text-sm">
+                            <li class="flex items-center">
+                                <svg class="w-4 h-4 brand-accent-text mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Flight Monitoring
+                            </li>
+                            <li class="flex items-center">
+                                <svg class="w-4 h-4 brand-accent-text mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                30-min Wait Time
+                            </li>
+                            <li class="flex items-center">
+                                <svg class="w-4 h-4 brand-accent-text mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Luggage Handling
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Special Events -->
+                    <div class="brand-surface p-8 hover:transform hover:-translate-y-2 transition-all duration-300">
+                        <div class="w-16 h-16 brand-accent-text mx-auto mb-6">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-semibold mb-4 brand-heading">Special Events</h3>
+                        <p class="brand-subheading mb-6">
+                            Luxury transportation for weddings, galas, anniversaries, and special celebrations. 
+                            Make your occasion truly memorable.
+                        </p>
+                        <ul class="space-y-2 brand-subheading text-sm">
+                            <li class="flex items-center">
+                                <svg class="w-4 h-4 brand-accent-text mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Red Carpet Service
+                            </li>
+                            <li class="flex items-center">
+                                <svg class="w-4 h-4 brand-accent-text mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Champagne Service
+                            </li>
+                            <li class="flex items-center">
+                                <svg class="w-4 h-4 brand-accent-text mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Decorated Vehicles
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="/app.js"></script>
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+            this.setAttribute('aria-expanded', !menu.classList.contains('hidden'));
+        });
+
+        // Smooth scrolling
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Open booking app
+        function openBookingApp() {
+            window.open('https://urway-rider-73967865619.us-central1.run.app?tenant=goldravenia', '_blank');
+        }
+
+        // Add scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements for animation
+        document.querySelectorAll('.brand-surface').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
