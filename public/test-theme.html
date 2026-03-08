@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" data-tenant="goldravenia">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldRavenia Test - Debug</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-brand-accent text-white">
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="text-center">
+            <h1 class="text-4xl font-bold mb-4 text-brand-primary">GoldRavenia Test Page</h1>
+            <p class="text-xl mb-8">If you can see this, the theme is working!</p>
+            
+            <div class="space-y-4">
+                <div class="bg-brand-primary/20 p-6 rounded-lg">
+                    <h2 class="text-2xl font-semibold mb-2">Theme Colors</h2>
+                    <div class="flex justify-center space-x-4">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-brand-primary rounded-lg mb-2"></div>
+                            <p class="text-sm">Primary</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-brand-accent rounded-lg mb-2"></div>
+                            <p class="text-sm">Accent</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white/10 p-6 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-2">Tenant Information</h3>
+                    <p>Current Tenant: <span id="current-tenant">goldravenia</span></p>
+                    <p>Theme Applied: <span id="theme-status">Testing...</span></p>
+                </div>
+                
+                <button onclick="switchTheme('default')" class="bg-white text-brand-accent px-6 py-2 rounded-lg">
+                    Switch to Default Theme
+                </button>
+                <button onclick="switchTheme('goldravenia')" class="bg-brand-primary text-white px-6 py-2 rounded-lg ml-4">
+                    Switch to GoldRavenia
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function switchTheme(tenant) {
+            document.documentElement.setAttribute('data-tenant', tenant);
+            document.getElementById('current-tenant').textContent = tenant;
+            document.getElementById('theme-status').textContent = 'Applied!';
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            switchTheme('goldravenia');
+            console.log('✅ Test page loaded with GoldRavenia theme');
+        });
+    </script>
+</body>
+</html>

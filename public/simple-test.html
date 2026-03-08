@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Theme Test</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div class="min-h-screen p-8">
+        <h1 class="text-4xl font-bold mb-8">Multi-Tenant Theme Test</h1>
+        
+        <div class="mb-8">
+            <p>Current URL Parameter: <span id="url-param">None</span></p>
+            <p>Detected Tenant: <span id="detected-tenant">None</span></p>
+        </div>
+        
+        <div class="space-y-4">
+            <button onclick="testTheme('goldravenia')" class="bg-yellow-500 text-white px-4 py-2 rounded">
+                Test GoldRavenia Theme
+            </button>
+            <button onclick="testTheme('blackravenia')" class="bg-gray-900 text-yellow-500 px-4 py-2 rounded">
+                Test BlackRavenia Theme
+            </button>
+            <button onclick="testTheme('metrofleet')" class="bg-blue-500 text-white px-4 py-2 rounded">
+                Test MetroFleet Theme
+            </button>
+            <button onclick="testTheme('default')" class="bg-gray-500 text-white px-4 py-2 rounded">
+                Test Default Theme
+            </button>
+        </div>
+        
+        <div class="mt-8 p-6 border rounded-lg">
+            <h2 class="text-2xl font-bold mb-4">Theme Preview</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p>Primary Color:</p>
+                    <div id="primary-color" class="w-20 h-20 rounded border-2 border-gray-300"></div>
+                </div>
+                <div>
+                    <p>Accent Color:</p>
+                    <div id="accent-color" class="w-20 h-20 rounded border-2 border-gray-300"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function testTheme(tenant) {
+            document.documentElement.setAttribute('data-tenant', tenant);
+            document.getElementById('detected-tenant').textContent = tenant;
+            
+            // Update color preview
+            const primaryColor = getComputedStyle(document.documentElement)
+                .getPropertyValue('--brand-primary').trim();
+            const accentColor = getComputedStyle(document.documentElement)
+                .getPropertyValue('--brand-accent').trim();
+            
+            document.getElementById('primary-color').style.backgroundColor = primaryColor;
+            document.getElementById('accent-color').style.backgroundColor = accentColor;
+            
+            console.log(`Theme changed to: ${tenant}`);
+            console.log(`Primary: ${primaryColor}, Accent: ${accentColor}`);
+        }
+        
+        // Check URL parameter on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tenant = urlParams.get('tenant');
+            
+            document.getElementById('url-param').textContent = tenant || 'None';
+            
+            if (tenant) {
+                testTheme(tenant);
+            } else {
+                testTheme('default');
+            }
+        });
+    </script>
+</body>
+</html>

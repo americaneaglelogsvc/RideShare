@@ -1,0 +1,56 @@
+<svg width="320" height="120" viewBox="0 0 320 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="320" height="120" fill="#1A1A1A"/>
+  
+  <!-- Intricate Golden Winged Shield -->
+  <g transform="translate(20, 20)">
+    <!-- Shield Base -->
+    <path d="M40 10 L40 60 Q40 80 60 90 Q80 80 80 60 L80 10 Z" 
+          fill="#C7A008" stroke="#C7A008" stroke-width="2"/>
+    
+    <!-- Left Wing with Eagle Head -->
+    <g transform="translate(-10, 15)">
+      <path d="M0 20 Q-15 15 -20 25 Q-15 30 0 35 L0 20" 
+            fill="#C7A008"/>
+      <!-- Eagle Head Left -->
+      <circle cx="-18" cy="25" r="3" fill="#1A1A1A"/>
+      <path d="M-20 25 L-22 24 L-20 23" fill="#C7A008"/>
+    </g>
+    
+    <!-- Right Wing with Eagle Head -->
+    <g transform="translate(90, 15)">
+      <path d="M0 20 Q15 15 20 25 Q15 30 0 35 L0 20" 
+            fill="#C7A008"/>
+      <!-- Eagle Head Right -->
+      <circle cx="18" cy="25" r="3" fill="#1A1A1A"/>
+      <path d="M20 25 L22 24 L20 23" fill="#C7A008"/>
+    </g>
+    
+    <!-- Interlocking GR Monogram -->
+    <g transform="translate(40, 25)">
+      <!-- G -->
+      <path d="M15 15 Q15 25 15 35 Q15 45 25 45 Q30 45 30 40 Q30 35 25 35 L20 35" 
+            fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+      <!-- R -->
+      <path d="M35 15 L35 45 M35 15 Q45 15 45 25 Q45 35 35 35 L35 35" 
+            fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+      <path d="M35 35 Q40 35 42 40 Q44 45 40 45" 
+            fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    </g>
+    
+    <!-- Decorative Elements -->
+    <circle cx="60" cy="30" r="2" fill="#1A1A1A"/>
+    <circle cx="60" cy="40" r="2" fill="#1A1A1A"/>
+    <circle cx="60" cy="50" r="2" fill="#1A1A1A"/>
+  </g>
+  
+  <!-- GOLDRAVENIA Text -->
+  <text x="160" y="75" font-family="Playfair Display, serif" font-size="24" 
+        font-weight="700" fill="#C7A008" text-anchor="middle">
+    GOLDRAVENIA
+  </text>
+  
+  <!-- Golden Divider Lines -->
+  <line x1="120" y1="90" x2="200" y2="90" stroke="#C7A008" stroke-width="1"/>
+  <line x1="120" y1="93" x2="200" y2="93" stroke="#C7A008" stroke-width="0.5"/>
+</svg>

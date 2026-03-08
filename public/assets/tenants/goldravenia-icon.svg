@@ -1,0 +1,31 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="16" cy="16" r="16" fill="#1A1A1A"/>
+  
+  <!-- Gold Outline Shield-GR Monogram -->
+  <g transform="translate(6, 6) scale(0.5)">
+    <!-- Shield Outline -->
+    <path d="M40 10 L40 50 Q40 65 55 72 Q70 65 70 50 L70 10 Z" 
+          fill="none" stroke="#C7A008" stroke-width="3"/>
+    
+    <!-- Left Wing Outline -->
+    <path d="M0 15 Q-10 12 -15 18 Q-10 22 0 25" 
+          fill="none" stroke="#C7A008" stroke-width="2"/>
+    
+    <!-- Right Wing Outline -->
+    <path d="M80 15 Q90 12 95 18 Q90 22 80 25" 
+          fill="none" stroke="#C7A008" stroke-width="2"/>
+    
+    <!-- GR Monogram Outline -->
+    <g transform="translate(25, 25)">
+      <!-- G -->
+      <path d="M10 10 Q10 17 10 25 Q10 30 15 30 Q17 30 17 27 Q17 24 15 24 L12 24" 
+            fill="none" stroke="#C7A008" stroke-width="2"/>
+      <!-- R -->
+      <path d="M22 10 L22 30 M22 10 Q28 10 28 17 Q28 24 22 24" 
+            fill="none" stroke="#C7A008" stroke-width="2"/>
+      <path d="M22 24 Q25 24 26 27 Q27 30 25 30" 
+            fill="none" stroke="#C7A008" stroke-width="2"/>
+    </g>
+  </g>
+</svg>

@@ -1,282 +1,417 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" prefix="og: https://ogp.me/ns#">
 <head>
+    <!-- Primary Meta Tags -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UrWay Dispatch - Enterprise Rideshare Platform</title>
-    <meta name="description" content="Transform your transportation business with our enterprise rideshare platform. White-label branding, automated dispatch, and fleet management.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <!-- SEO and Social Media Meta Tags -->
+    <title>UrWay Dispatch - Enterprise Rideshare Platform | White-Label SaaS Solution</title>
+    <meta name="description" content="Transform your transportation business with our enterprise rideshare platform. White-label branding, automated dispatch, and fleet management. Launch in 48 hours.">
+    <meta name="keywords" content="rideshare, dispatch, transportation, SaaS, white-label, fleet management, automated dispatch">
+    <meta name="author" content="UrWay Dispatch">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://urwaydispatch.com/">
+    <meta property="og:title" content="UrWay Dispatch - Enterprise Rideshare Platform">
+    <meta property="og:description" content="Transform your transportation business with our enterprise rideshare platform. White-label branding, automated dispatch, and fleet management.">
+    <meta property="og:image" content="https://urwaydispatch.com/images/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="UrWay Dispatch">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://urwaydispatch.com/">
+    <meta property="twitter:title" content="UrWay Dispatch - Enterprise Rideshare Platform">
+    <meta property="twitter:description" content="Transform your transportation business with our enterprise rideshare platform. White-label branding, automated dispatch, and fleet management.">
+    <meta property="twitter:image" content="https://urwaydispatch.com/images/og-image.jpg">
+    
+    <!-- PWA and Modern Web Tags -->
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="UrWay">
+    <meta name="application-name" content="UrWay Dispatch">
+    <meta name="msapplication-TileColor" content="#1e40af">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+    
+    <!-- Preconnect and Resource Hints -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="//urway-rider-73967865619.us-central1.run.app">
+    <link rel="dns-prefetch" href="//urway-driver-73967865619.us-central1.run.app">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="/styles.css">
+    
+    <!-- Scripts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#1e40af">
+    
+    <!-- Schema.org Markup -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "UrWay Dispatch",
+        "description": "Enterprise rideshare platform with white-label branding and automated dispatch",
+        "url": "https://urwaydispatch.com",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "description": "Free trial available"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "reviewCount": "127"
+        },
+        "provider": {
+            "@type": "Organization",
+            "name": "UrWay Dispatch",
+            "url": "https://urwaydispatch.com"
+        }
+    }
+    </script>
+    
+    <!-- Critical CSS (inline for performance) -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        
+        /* Critical above-the-fold styles */
         * {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+        /* Loading states */
+        .loading {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
         }
         
-        .float-animation {
-            animation: float 6s ease-in-out infinite;
+        .loaded {
+            opacity: 1;
         }
         
-        .gradient-text {
-            background: linear-gradient(135deg, #d4a017 0%, #0f172a 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        /* Prevent flash of unstyled content */
+        .no-js .js-only {
+            display: none !important;
         }
         
-        .hero-gradient {
-            background: linear-gradient(135deg, #1e40af 0%, #3730a3 50%, #4c1d95 100%);
+        .js .no-js-only {
+            display: none !important;
         }
         
-        .card-hover {
-            transition: all 0.3s ease;
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            :root {
+                --bg-primary: #ffffff;
+                --bg-secondary: #f8f9fa;
+                --text-primary: #000000;
+                --text-secondary: #333333;
+                --accent: #0066cc;
+            }
         }
         
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        
-        .trust-badge {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-        
-        .pulse-dot {
-            animation: pulse 2s infinite;
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
         }
     </style>
 </head>
-<body class="bg-white">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
-        <div class="max-w-7xl mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-                <a href="/" class="flex items-center space-x-2">
-                    <i data-lucide="car" class="w-8 h-8 text-blue-600"></i>
-                    <span class="text-xl font-bold text-gray-900">UrWay Dispatch</span>
-                </a>
-                
-                <!-- Desktop Navigation -->
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="/mobile-showcase.html" class="text-gray-600 hover:text-blue-600 transition-colors">Mobile Apps</a>
-                    <a href="/about.html" class="text-gray-600 hover:text-blue-600 transition-colors">About</a>
-                    <a href="/platform.html" class="text-gray-600 hover:text-blue-600 transition-colors">Platform</a>
-                    <a href="/for-operators.html" class="text-gray-600 hover:text-blue-600 transition-colors">For Operators</a>
-                    <a href="/contact.html" class="text-gray-600 hover:text-blue-600 transition-colors">Contact</a>
-                    <button onclick="window.location.href='https://urway-rider-73967865619.us-central1.run.app'" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                        Try Demo
+<body class="bg-white text-gray-900 antialiased">
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md">
+        Skip to main content
+    </a>
+    
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 bg-white z-50 flex items-center justify-center loading">
+        <div class="text-center">
+            <div class="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading UrWay Dispatch...</p>
+        </div>
+    </div>
+    
+    <!-- Main Application -->
+    <div id="app" class="loading">
+        <!-- Header Navigation -->
+        <header class="bg-white shadow-sm sticky top-0 z-40 border-b border-gray-200" role="banner">
+            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" role="navigation" aria-label="Main navigation">
+                <div class="flex items-center justify-between h-16">
+                    <!-- Logo and Brand -->
+                    <div class="flex items-center">
+                        <a href="/" class="flex items-center space-x-3 group" aria-label="Home">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg flex items-center justify-center transform transition-transform group-hover:scale-105" data-tenant-logo-bg>
+                                <i data-lucide="car" class="w-6 h-6 text-white" aria-hidden="true"></i>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors" data-brand-name>UrWay Dispatch</span>
+                                <span class="text-xs text-gray-500 hidden sm:block" data-tenant-tagline>Enterprise Rideshare Platform</span>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <!-- Desktop Navigation -->
+                    <div class="hidden md:flex items-center space-x-8">
+                        <a href="/mobile-showcase.html" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">Mobile Apps</a>
+                        <a href="/about.html" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">About</a>
+                        <a href="/platform.html" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">Platform</a>
+                        <a href="/for-operators.html" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">For Operators</a>
+                        <a href="/contact.html" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">Contact</a>
+                        <button onclick="window.location.href='https://urway-rider-73967865619.us-central1.run.app'" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm hover:shadow-md transform hover:-translate-y-px transition-all">
+                            Try Demo
+                        </button>
+                    </div>
+                    
+                    <!-- Mobile menu button -->
+                    <button id="mobile-menu-button" class="md:hidden p-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-100 transition-colors" aria-label="Toggle mobile menu" aria-expanded="false">
+                        <i data-lucide="menu" class="w-6 h-6" aria-hidden="true"></i>
                     </button>
                 </div>
                 
-                <!-- Mobile menu button -->
-                <button onclick="toggleMobileMenu()" class="md:hidden" title="Toggle mobile menu">
-                    <i data-lucide="menu" class="w-6 h-6"></i>
-                </button>
-            </div>
-            
-            <!-- Mobile Navigation -->
-            <div id="mobile-menu" class="hidden md:hidden py-4 border-t border-gray-100">
-                <div class="flex flex-col space-y-4">
-                    <a href="/mobile-showcase.html" class="text-gray-600 hover:text-blue-600">Mobile Apps</a>
-                    <a href="/about.html" class="text-gray-600 hover:text-blue-600">About</a>
-                    <a href="/platform.html" class="text-gray-600 hover:text-blue-600">Platform</a>
-                    <a href="/for-operators.html" class="text-gray-600 hover:text-blue-600">For Operators</a>
-                    <a href="/contact.html" class="text-gray-600 hover:text-blue-600">Contact</a>
-                    <button onclick="window.location.href='https://urway-rider-73967865619.us-central1.run.app'" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium w-full">
-                        Try Demo
-                    </button>
+                <!-- Mobile Navigation -->
+                <div id="mobile-menu" class="hidden md:hidden py-4 border-t border-gray-200" role="menu">
+                    <div class="flex flex-col space-y-3">
+                        <a href="/mobile-showcase.html" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-base font-medium transition-colors" role="menuitem">Mobile Apps</a>
+                        <a href="/about.html" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-base font-medium transition-colors" role="menuitem">About</a>
+                        <a href="/platform.html" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-base font-medium transition-colors" role="menuitem">Platform</a>
+                        <a href="/for-operators.html" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-base font-medium transition-colors" role="menuitem">For Operators</a>
+                        <a href="/contact.html" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-base font-medium transition-colors" role="menuitem">Contact</a>
+                        <button onclick="window.location.href='https://urway-rider-73967865619.us-central1.run.app'" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium w-full transition-colors shadow-sm hover:shadow-md" role="menuitem">
+                            Try Demo
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section class="hero-gradient text-white py-20 relative overflow-hidden">
-        <div class="absolute inset-0 bg-black opacity-10"></div>
-        <!-- Background Image -->
-        <div class="absolute inset-0 opacity-20">
-            <img src="https://picsum.photos/seed/transportation-fleet/1920/800.jpg" alt="Professional transportation fleet" class="w-full h-full object-cover">
-        </div>
+            </nav>
+        </header>
         
-        <div class="max-w-7xl mx-auto px-6 text-center relative z-10">
-            <!-- Trust Badge -->
-            <div class="trust-badge inline-flex items-center bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
-                <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i>
-                Trusted by 50+ Transportation Companies
-            </div>
-            
-            <!-- Security Certifications -->
-            <div class="flex items-center justify-center space-x-4 mb-8">
-                <div class="flex items-center bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full text-xs">
-                    <i data-lucide="shield-check" class="w-3 h-3 mr-1"></i>
-                    SOC 2 Compliant
+        <!-- Main Content -->
+        <main id="main-content" role="main">
+            <!-- Hero Section -->
+            <section class="hero-gradient text-white py-20 relative overflow-hidden" aria-labelledby="hero-heading">
+                <!-- Background Elements -->
+                <div class="absolute inset-0 bg-black opacity-10"></div>
+                <div class="absolute inset-0 opacity-20">
+                    <img src="https://picsum.photos/seed/transportation-fleet/1920/800.jpg" alt="Professional transportation fleet" class="w-full h-full object-cover" loading="lazy">
                 </div>
-                <div class="flex items-center bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full text-xs">
-                    <i data-lucide="lock" class="w-3 h-3 mr-1"></i>
-                    GDPR Compliant
-                </div>
-                <div class="flex items-center bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full text-xs">
-                    <i data-lucide="activity" class="w-3 h-3 mr-1"></i>
-                    99.9% Uptime
-                </div>
-            </div>
-            
-            <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-                Launch Your Branded Rideshare Business in Days
-            </h1>
-            <p class="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
-                Enterprise technology. Your brand. Your customers. Start your transportation business today.
-            </p>
-            
-            <!-- Primary CTAs -->
-            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                <button onclick="window.location.href='https://urway-rider-73967865619.us-central1.run.app'" class="bg-white text-blue-900 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition-colors shadow-lg transform hover:scale-105">
-                    <i data-lucide="rocket" class="w-5 h-5 mr-2"></i>
-                    Try Live Demo
-                </button>
-                <button onclick="window.location.href='/mobile-showcase.html'" class="bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-600 transition-colors border-2 border-blue-500">
-                    <i data-lucide="smartphone" class="w-5 h-5 mr-2"></i>
-                    Mobile Apps
-                </button>
-            </div>
-            
-            <!-- Quick Stats -->
-            <div class="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-white mb-1">48 Hours</div>
-                    <div class="text-blue-200 text-sm">Average Setup Time</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-white mb-1">300%</div>
-                    <div class="text-blue-200 text-sm">Average ROI</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-white mb-1">24/7</div>
-                    <div class="text-blue-200 text-sm">Support Response</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Live Demo Section -->
-    <section class="py-20 bg-gray-50">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                    Try Our Live Platform Now
-                </h2>
-                <p class="text-xl text-gray-600">
-                    Experience the enhanced booking flow and flexible vehicle configuration
-                </p>
-            </div>
-
-            <div class="grid md:grid-cols-2 gap-8">
-                <!-- Rider App -->
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <div class="p-6">
-                        <div class="flex items-center mb-4">
-                            <i data-lucide="smartphone" class="w-8 h-8 text-blue-600 mr-3"></i>
-                            <div>
-                                <h3 class="text-xl font-semibold text-gray-900">Rider App</h3>
-                                <p class="text-sm text-gray-600">Enhanced booking flow with passenger needs assessment</p>
-                            </div>
+                
+                <!-- Hero Content -->
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+                    <!-- Trust Badge -->
+                    <div class="inline-flex items-center bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium mb-6 animate-pulse">
+                        <i data-lucide="check-circle" class="w-4 h-4 mr-2" aria-hidden="true"></i>
+                        Trusted by 50+ Transportation Companies
+                    </div>
+                    
+                    <!-- Security Certifications -->
+                    <div class="flex flex-wrap items-center justify-center gap-4 mb-8">
+                        <div class="flex items-center bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full text-xs">
+                            <i data-lucide="shield-check" class="w-3 h-3 mr-1" aria-hidden="true"></i>
+                            SOC 2 Compliant
                         </div>
-                        <div class="space-y-3 mb-6">
-                            <div class="flex items-center text-sm text-gray-600">
-                                <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
-                                Multi-step booking process
-                            </div>
-                            <div class="flex items-center text-sm text-gray-600">
-                                <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
-                                Flexible vehicle configuration
-                            </div>
-                            <div class="flex items-center text-sm text-gray-600">
-                                <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
-                                Intelligent vehicle recommendations
-                            </div>
+                        <div class="flex items-center bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full text-xs">
+                            <i data-lucide="lock" class="w-3 h-3 mr-1" aria-hidden="true"></i>
+                            GDPR Compliant
                         </div>
-                        <button onclick="window.open('https://urway-rider-73967865619.us-central1.run.app', '_blank')" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                            <i data-lucide="external-link" class="w-4 h-4 mr-2"></i>
-                            Open Rider App
+                        <div class="flex items-center bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full text-xs">
+                            <i data-lucide="activity" class="w-3 h-3 mr-1" aria-hidden="true"></i>
+                            99.9% Uptime
+                        </div>
+                    </div>
+                    
+                    <!-- Main Heading -->
+                    <h1 id="hero-heading" class="text-4xl md:text-6xl font-bold mb-6 leading-tight" data-tenant-tagline>
+                        Launch Your Branded Rideshare Business in Days
+                    </h1>
+                    
+                    <!-- Description -->
+                    <p class="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto" data-tenant-description>
+                        Enterprise technology. Your brand. Your customers. Start your transportation business today.
+                    </p>
+                    
+                    <!-- Primary CTAs -->
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                        <button onclick="window.location.href='https://urway-rider-73967865619.us-central1.run.app'" class="bg-white text-blue-900 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition-colors shadow-lg transform hover:scale-105 transition-all">
+                            <i data-lucide="rocket" class="w-5 h-5 mr-2" aria-hidden="true"></i>
+                            Try Live Demo
+                        </button>
+                        <button onclick="window.location.href='/mobile-showcase.html'" class="bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-600 transition-colors border-2 border-blue-500 transform hover:scale-105 transition-all">
+                            <i data-lucide="smartphone" class="w-5 h-5 mr-2" aria-hidden="true"></i>
+                            Mobile Apps
                         </button>
                     </div>
+                    
+                    <!-- Quick Stats -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-2xl mx-auto">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-white mb-1">48 Hours</div>
+                            <div class="text-blue-200 text-sm">Average Setup Time</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-white mb-1">300%</div>
+                            <div class="text-blue-200 text-sm">Average ROI</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-white mb-1">24/7</div>
+                            <div class="text-blue-200 text-sm">Support Response</div>
+                        </div>
+                    </div>
                 </div>
+            </section>
+            
+            <!-- Live Demo Section -->
+            <section class="py-20 bg-gray-50" aria-labelledby="demo-heading">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center mb-16">
+                        <h2 id="demo-heading" class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                            Try Our Live Platform Now
+                        </h2>
+                        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                            Experience the enhanced booking flow and flexible vehicle configuration
+                        </p>
+                    </div>
 
-                <!-- Driver App -->
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <div class="p-6">
-                        <div class="flex items-center mb-4">
-                            <i data-lucide="car" class="w-8 h-8 text-green-600 mr-3"></i>
-                            <div>
-                                <h3 class="text-xl font-semibold text-gray-900">Driver App</h3>
-                                <p class="text-sm text-gray-600">Professional driver dashboard with dispatch management</p>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <!-- Rider App -->
+                        <article class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-all duration-300">
+                            <div class="p-6">
+                                <div class="flex items-center mb-4">
+                                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                                        <i data-lucide="smartphone" class="w-6 h-6 text-blue-600" aria-hidden="true"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-semibold text-gray-900">Rider App</h3>
+                                        <p class="text-sm text-gray-600">Enhanced booking flow with passenger needs assessment</p>
+                                    </div>
+                                </div>
+                                <div class="space-y-3 mb-6">
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2" aria-hidden="true"></i>
+                                        Multi-step booking process
+                                    </div>
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2" aria-hidden="true"></i>
+                                        Flexible vehicle configuration
+                                    </div>
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2" aria-hidden="true"></i>
+                                        Intelligent vehicle recommendations
+                                    </div>
+                                </div>
+                                <button onclick="window.open('https://urway-rider-73967865619.us-central1.run.app', '_blank')" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md">
+                                    <i data-lucide="external-link" class="w-4 h-4 mr-2" aria-hidden="true"></i>
+                                    Open Rider App
+                                </button>
                             </div>
+                        </article>
+
+                        <!-- Driver App -->
+                        <article class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-all duration-300">
+                            <div class="p-6">
+                                <div class="flex items-center mb-4">
+                                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                                        <i data-lucide="car" class="w-6 h-6 text-green-600" aria-hidden="true"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-semibold text-gray-900">Driver App</h3>
+                                        <p class="text-sm text-gray-600">Professional driver dashboard with dispatch management</p>
+                                    </div>
+                                </div>
+                                <div class="space-y-3 mb-6">
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2" aria-hidden="true"></i>
+                                        Real-time dispatch notifications
+                                    </div>
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2" aria-hidden="true"></i>
+                                        Earnings tracking and analytics
+                                    </div>
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2" aria-hidden="true"></i>
+                                        Trip management and status updates
+                                    </div>
+                                </div>
+                                <button onclick="window.open('https://urway-driver-73967865619.us-central1.run.app', '_blank')" class="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-sm hover:shadow-md">
+                                    <i data-lucide="external-link" class="w-4 h-4 mr-2" aria-hidden="true"></i>
+                                    Open Driver App
+                                </button>
+                                <p class="text-xs text-gray-500 mt-2 text-center">Use: driver@demo.com / demo123</p>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="bg-gray-900 text-white py-12" role="contentinfo">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col items-center space-y-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center" data-tenant-logo-bg>
+                            <i data-lucide="car" class="w-5 h-5 text-gray-900" aria-hidden="true"></i>
                         </div>
-                        <div class="space-y-3 mb-6">
-                            <div class="flex items-center text-sm text-gray-600">
-                                <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
-                                Real-time dispatch notifications
-                            </div>
-                            <div class="flex items-center text-sm text-gray-600">
-                                <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
-                                Earnings tracking and analytics
-                            </div>
-                            <div class="flex items-center text-sm text-gray-600">
-                                <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
-                                Trip management and status updates
-                            </div>
-                        </div>
-                        <button onclick="window.open('https://urway-driver-73967865619.us-central1.run.app', '_blank')" class="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
-                            <i data-lucide="external-link" class="w-4 h-4 mr-2"></i>
-                            Open Driver App
-                        </button>
-                        <p class="text-xs text-gray-500 mt-2 text-center">Use: driver@demo.com / demo123</p>
+                        <span class="text-xl font-bold" data-brand-name>UrWay Dispatch</span>
+                    </div>
+                    <p class="text-center text-gray-400 text-sm" data-tenant-description>
+                        Enterprise rideshare platform for modern transportation businesses.
+                    </p>
+                    <div class="text-center text-gray-500 text-sm">
+                        <p>&copy; 2026 <span data-brand-name>UrWay Dispatch</span>. All rights reserved.</p>
+                        <p class="mt-1">
+                            <span data-tenant-address>Chicago, IL</span> | 
+                            <a href="mailto:info@urwaydispatch.com" class="hover:text-white transition-colors" data-tenant-email>info@urwaydispatch.com</a> | 
+                            <a href="tel:+1-312-555-0000" class="hover:text-white transition-colors" data-tenant-phone>+1-312-555-0000</a>
+                        </p>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-12">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="flex items-center justify-center space-x-2 mb-4">
-                <i data-lucide="car" class="w-8 h-8 text-yellow-400"></i>
-                <span class="text-xl font-bold">UrWay Dispatch</span>
-            </div>
-            <p class="text-center text-gray-400 text-sm mb-4">
-                Enterprise rideshare platform for modern transportation businesses.
-            </p>
-            <div class="text-center text-gray-500 text-sm">
-                <p>&copy; 2026 UrWay Dispatch. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
+        </footer>
+    </div>
+    
+    <!-- Modern JavaScript -->
+    <script src="/app.js"></script>
+    
+    <!-- Service Worker Registration -->
     <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
-        
-        // Mobile menu toggle
-        function toggleMobileMenu() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch((registrationError) => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
         }
     </script>
 </body>
 </html>
-                                    

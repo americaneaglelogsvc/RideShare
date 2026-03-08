@@ -8,11 +8,16 @@ import { platformApi } from '../lib/api';
 type AdminTab = 'tenants' | 'health' | 'killswitch' | 'tests';
 
 const MOCK_TENANTS = [
-  { id: 'ten-001', name: 'Chicago Premium Cars', plan: 'Professional', drivers: 32, trips_mtd: 2847, revenue_mtd: 128450, status: 'active' },
-  { id: 'ten-002', name: 'Lake Shore Limo', plan: 'Enterprise', drivers: 58, trips_mtd: 4210, revenue_mtd: 215800, status: 'active' },
-  { id: 'ten-003', name: 'Windy City Black Car', plan: 'Starter', drivers: 8, trips_mtd: 412, revenue_mtd: 18900, status: 'active' },
-  { id: 'ten-004', name: 'O\'Hare Express', plan: 'Professional', drivers: 22, trips_mtd: 1890, revenue_mtd: 89200, status: 'active' },
-  { id: 'ten-005', name: 'Midwest Executive', plan: 'Enterprise', drivers: 45, trips_mtd: 3100, revenue_mtd: 167300, status: 'suspended' },
+  { id: 'ten-001', name: 'Chicago Premium Cars', plan: 'Professional', drivers: 32, trips_mtd: 2847, revenue_mtd: 128450, status: 'active', theme: 'default', whiteLabel: false },
+  { id: 'ten-002', name: 'Lake Shore Limo', plan: 'Enterprise', drivers: 58, trips_mtd: 4210, revenue_mtd: 215800, status: 'active', theme: 'default', whiteLabel: false },
+  { id: 'ten-003', name: 'Windy City Black Car', plan: 'Starter', drivers: 8, trips_mtd: 412, revenue_mtd: 18900, status: 'active', theme: 'default', whiteLabel: false },
+  { id: 'ten-004', name: 'O\'Hare Express', plan: 'Professional', drivers: 22, trips_mtd: 1890, revenue_mtd: 89200, status: 'active', theme: 'default', whiteLabel: false },
+  { id: 'ten-005', name: 'Midwest Executive', plan: 'Enterprise', drivers: 45, trips_mtd: 3100, revenue_mtd: 167300, status: 'suspended', theme: 'default', whiteLabel: false },
+  { id: 'a1b2c3d4-0001-4000-8000-000000000001', name: 'GoldRavenia Luxury Transportation', plan: 'Enterprise', drivers: 25, trips_mtd: 1250, revenue_mtd: 89500, status: 'active', theme: 'goldravenia', whiteLabel: true },
+  { id: 'a1b2c3d4-0001-4000-8000-000000000002', name: 'BlackRavenia Premium SUV', plan: 'Enterprise', drivers: 30, trips_mtd: 980, revenue_mtd: 72400, status: 'active', theme: 'blackravenia', whiteLabel: true },
+  { id: 'a1b2c3d4-0001-4000-8000-000000000003', name: 'SilverPeak Executive Chauffeur', plan: 'Professional', drivers: 18, trips_mtd: 650, revenue_mtd: 48200, status: 'active', theme: 'silverpeak', whiteLabel: false },
+  { id: 'a1b2c3d4-0001-4000-8000-000000000004', name: 'MetroFleet Transportation', plan: 'Starter', drivers: 40, trips_mtd: 2100, revenue_mtd: 94500, status: 'active', theme: 'metrofleet', whiteLabel: false },
+  { id: 'a1b2c3d4-0001-4000-8000-000000000005', name: 'NightOwl Late-Night Service', plan: 'Professional', drivers: 15, trips_mtd: 890, revenue_mtd: 41200, status: 'active', theme: 'nightowl', whiteLabel: false },
 ];
 
 export default function PlatformAdminPage() {
@@ -103,6 +108,7 @@ export default function PlatformAdminPage() {
                 <thead><tr className="bg-gray-750">
                   <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase">Tenant</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase">Plan</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase">Theme</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase">Drivers</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase">Trips (MTD)</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase">Revenue (MTD)</th>
@@ -113,10 +119,30 @@ export default function PlatformAdminPage() {
                   {MOCK_TENANTS.map(t => (
                     <tr key={t.id} className="hover:bg-gray-750">
                       <td className="px-4 py-3">
-                        <div className="text-sm font-medium">{t.name}</div>
-                        <div className="text-xs text-gray-500 font-mono">{t.id}</div>
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-3 h-3 rounded-full ${
+                            t.theme === 'goldravenia' ? 'bg-yellow-500' :
+                            t.theme === 'blackravenia' ? 'bg-gray-900' :
+                            t.theme === 'silverpeak' ? 'bg-gray-500' :
+                            t.theme === 'metrofleet' ? 'bg-blue-500' :
+                            t.theme === 'nightowl' ? 'bg-purple-500' :
+                            'bg-blue-600'
+                          }`}></div>
+                          <div>
+                            <div className="text-sm font-medium">{t.name}</div>
+                            <div className="text-xs text-gray-500 font-mono">{t.id}</div>
+                          </div>
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-300">{t.plan}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-300 capitalize">{t.theme}</span>
+                          {t.whiteLabel && (
+                            <span className="text-xs bg-green-900 text-green-300 px-2 py-1 rounded-full">White-label</span>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-sm text-gray-300">{t.drivers}</td>
                       <td className="px-4 py-3 text-sm text-gray-300">{t.trips_mtd.toLocaleString()}</td>
                       <td className="px-4 py-3 text-sm text-gray-300">${(t.revenue_mtd / 100).toLocaleString()}</td>
@@ -127,6 +153,7 @@ export default function PlatformAdminPage() {
                       </td>
                       <td className="px-4 py-3">
                         <button className="text-xs text-amber-400 hover:text-amber-300 mr-3">Edit</button>
+                        <button className="text-xs text-blue-400 hover:text-blue-300 mr-3">Theme</button>
                         <button className="text-xs text-red-400 hover:text-red-300">
                           {t.status === 'active' ? 'Suspend' : 'Activate'}
                         </button>
