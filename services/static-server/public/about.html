@@ -15,36 +15,177 @@
     </style>
 </head>
 <body class="bg-white">
-    <!-- Nav -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <a href="/" class="flex items-center space-x-2">
-                <i data-lucide="car" class="w-8 h-8 text-blue-600"></i>
-                <span class="text-xl font-bold text-gray-900">UrWay Dispatch</span>
-            </a>
-            <div class="hidden md:flex items-center space-x-8">
-                <a href="/about.html" class="text-blue-600 font-medium">About</a>
-                <a href="/platform.html" class="text-gray-600 hover:text-blue-600">Platform</a>
-                <a href="/for-operators.html" class="text-gray-600 hover:text-blue-600">For Operators</a>
-                <a href="/branding-showcase.html" class="text-gray-600 hover:text-blue-600">Branding</a>
-                <a href="/live-demo.html" class="text-gray-600 hover:text-blue-600">Live Demo</a>
-                <a href="/roi-simulator.html" class="text-gray-600 hover:text-blue-600">ROI Simulator</a>
-                <a href="/contact.html" class="text-gray-600 hover:text-blue-600">Contact</a>
-                <button onclick="document.getElementById('demo-modal').showModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                    View Demo
-                </button>
-            </div>
+    <!-- Universal Navigation Container -->
+<!-- Progressive Enhancement Styles -->
+<style>
+  .js-only { display: block !important; }
+  .no-js-nav { display: none !important; }
+  
+  /* Fallback styles for no-JavaScript browsers */
+  noscript .js-only { display: none !important; }
+  noscript .no-js-nav { display: block !important; }
+</style>
+
+<!-- Universal Navigation Container -->
+<div id="global-navigation" class="js-only">
+  <!-- Navigation will be dynamically rendered here -->
+</div>
+
+<!-- Progressive Enhancement Scripts -->
+<script src="/templates/js/navigation-config.js"></script>
+<script src="/templates/js/page-context.js"></script>
+<script src="/templates/js/navigation-performance.js"></script>
+<script src="/templates/js/navigation-renderer.js"></script>
+<script src="/templates/js/footer-config.js"></script>
+<script src="/templates/js/footer-renderer.js"></script>
+
+<script>
+  // Initialize navigation when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    const currentPath = window.PAGE_CONTEXT.normalizePathname(window.location.pathname);
+    renderNavigation('global-navigation', currentPath);
+    initializeMobileMenu();
+  });
+  
+  // Handle client-side routing (if applicable)
+  window.addEventListener('popstate', function() {
+    const currentPath = window.PAGE_CONTEXT.normalizePathname(window.location.pathname);
+    renderNavigation('global-navigation', currentPath);
+  });
+  
+  // Handle navigation after dynamic content changes
+  window.addEventListener('navigation-update', function() {
+    const currentPath = window.PAGE_CONTEXT.normalizePathname(window.location.pathname);
+    renderNavigation('global-navigation', currentPath);
+  });
+</script>
+
+<!-- Fallback Navigation for browsers with JavaScript disabled -->
+<noscript>
+  <style>
+    .js-only { display: none !important; }
+    .no-js-nav { display: block !important; }
+  </style>
+  <nav class="bg-white shadow-sm sticky top-0 z-50 no-js-nav">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <a href="/" class="flex items-center space-x-2">
+          <i data-lucide="server" class="w-8 h-8 text-blue-600"></i>
+          <span class="text-xl font-bold text-gray-900">UrWay Dispatch</span>
+        </a>
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2">
+            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <span class="text-sm text-blue-600 font-medium">About</span>
+          </div>
+          <a href="/" class="text-blue-600 hover:text-blue-700 font-medium">← Back to Home</a>
         </div>
-    </nav>
+      </div>
+    </div>
+  </nav>
+</noscript>
 
     <!-- Hero -->
     <section class="bg-gradient-to-br from-blue-900 to-indigo-800 text-white py-20">
         <div class="max-w-5xl mx-auto px-6 text-center">
-            <h1 class="text-4xl md:text-5xl font-bold mb-6">About UrWay Dispatch</h1>
+            <h1 class="text-4xl md:text-5xl font-bold mb-6">Enterprise Transportation Infrastructure, Delivered</h1>
             <p class="text-xl text-blue-100 max-w-3xl mx-auto">
-                Powering premium transportation operations across the Chicagoland area with 
-                enterprise-grade technology and white-glove service standards.
+                UrWay Dispatch powers the world's most sophisticated transportation operations with white-label technology that scales from single operators to enterprise fleets.
             </p>
+            <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/contact.html#demo-booking" class="bg-white text-blue-900 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                    Start Free Trial
+                </a>
+                <a href="/platform.html" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-900 transition-colors">
+                    View Platform
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enterprise Value Proposition -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Built for Transportation Operators, By Transportation Experts</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Enterprise-grade technology that handles the complexity so you can focus on growth, customer experience, and operational excellence.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
+                        <i data-lucide="zap" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Zero Technical Overhead</h3>
+                    <p class="text-gray-600 mb-4">
+                        Focus on your business, not infrastructure. We handle the technology, security, and scaling so you can focus on growth and customer service.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li class="flex items-center">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
+                            No development team required
+                        </li>
+                        <li class="flex items-center">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
+                            Automatic updates and maintenance
+                        </li>
+                        <li class="flex items-center">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
+                            24/7 monitoring and support
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Enterprise-Grade Security</h3>
+                    <p class="text-gray-600 mb-4">
+                        SOC 2 compliant, GDPR-ready, with complete data isolation and audit trails. Your data and your customers' data are always protected.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li class="flex items-center">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
+                            Multi-tenant data isolation
+                        </li>
+                        <li class="flex items-center">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
+                            End-to-end encryption
+                        </li>
+                        <li class="flex items-center">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
+                            Compliance audit trails
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
+                        <i data-lucide="palette" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Unlimited Customization</h3>
+                    <p class="text-gray-600 mb-4">
+                        Your brand, your apps, your customers. Complete white-label solution that adapts to your unique business requirements and brand identity.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li class="flex items-center">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
+                            Custom branding and themes
+                        </li>
+                        <li class="flex items-center">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
+                            Flexible pricing models
+                        </li>
+                        <li class="flex items-center">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>
+                            API integrations and extensions
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -155,9 +296,26 @@
         <div class="max-w-7xl mx-auto px-6 mt-8 pt-8 border-t border-gray-800 text-sm text-center">
             &copy; 2026 UrWay Dispatch. All rights reserved. A PaySurity vertical.
         </div>
-    </footer>
+    </section>
 
-    <script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
+    <!-- Universal Footer Container -->
+    <div id="global-footer" class="js-only">
+      <!-- Footer will be dynamically rendered here -->
+    </div>
+
+    <!-- Progressive Enhancement Scripts -->
+    <script src="/templates/js/footer-config.js"></script>
+    <script src="/templates/js/footer-renderer.js"></script>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Re-initialize icons when content updates
+        document.addEventListener('navigation-update', () => {
+            lucide.createIcons();
+        });
+    </script>
     <script src="/js/analytics.js" defer></script>
 </body>
 </html>

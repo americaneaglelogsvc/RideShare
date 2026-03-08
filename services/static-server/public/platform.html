@@ -12,30 +12,79 @@
     <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'); body{font-family:'Inter',sans-serif;}</style>
 </head>
 <body class="bg-white">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
-        <div class="max-w-7xl mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-                <a href="/" class="flex items-center space-x-2">
-                    <i data-lucide="car" class="w-8 h-8 text-blue-600"></i>
-                    <span class="text-xl font-bold text-gray-900">UrWay Dispatch</span>
-                </a>
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="/about.html" class="text-gray-600 hover:text-blue-600">About</a>
-                    <a href="/platform.html" class="text-blue-600 font-medium">Platform</a>
-                    <a href="/for-operators.html" class="text-gray-600 hover:text-blue-600">For Operators</a>
-                    <a href="/pricing.html" class="text-gray-600 hover:text-blue-600">Pricing</a>
-                    <a href="/branding-showcase.html" class="text-gray-600 hover:text-blue-600">Branding</a>
-                    <a href="/live-demo.html" class="text-gray-600 hover:text-blue-600">Live Demo</a>
-                    <a href="/roi-calculator.html" class="text-gray-600 hover:text-blue-600">ROI Calculator</a>
-                    <a href="/contact.html" class="text-gray-600 hover:text-blue-600">Contact</a>
-                    <button onclick="window.location.href='/contact.html'" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium">
-                        Book Demo
-                    </button>
-                </div>
-            </div>
+    <!-- Universal Navigation Container -->
+<!-- Progressive Enhancement Styles -->
+<style>
+  .js-only { display: block !important; }
+  .no-js-nav { display: none !important; }
+  
+  /* Fallback styles for no-JavaScript browsers */
+  noscript .js-only { display: none !important; }
+  noscript .no-js-nav { display: block !important; }
+</style>
+
+<!-- Universal Navigation Container -->
+<div id="global-navigation" class="js-only">
+  <!-- Navigation will be dynamically rendered here -->
+</div>
+
+<!-- Progressive Enhancement Scripts -->
+<script src="/templates/js/navigation-config.js"></script>
+<script src="/templates/js/page-context.js"></script>
+<script src="/templates/js/navigation-performance.js"></script>
+<script src="/templates/js/navigation-renderer.js"></script>
+
+<script>
+  // Initialize navigation when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    const currentPath = window.PAGE_CONTEXT.normalizePathname(window.location.pathname);
+    renderNavigation('global-navigation', currentPath);
+    initializeMobileMenu();
+  });
+  
+  // Handle client-side routing (if applicable)
+  window.addEventListener('popstate', function() {
+    const currentPath = window.PAGE_CONTEXT.normalizePathname(window.location.pathname);
+    renderNavigation('global-navigation', currentPath);
+  });
+  
+  // Handle navigation after dynamic content changes
+  window.addEventListener('navigation-update', function() {
+    const currentPath = window.PAGE_CONTEXT.normalizePathname(window.location.pathname);
+    renderNavigation('global-navigation', currentPath);
+  });
+</script>
+
+<!-- Fallback Navigation for browsers with JavaScript disabled -->
+<noscript>
+  <style>
+    .js-only { display: none !important; }
+    .no-js-nav { display: block !important; }
+  </style>
+  <nav class="bg-white shadow-sm sticky top-0 z-50 no-js-nav">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <a href="/" class="flex items-center space-x-2">
+          <i data-lucide="server" class="w-8 h-8 text-blue-600"></i>
+          <span class="text-xl font-bold text-gray-900">UrWay Dispatch</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="/about.html" class="text-gray-700 hover:text-blue-600">About</a>
+          <a href="/platform.html" class="text-gray-700 hover:text-blue-600">Platform</a>
+          <a href="/for-operators.html" class="text-gray-700 hover:text-blue-600">For Operators</a>
+          <a href="/pricing.html" class="text-gray-700 hover:text-blue-600">Pricing</a>
+          <a href="/branding-showcase.html" class="text-gray-700 hover:text-blue-600">Branding</a>
+          <a href="/live-demo.html" class="text-gray-700 hover:text-blue-600">Live Demo</a>
+          <a href="/roi-simulator.html" class="text-gray-700 hover:text-blue-600">ROI Calculator</a>
+          <a href="/contact.html" class="text-gray-700 hover:text-blue-600">Contact</a>
+          <button onclick="window.location.href='/contact.html#demo-booking'" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+            Request a Demo
+          </button>
         </div>
-    </nav>
+      </div>
+    </div>
+  </nav>
+</noscript>
 
     <!-- Hero Section -->
     <section class="bg-gradient-to-br from-blue-900 to-indigo-800 text-white py-20">

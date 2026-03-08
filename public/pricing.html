@@ -12,7 +12,79 @@
     <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'); body{font-family:'Inter',sans-serif;}</style>
 </head>
 <body class="bg-white">
-    <nav class="bg-white shadow-sm sticky top-0 z-50"><div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between"><a href="/" class="flex items-center space-x-2"><i data-lucide="car" class="w-8 h-8 text-blue-600"></i><span class="text-xl font-bold text-gray-900">UrWay Dispatch</span></a><div class="hidden md:flex items-center space-x-8"><a href="/about.html" class="text-gray-600 hover:text-blue-600">About</a><a href="/platform.html" class="text-gray-600 hover:text-blue-600">Platform</a><a href="/for-operators.html" class="text-gray-600 hover:text-blue-600">For Operators</a><a href="/branding-showcase.html" class="text-gray-600 hover:text-blue-600">Branding</a><a href="/live-demo.html" class="text-gray-600 hover:text-blue-600">Live Demo</a><a href="/roi-simulator.html" class="text-gray-600 hover:text-blue-600">ROI Simulator</a><a href="/contact.html" class="text-gray-600 hover:text-blue-600">Contact</a></div></div></nav>
+    <!-- Universal Navigation Container -->
+<!-- Progressive Enhancement Styles -->
+<style>
+  .js-only { display: block !important; }
+  .no-js-nav { display: none !important; }
+  
+  /* Fallback styles for no-JavaScript browsers */
+  noscript .js-only { display: none !important; }
+  noscript .no-js-nav { display: block !important; }
+</style>
+
+<!-- Universal Navigation Container -->
+<div id="global-navigation" class="js-only">
+  <!-- Navigation will be dynamically rendered here -->
+</div>
+
+<!-- Progressive Enhancement Scripts -->
+<script src="/templates/js/navigation-config.js"></script>
+<script src="/templates/js/page-context.js"></script>
+<script src="/templates/js/navigation-performance.js"></script>
+<script src="/templates/js/navigation-renderer.js"></script>
+
+<script>
+  // Initialize navigation when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    const currentPath = window.PAGE_CONTEXT.normalizePathname(window.location.pathname);
+    renderNavigation('global-navigation', currentPath);
+    initializeMobileMenu();
+  });
+  
+  // Handle client-side routing (if applicable)
+  window.addEventListener('popstate', function() {
+    const currentPath = window.PAGE_CONTEXT.normalizePathname(window.location.pathname);
+    renderNavigation('global-navigation', currentPath);
+  });
+  
+  // Handle navigation after dynamic content changes
+  window.addEventListener('navigation-update', function() {
+    const currentPath = window.PAGE_CONTEXT.normalizePathname(window.location.pathname);
+    renderNavigation('global-navigation', currentPath);
+  });
+</script>
+
+<!-- Fallback Navigation for browsers with JavaScript disabled -->
+<noscript>
+  <style>
+    .js-only { display: none !important; }
+    .no-js-nav { display: block !important; }
+  </style>
+  <nav class="bg-white shadow-sm sticky top-0 z-50 no-js-nav">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <a href="/" class="flex items-center space-x-2">
+          <i data-lucide="server" class="w-8 h-8 text-blue-600"></i>
+          <span class="text-xl font-bold text-gray-900">UrWay Dispatch</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="/about.html" class="text-gray-700 hover:text-blue-600">About</a>
+          <a href="/platform.html" class="text-gray-700 hover:text-blue-600">Platform</a>
+          <a href="/for-operators.html" class="text-gray-700 hover:text-blue-600">For Operators</a>
+          <a href="/pricing.html" class="text-gray-700 hover:text-blue-600">Pricing</a>
+          <a href="/branding-showcase.html" class="text-gray-700 hover:text-blue-600">Branding</a>
+          <a href="/live-demo.html" class="text-gray-700 hover:text-blue-600">Live Demo</a>
+          <a href="/roi-simulator.html" class="text-gray-700 hover:text-blue-600">ROI Calculator</a>
+          <a href="/contact.html" class="text-gray-700 hover:text-blue-600">Contact</a>
+          <button onclick="window.location.href='/contact.html#demo-booking'" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+            Request a Demo
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+</noscript>
 
     <section class="bg-gradient-to-br from-blue-900 to-indigo-800 text-white py-20">
         <div class="max-w-5xl mx-auto px-6 text-center">
@@ -28,30 +100,32 @@
             <p class="text-gray-600 text-center mb-12">Flexible pricing designed for transportation operators of all sizes</p>
             <div class="grid md:grid-cols-3 gap-8">
                 <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Starter</h3>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Pilot</h3>
                     <div class="text-4xl font-bold text-blue-600 mb-1">4.9%<span class="text-lg text-gray-400">/trip</span></div>
-                    <p class="text-sm text-gray-500 mb-6">+ $49/mo platform fee</p>
+                    <p class="text-sm text-gray-500 mb-6">+ $49/mo platform fee, 500 rides included</p>
                     <ul class="space-y-3 text-sm text-gray-600 mb-8">
                         <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>Up to 10 drivers</li>
                         <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>Basic dispatch</li>
                         <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>Payment processing</li>
                         <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>Standard support</li>
+                        <li class="flex items-center"><i data-lucide="alert-circle" class="w-4 h-4 text-orange-500 mr-2"></i><strong>Overage:</strong> 5.9% per additional ride</li>
                     </ul>
-                    <button onclick="window.location.href='/tenant-onboarding.html?plan=starter'" class="block w-full text-center bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold">Get Started</button>
+                    <button onclick="window.location.href='/contact.html#demo-booking'" class="block w-full text-center bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold">Start Pilot</button>
                 </div>
-                <div class="bg-white rounded-2xl p-8 shadow-md border-2 border-blue-500 relative">
-                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">RECOMMENDED</div>
+                <div class="bg-white rounded-2xl p-8 shadow-md border-2 border-blue-200 relative">
+                    <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold">RECOMMENDED</div>
                     <h3 class="text-xl font-bold text-gray-900 mb-2">Professional</h3>
-                    <div class="text-4xl font-bold text-blue-600 mb-1">3.5%<span class="text-lg text-gray-400">/trip</span></div>
-                    <p class="text-sm text-gray-500 mb-6">+ $149/mo platform fee</p>
+                    <div class="text-4xl font-bold text-blue-600 mb-1">$149</div>
+                    <p class="text-sm text-gray-500 mb-6">per month, 1,000 rides included</p>
                     <ul class="space-y-3 text-sm text-gray-600 mb-8">
-                        <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>Up to 50 drivers</li>
-                        <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>Advanced dispatch + GrabBoard</li>
+                        <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>Unlimited drivers</li>
+                        <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>Full feature set</li>
                         <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>White-label microsite</li>
                         <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>Policy Center</li>
                         <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-green-500 mr-2"></i>Priority support</li>
+                        <li class="flex items-center"><i data-lucide="alert-circle" class="w-4 h-4 text-orange-500 mr-2"></i><strong>Overage:</strong> $0.35 per additional ride</li>
                     </ul>
-                    <button onclick="window.location.href='/tenant-onboarding.html?plan=professional'" class="block w-full text-center bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold">Get Started</button>
+                    <button onclick="window.location.href='/contact.html#demo-booking'" class="block w-full text-center bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold">Get Started</button>
                 </div>
                 <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
                     <h3 class="text-xl font-bold text-gray-900 mb-2">Enterprise</h3>
@@ -140,6 +214,64 @@
             </form>
         </div>
     </dialog>
+
+    <!-- Fee Disclosure Section -->
+    <section class="py-16 bg-yellow-50 border-y border-yellow-200">
+        <div class="max-w-6xl mx-auto px-6">
+            <h2 class="text-2xl font-bold text-gray-900 text-center mb-8">Complete Fee Transparency</h2>
+            <div class="bg-white rounded-xl p-8 shadow-sm border border-yellow-200">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i data-lucide="smartphone" class="w-5 h-5 text-yellow-600 mr-2"></i>
+                            App Store & Platform Fees
+                        </h3>
+                        <ul class="space-y-2 text-sm text-gray-600">
+                            <li class="flex items-start">
+                                <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0"></i>
+                                <span><strong>Apple App Store:</strong> 15-30% commission on in-app purchases (Tenant's responsibility)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0"></i>
+                                <span><strong>Google Play Store:</strong> 15-30% commission on in-app purchases (Tenant's responsibility)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0"></i>
+                                <span><strong>Developer Accounts:</strong> $99/year (Apple) + $25 one-time (Google) (Tenant's responsibility)</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i data-lucide="map" class="w-5 h-5 text-yellow-600 mr-2"></i>
+                            Maps & API Costs
+                        </h3>
+                        <ul class="space-y-2 text-sm text-gray-600">
+                            <li class="flex items-start">
+                                <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0"></i>
+                                <span><strong>Google Maps API:</strong> ~$0.50 per 1,000 API calls (Tenant's responsibility)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0"></i>
+                                <span><strong>Geocoding Services:</strong> ~$5.00 per 1,000 requests (Tenant's responsibility)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check" class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0"></i>
+                                <span><strong>Payment Processing:</strong> 2.9% + $0.30 per transaction (Included in platform fees)</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p class="text-sm text-blue-800">
+                        <i data-lucide="info" class="w-4 h-4 inline mr-2"></i>
+                        <strong>Important:</strong> All third-party fees (App Store, Google Play, Maps APIs) are the Tenant's responsibility. 
+                        UrWay Dispatch only charges the platform fees listed above.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Pricing Details Section -->
     <section class="py-16 bg-white">

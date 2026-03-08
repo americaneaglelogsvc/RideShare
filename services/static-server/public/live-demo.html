@@ -46,24 +46,73 @@
 </head>
 <body class="bg-gray-50" x-data="liveDemo()">
     
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-                <a href="/" class="flex items-center space-x-2">
-                    <i data-lucide="car" class="w-8 h-8 text-blue-600"></i>
-                    <span class="text-xl font-bold text-gray-900">UrWay Dispatch</span>
-                </a>
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-2">
-                        <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
-                        <span class="text-sm text-green-600 font-medium">Live Demo</span>
-                    </div>
-                    <a href="/" class="text-blue-600 hover:text-blue-700 font-medium">← Back to Home</a>
-                </div>
-            </div>
+    <!-- Universal Navigation Container -->
+<!-- Progressive Enhancement Styles -->
+<style>
+  .js-only { display: block !important; }
+  .no-js-nav { display: none !important; }
+  
+  /* Fallback styles for no-JavaScript browsers */
+  noscript .js-only { display: none !important; }
+  noscript .no-js-nav { display: block !important; }
+</style>
+
+<!-- Universal Navigation Container -->
+<div id="global-navigation" class="js-only">
+  <!-- Navigation will be dynamically rendered here -->
+</div>
+
+<!-- Progressive Enhancement Scripts -->
+<script src="/templates/js/navigation-config.js"></script>
+<script src="/templates/js/page-context.js"></script>
+<script src="/templates/js/navigation-performance.js"></script>
+<script src="/templates/js/navigation-renderer.js"></script>
+
+<script>
+  // Initialize navigation when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    const currentPath = window.PAGE_CONTEXT.normalizePathname(window.location.pathname);
+    renderNavigation('global-navigation', currentPath);
+    initializeMobileMenu();
+  });
+  
+  // Handle client-side routing (if applicable)
+  window.addEventListener('popstate', function() {
+    const currentPath = window.PAGE_CONTEXT.normalizePathname(window.location.pathname);
+    renderNavigation('global-navigation', currentPath);
+  });
+  
+  // Handle navigation after dynamic content changes
+  window.addEventListener('navigation-update', function() {
+    const currentPath = window.PAGE_CONTEXT.normalizePathname(window.location.pathname);
+    renderNavigation('global-navigation', currentPath);
+  });
+</script>
+
+<!-- Fallback Navigation for browsers with JavaScript disabled -->
+<noscript>
+  <style>
+    .js-only { display: none !important; }
+    .no-js-nav { display: block !important; }
+  </style>
+  <nav class="bg-white shadow-sm sticky top-0 z-50 no-js-nav">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <a href="/" class="flex items-center space-x-2">
+          <i data-lucide="server" class="w-8 h-8 text-blue-600"></i>
+          <span class="text-xl font-bold text-gray-900">UrWay Dispatch</span>
+        </a>
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2">
+            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span class="text-sm text-green-600 font-medium">Live Demo</span>
+          </div>
+          <a href="/" class="text-blue-600 hover:text-blue-700 font-medium">← Back to Home</a>
         </div>
-    </nav>
+      </div>
+    </div>
+  </nav>
+</noscript>
 
     <!-- Status Bar -->
     <div class="bg-green-50 border-b border-green-200">
