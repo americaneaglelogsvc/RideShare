@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airport Queue Management - Tenant Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .tab-active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
+        
+        .queue-status-waiting {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .queue-status-called {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .queue-status-serving {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .queue-status-completed {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+        
+        .queue-status-no-show {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <i data-lucide="airport" class="w-8 h-8 text-blue-600 mr-3"></i>
+                    <h1 class="text-xl font-bold text-gray-900">Airport Queue Management</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500">Tenant: <span id="tenant-name" class="font-semibold">Loading...</span></span>
+                    <button onclick="refreshData()" class="p-2 text-gray-500 hover:text-gray-700">
+                        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Tab Navigation -->
+        <div class="bg-white rounded-lg shadow-sm mb-6">
+            <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                <button onclick="switchTab('queues')" id="tab-queues" class="tab-active py-4 px-1 border-b-2 font-medium text-sm">
+                    <i data-lucide="list" class="w-4 h-4 inline mr-2"></i>
+                    Queue Management
+                </button>
+                <button onclick="switchTab('analytics')" id="tab-analytics" class="py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700">
+                    <i data-lucide="bar-chart" class="w-4 h-4 inline mr-2"></i>
+                    Analytics
+                </button>
+                <button onclick="switchTab('config')" id="tab-config" class="py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700">
+                    <i data-lucide="settings" class="w-4 h-4 inline mr-2"></i>
+                    Airport Config
+                </button>
+                <button onclick="switchTab('compliance')" id="tab-compliance" class="py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700">
+                    <i data-lucide="shield-check" class="w-4 h-4 inline mr-2"></i>
+                    Compliance
+                </button>
+            </nav>
+        </div>
+
+        <!-- Queue Management Tab -->
+        <div id="queues-tab" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Queue List -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-semibold text-gray-900">Active Queues</h2>
+                            <button onclick="showCreateQueueModal()" class="bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div id="queue-list" class="space-y-3">
+                            <!-- Queue items will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Queue Details -->
+                <div class="lg:col-span-2">
+                    <div id="queue-details" class="bg-white rounded-lg shadow-sm p-6">
+                        <div class="text-center py-12 text-gray-500">
+                            <i data-lucide="list" class="w-12 h-12 mx-auto mb-4 text-gray-300"></i>
+                            <p>Select a queue to view details</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics-tab" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Queue Analytics</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <div class="text-2xl font-bold text-blue-600" id="total-served-today">0</div>
+                            <div class="text-sm text-gray-600">Served Today</div>
+                        </div>
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <div class="text-2xl font-bold text-green-600" id="avg-wait-time">0 min</div>
+                            <div class="text-sm text-gray-600">Average Wait</div>
+                        </div>
+                        <div class="bg-purple-50 rounded-lg p-4">
+                            <div class="text-2xl font-bold text-purple-600" id="peak-queue-size">0</div>
+                            <div class="text-sm text-gray-600">Peak Queue Size</div>
+                        </div>
+                        <div class="bg-orange-50 rounded-lg p-4">
+                            <div class="text-2xl font-bold text-orange-600" id="no-show-rate">0%</div>
+                            <div class="text-sm text-gray-600">No-Show Rate</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Date Range Selector -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+                    <div class="flex space-x-4">
+                        <input type="date" id="analytics-start-date" class="border border-gray-300 rounded-md px-3 py-2">
+                        <input type="date" id="analytics-end-date" class="border border-gray-300 rounded-md px-3 py-2">
+                        <button onclick="loadAnalytics()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                            Load Analytics
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Analytics Charts -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-4">
+                        <h3 class="text-md font-semibold mb-4">Wait Time Trends</h3>
+                        <div id="wait-time-chart" class="h-64 flex items-center justify-center text-gray-500">
+                            Chart will be rendered here
+                        </div>
+                    </div>
+                    <div class="border rounded-lg p-4">
+                        <h3 class="text-md font-semibold mb-4">Queue Volume</h3>
+                        <div id="queue-volume-chart" class="h-64 flex items-center justify-center text-gray-500">
+                            Chart will be rendered here
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Airport Config Tab -->
+        <div id="config-tab" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900">Airport Configuration</h2>
+                    <button onclick="showCreateConfigModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        Add Airport Config
+                    </button>
+                </div>
+                
+                <div id="airport-config-list" class="space-y-4">
+                    <!-- Airport configs will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Compliance Tab -->
+        <div id="compliance-tab" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-6">Compliance Management</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Regulatory Compliance -->
+                    <div class="border rounded-lg p-4">
+                        <h3 class="text-md font-semibold mb-4">Regulatory Compliance</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Driver Hour Restrictions</span>
+                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Configured</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Airport Authority Permits</span>
+                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Valid</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Vehicle Insurance</span>
+                                <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Review Needed</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Background Checks</span>
+                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Complete</span>
+                            </div>
+                        </div>
+                        <button onclick="showComplianceDetails()" class="mt-4 text-blue-600 hover:text-blue-800 text-sm">
+                            View Details →
+                        </button>
+                    </div>
+
+                    <!-- Data Privacy -->
+                    <div class="border rounded-lg p-4">
+                        <h3 class="text-md font-semibold mb-4">Data Privacy</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">GDPR Compliance</span>
+                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Ready</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Data Subject Rights</span>
+                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Implemented</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Privacy Policy</span>
+                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Current</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Consent Management</span>
+                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Active</span>
+                            </div>
+                        </div>
+                        <button onclick="showPrivacyDetails()" class="mt-4 text-blue-600 hover:text-blue-800 text-sm">
+                            Manage Privacy →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Insurance Management -->
+                <div class="mt-6 border rounded-lg p-4">
+                    <h3 class="text-md font-semibold mb-4">Insurance Management</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 border rounded">
+                            <div>
+                                <div class="font-medium">Commercial Auto Insurance</div>
+                                <div class="text-sm text-gray-500">Expires: Dec 31, 2026</div>
+                            </div>
+                            <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Active</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 border rounded">
+                            <div>
+                                <div class="font-medium">Liability Coverage</div>
+                                <div class="text-sm text-gray-500">$1,000,000 coverage</div>
+                            </div>
+                            <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Active</span>
+                        </div>
+                    </div>
+                    <button onclick="showInsuranceManagement()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        Manage Insurance
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Create Queue Modal -->
+    <div id="create-queue-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Create New Queue</h3>
+                <form id="create-queue-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Airport Code</label>
+                        <input type="text" id="queue-airport-code" required maxlength="3" 
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Airport Name</label>
+                        <input type="text" id="queue-airport-name" required 
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Terminal</label>
+                        <input type="text" id="queue-terminal" 
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Service Type</label>
+                        <select id="queue-service-type" required 
+                                class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                            <option value="">Select service type</option>
+                            <option value="black_car">Black Car</option>
+                            <option value="suv">SUV</option>
+                            <option value="luxury">Luxury</option>
+                            <option value="executive">Executive</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Queue Name</label>
+                        <input type="text" id="queue-name" required 
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Max Queue Size</label>
+                        <input type="number" id="queue-max-size" value="50" min="1" max="200"
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" onclick="hideCreateQueueModal()" 
+                                class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            Create Queue
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/templates/js/tenant-airport-queue-service.js"></script>
+    <script>
+        // Global variables
+        let queueService;
+        let currentTenantId;
+        let currentQueue;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Get tenant ID from context
+            currentTenantId = getCurrentTenantId();
+            
+            if (!currentTenantId) {
+                showError('Unable to determine tenant context');
+                return;
+            }
+
+            // Initialize queue service
+            queueService = new TenantAirportQueueService(currentTenantId);
+            
+            // Load initial data
+            await loadQueues();
+            await loadAirportConfigs();
+            
+            // Set up form handlers
+            setupFormHandlers();
+            
+            // Initialize Lucide icons
+            lucide.createIcons();
+        });
+
+        function getCurrentTenantId() {
+            // This should be extracted from the current context
+            // For now, return a placeholder
+            return 'goldravenia'; // This should come from the tenant context
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('[id^="tab-"]').forEach(tab => {
+                tab.classList.remove('tab-active');
+                tab.classList.add('text-gray-500');
+            });
+            
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+            
+            // Add active class to selected tab button
+            const activeTab = document.getElementById(`tab-${tabName}`);
+            activeTab.classList.add('tab-active');
+            activeTab.classList.remove('text-gray-500');
+        }
+
+        // Queue Management
+        async function loadQueues() {
+            try {
+                const queues = await queueService.getQueues();
+                renderQueueList(queues);
+            } catch (error) {
+                console.error('Failed to load queues:', error);
+                showError('Failed to load airport queues');
+            }
+        }
+
+        function renderQueueList(queues) {
+            const container = document.getElementById('queue-list');
+            
+            if (queues.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2"></i>
+                        <p class="text-sm">No active queues</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = queues.map(queue => `
+                <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 ${currentQueue?.id === queue.id ? 'border-blue-500 bg-blue-50' : ''}"
+                     onclick="selectQueue('${queue.id}')">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h3 class="font-semibold text-gray-900">${queue.queue_name}</h3>
+                            <p class="text-sm text-gray-600">${queue.airport_code} - ${queue.terminal || 'All Terminals'}</p>
+                            <p class="text-xs text-gray-500">${queue.service_type}</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold ${queue.current_queue_size > queue.max_queue_size * 0.8 ? 'text-red-600' : 'text-green-600'}">
+                                ${queue.current_queue_size || 0}
+                            </div>
+                            <div class="text-xs text-gray-500">in queue</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="px-2 py-1 text-xs rounded-full ${queue.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                            ${queue.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                        <span class="text-xs text-gray-500">
+                            Avg wait: ${queue.average_wait_time || 0} min
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Re-initialize Lucide icons
+            lucide.createIcons();
+        }
+
+        async function selectQueue(queueId) {
+            try {
+                const [queue, positions, analytics] = await Promise.all([
+                    queueService.getQueues().then(queues => queues.find(q => q.id === queueId)),
+                    queueService.getQueuePositions(queueId),
+                    queueService.getQueueAnalytics(queueId, 
+                        new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), 
+                        new Date().toISOString()
+                    )
+                ]);
+
+                currentQueue = queue;
+                renderQueueDetails(queue, positions, analytics);
+                renderQueueList(await queueService.getQueues()); // Refresh list to show selection
+            } catch (error) {
+                console.error('Failed to load queue details:', error);
+                showError('Failed to load queue details');
+            }
+        }
+
+        function renderQueueDetails(queue, positions, analytics) {
+            const container = document.getElementById('queue-details');
+            
+            container.innerHTML = `
+                <div class="mb-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900">${queue.queue_name}</h2>
+                            <p class="text-gray-600">${queue.airport_name} - ${queue.terminal || 'All Terminals'}</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="callNextDriver()" 
+                                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center">
+                                <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i>
+                                Call Next
+                            </button>
+                            <button onclick="editQueue()" 
+                                    class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 flex items-center">
+                                <i data-lucide="edit" class="w-4 h-4 mr-2"></i>
+                                Edit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <div class="text-2xl font-bold text-blue-600">${positions.length}</div>
+                        <div class="text-sm text-gray-600">Drivers in Queue</div>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-4">
+                        <div class="text-2xl font-bold text-green-600">${analytics.average_wait_time || 0}</div>
+                        <div class="text-sm text-gray-600">Avg Wait Time (min)</div>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-4">
+                        <div class="text-2xl font-bold text-purple-600">${analytics.served_today || 0}</div>
+                        <div class="text-sm text-gray-600">Served Today</div>
+                    </div>
+                </div>
+
+                <div class="border-t pt-4">
+                    <h3 class="text-lg font-semibold mb-4">Queue Positions</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-2">Position</th>
+                                    <th class="text-left py-2">Driver</th>
+                                    <th class="text-left py-2">Joined</th>
+                                    <th class="text-left py-2">Wait Time</th>
+                                    <th class="text-left py-2">Status</th>
+                                    <th class="text-left py-2">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${positions.map(position => `
+                                    <tr class="border-b" data-driver-id="${position.driver_id}">
+                                        <td class="py-2 font-semibold">${position.position}</td>
+                                        <td class="py-2">${position.driver_name || 'Driver ' + position.driver_id}</td>
+                                        <td class="py-2">${new Date(position.joined_at).toLocaleTimeString()}</td>
+                                        <td class="py-2">${position.estimated_wait_time || 0} min</td>
+                                        <td class="py-2">
+                                            <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(position.status)}">
+                                                ${position.status}
+                                            </span>
+                                        </td>
+                                        <td class="py-2">
+                                            <div class="flex space-x-2">
+                                                ${position.status === 'waiting' ? `
+                                                    <button onclick="callDriver('${position.driver_id}')" 
+                                                            class="text-blue-600 hover:text-blue-800 text-sm">Call</button>
+                                                    <button onclick="markServed('${position.driver_id}')" 
+                                                            class="text-green-600 hover:text-green-800 text-sm">Serve</button>
+                                                ` : ''}
+                                                <button onclick="markNoShow('${position.driver_id}')" 
+                                                        class="text-red-600 hover:text-red-800 text-sm">No Show</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            // Re-initialize Lucide icons
+            lucide.createIcons();
+        }
+
+        function getStatusClass(status) {
+            const statusClasses = {
+                'waiting': 'bg-yellow-100 text-yellow-800',
+                'called': 'bg-blue-100 text-blue-800',
+                'serving': 'bg-green-100 text-green-800',
+                'completed': 'bg-gray-100 text-gray-800',
+                'no_show': 'bg-red-100 text-red-800'
+            };
+            return statusClasses[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        // Queue Operations
+        async function callNextDriver() {
+            if (!currentQueue) return;
+            
+            try {
+                const result = await queueService.callNextDriver(currentQueue.id);
+                showSuccess('Next driver called successfully');
+                await selectQueue(currentQueue.id);
+            } catch (error) {
+                console.error('Failed to call next driver:', error);
+                showError('Failed to call next driver');
+            }
+        }
+
+        async function callDriver(driverId) {
+            if (!currentQueue) return;
+            
+            try {
+                await queueService.markDriverServed(currentQueue.id, driverId);
+                showSuccess('Driver called successfully');
+                await selectQueue(currentQueue.id);
+            } catch (error) {
+                console.error('Failed to call driver:', error);
+                showError('Failed to call driver');
+            }
+        }
+
+        async function markServed(driverId) {
+            if (!currentQueue) return;
+            
+            try {
+                await queueService.markDriverServed(currentQueue.id, driverId);
+                showSuccess('Driver marked as served');
+                await selectQueue(currentQueue.id);
+            } catch (error) {
+                console.error('Failed to mark driver as served:', error);
+                showError('Failed to mark driver as served');
+            }
+        }
+
+        async function markNoShow(driverId) {
+            if (!currentQueue) return;
+            
+            if (!confirm('Mark this driver as no-show?')) return;
+            
+            try {
+                await queueService.markDriverNoShow(currentQueue.id, driverId);
+                showSuccess('Driver marked as no-show');
+                await selectQueue(currentQueue.id);
+            } catch (error) {
+                console.error('Failed to mark driver as no-show:', error);
+                showError('Failed to mark driver as no-show');
+            }
+        }
+
+        // Modal functions
+        function showCreateQueueModal() {
+            document.getElementById('create-queue-modal').classList.remove('hidden');
+        }
+
+        function hideCreateQueueModal() {
+            document.getElementById('create-queue-modal').classList.add('hidden');
+            document.getElementById('create-queue-form').reset();
+        }
+
+        // Form handlers
+        function setupFormHandlers() {
+            const form = document.getElementById('create-queue-form');
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    airport_code: document.getElementById('queue-airport-code').value.toUpperCase(),
+                    airport_name: document.getElementById('queue-airport-name').value,
+                    terminal: document.getElementById('queue-terminal').value,
+                    service_type: document.getElementById('queue-service-type').value,
+                    queue_name: document.getElementById('queue-name').value,
+                    max_queue_size: parseInt(document.getElementById('queue-max-size').value)
+                };
+                
+                try {
+                    await queueService.createQueue(formData);
+                    showSuccess('Queue created successfully');
+                    hideCreateQueueModal();
+                    await loadQueues();
+                } catch (error) {
+                    console.error('Failed to create queue:', error);
+                    showError('Failed to create queue');
+                }
+            });
+        }
+
+        // Airport Configuration
+        async function loadAirportConfigs() {
+            try {
+                const configs = await queueService.getAirportConfigs();
+                renderAirportConfigs(configs);
+            } catch (error) {
+                console.error('Failed to load airport configs:', error);
+            }
+        }
+
+        function renderAirportConfigs(configs) {
+            const container = document.getElementById('airport-config-list');
+            
+            if (configs.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i data-lucide="settings" class="w-8 h-8 mx-auto mb-2"></i>
+                        <p class="text-sm">No airport configurations found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = configs.map(config => `
+                <div class="border rounded-lg p-4">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h3 class="font-semibold text-gray-900">${config.airport_name}</h3>
+                            <p class="text-sm text-gray-600">${config.airport_code}</p>
+                        </div>
+                        <button onclick="editAirportConfig('${config.id}')" 
+                                class="text-blue-600 hover:text-blue-800">
+                            <i data-lucide="edit" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="font-medium">Operating Hours:</span>
+                            <span class="text-gray-600">${formatOperatingHours(config.operating_hours)}</span>
+                        </div>
+                        <div>
+                            <span class="font-medium">Pickup Zones:</span>
+                            <span class="text-gray-600">${Object.keys(config.pickup_zones || {}).length} configured</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Re-initialize Lucide icons
+            lucide.createIcons();
+        }
+
+        function formatOperatingHours(hours) {
+            if (!hours) return 'Not configured';
+            // Format hours object to readable string
+            return '6:00 AM - 11:00 PM'; // Placeholder
+        }
+
+        // Analytics
+        async function loadAnalytics() {
+            const startDate = document.getElementById('analytics-start-date').value;
+            const endDate = document.getElementById('analytics-end-date').value;
+            
+            if (!startDate || !endDate) {
+                showError('Please select date range');
+                return;
+            }
+
+            try {
+                // Load analytics data
+                // This would be implemented with actual API calls
+                console.log('Loading analytics for', startDate, 'to', endDate);
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+                showError('Failed to load analytics');
+            }
+        }
+
+        // Utility functions
+        function refreshData() {
+            loadQueues();
+            loadAirportConfigs();
+            if (currentQueue) {
+                selectQueue(currentQueue.id);
+            }
+        }
+
+        function showSuccess(message) {
+            showNotification(message, 'success');
+        }
+
+        function showError(message) {
+            showNotification(message, 'error');
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Placeholder functions for compliance and insurance
+        function showComplianceDetails() {
+            showInfo('Compliance details would be shown here');
+        }
+
+        function showPrivacyDetails() {
+            showInfo('Privacy management interface would be shown here');
+        }
+
+        function showInsuranceManagement() {
+            showInfo('Insurance management interface would be shown here');
+        }
+
+        function showInfo(message) {
+            showNotification(message, 'info');
+        }
+
+        function editQueue() {
+            showInfo('Queue editing interface would be shown here');
+        }
+
+        function editAirportConfig(configId) {
+            showInfo('Airport config editing would be shown here');
+        }
+
+        function showCreateConfigModal() {
+            showInfo('Create airport config modal would be shown here');
+        }
+    </script>
+</body>
+</html>

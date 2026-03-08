@@ -1,5 +1,6 @@
 import { Injectable, Logger, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
+import { AirportGeofenceService } from './airport-geofence.service';
 
 // ── §6.2 GrabBoard ──────────────────────────────────────────────────
 // Drivers can browse and claim unclaimed rides from a board instead of
@@ -25,7 +26,10 @@ import { SupabaseService } from './supabase.service';
 export class DispatchEnhancementsService {
   private readonly logger = new Logger(DispatchEnhancementsService.name);
 
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly airportGeofenceService: AirportGeofenceService
+  ) {}
 
   // ════════════════════════════════════════════════════════════════════
   // §6.2 — GrabBoard
@@ -103,6 +107,15 @@ export class DispatchEnhancementsService {
       throw new BadRequestException('Driver is already in the airport queue.');
     }
 
+    // Get enroute status if available
+    const { data: enrouteStatus } = await supabase
+      .from('driver_enroute_status')
+      .select('eta_minutes')
+      .eq('tenant_id', tenantId)
+      .eq('driver_id', driverId)
+      .eq('airport_code', airportCode)
+      .maybeSingle();
+
     const { data, error } = await supabase
       .from('airport_queue')
       .insert({
@@ -112,6 +125,8 @@ export class DispatchEnhancementsService {
         zone,
         status: zone === 'staging' ? 'active' : 'prequeue',
         entered_at: new Date().toISOString(),
+        zone_type: zone,
+        enroute_eta: enrouteStatus?.eta_minutes,
       })
       .select()
       .single();
@@ -440,6 +455,95 @@ export class DispatchEnhancementsService {
 
     if (error) throw new BadRequestException(error.message);
     return data;
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // Enhanced Airport Queue Methods
+  // ════════════════════════════════════════════════════════════════════
+
+  async markEnrouteToAirport(tenantId: string, driverId: string, airportCode: string, etaMinutes: number) {
+    return await this.airportGeofenceService.markDriverEnroute(tenantId, driverId, airportCode, etaMinutes);
+  }
+
+  async updateDriverZone(tenantId: string, driverId: string, airportCode: string, lat: number, lng: number) {
+    return await this.airportGeofenceService.updateDriverZone(tenantId, driverId, airportCode, lat, lng);
+  }
+
+  async enterQueueFromZone(tenantId: string, driverId: string, airportCode: string, zoneType: string) {
+    // Only enter queue if entering active zone
+    if (zoneType === 'active') {
+      return await this.enterAirportQueue(tenantId, driverId, airportCode, 'active');
+    }
+    return { message: 'Driver in zone but not entering queue' };
+  }
+
+  async getEnhancedQueuePosition(tenantId: string, driverId: string, airportCode: string) {
+    const supabase = this.supabaseService.getClient();
+
+    const { data: queue } = await supabase
+      .from('airport_queue')
+      .select('id, driver_id, status, entered_at, zone, zone_type, enroute_eta')
+      .eq('tenant_id', tenantId)
+      .eq('airport_code', airportCode)
+      .eq('status', 'active')
+      .order('entered_at', { ascending: true });
+
+    const entries = queue || [];
+    const position = entries.findIndex(e => e.driver_id === driverId);
+
+    // Get current zone status
+    const { data: enrouteStatus } = await supabase
+      .from('driver_enroute_status')
+      .select('current_zone, eta_minutes, status')
+      .eq('tenant_id', tenantId)
+      .eq('driver_id', driverId)
+      .eq('airport_code', airportCode)
+      .maybeSingle();
+
+    return {
+      position: position >= 0 ? position + 1 : null,
+      totalInQueue: entries.length,
+      estimatedWaitMinutes: position >= 0 ? position * 8 : null,
+      currentZone: enrouteStatus?.current_zone,
+      etaMinutes: enrouteStatus?.eta_minutes,
+      zoneStatus: enrouteStatus?.status,
+    };
+  }
+
+  async recordZoneTransition(tenantId: string, driverId: string, airportCode: string, fromZone: string, toZone: string, lat: number, lng: number) {
+    const supabase = this.supabaseService.getClient();
+
+    const { data, error } = await supabase
+      .from('driver_zone_transitions')
+      .insert({
+        tenant_id: tenantId,
+        driver_id: driverId,
+        airport_code: airportCode,
+        from_zone: fromZone,
+        to_zone: toZone,
+        lat: lat,
+        lng: lng,
+        transition_time: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) throw new BadRequestException(error.message);
+    
+    this.logger.log(`Zone transition recorded: ${driverId} ${fromZone} → ${toZone} at ${airportCode}`);
+    return data;
+  }
+
+  async getDriverZoneHistory(tenantId: string, driverId: string, airportCode: string) {
+    return await this.airportGeofenceService.getDriverZoneHistory(tenantId, driverId, airportCode);
+  }
+
+  async getZoneFlowAnalytics(tenantId: string, airportCode: string, startDate: string, endDate: string) {
+    return await this.airportGeofenceService.getZoneFlowAnalytics(tenantId, airportCode, startDate, endDate);
+  }
+
+  async getEnrouteAccuracyMetrics(tenantId: string, airportCode: string) {
+    return await this.airportGeofenceService.getEnrouteAccuracyMetrics(tenantId, airportCode);
   }
 
   // ════════════════════════════════════════════════════════════════════
