@@ -1,0 +1,43 @@
+{
+  "name": "rideshare-enhanced-tests",
+  "version": "1.0.0",
+  "description": "Enhanced automated testing for RideShare platform",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:rider": "playwright test tests/e2e/rider-journeys/",
+    "test:e2e:driver": "playwright test tests/e2e/driver-journeys/",
+    "test:e2e:airport": "playwright test tests/e2e/airport-queue-journey.spec.ts",
+    "test:e2e:geofence": "playwright test tests/e2e/geofence-management.spec.ts",
+    "test:e2e:integration": "playwright test tests/e2e/integration/",
+    "test:e2e:performance": "playwright test tests/performance/",
+    "test:e2e:security": "playwright test tests/security/",
+    "test:e2e:report": "playwright test --reporter=html",
+    "test:unit": "jest",
+    "test:unit:watch": "jest --watch",
+    "test:unit:coverage": "jest --coverage",
+    "test:unit:controllers": "jest tests/unit/controllers/",
+    "test:unit:services": "jest tests/unit/services/",
+    "test:all": "npm run test:unit && npm run test:e2e",
+    "test:airport-queue": "npm run test:unit:controllers && npm run test:e2e:airport && npm run test:e2e:geofence",
+    "test:load": "playwright test tests/performance/ --workers=1",
+    "test:security": "playwright test tests/security/ --workers=1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "@nestjs/testing": "^10.0.0",
+    "@nestjs/config": "^3.0.0",
+    "@supabase/supabase-js": "^2.0.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.0",
+    "supertest": "^6.3.0",
+    "testcontainers": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

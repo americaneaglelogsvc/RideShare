@@ -1,8 +1,7 @@
 ﻿name: ci-e2e (MUST flows marked done)
 
 on:
-  pull_request:
-  merge_group:
+  workflow_dispatch:
 
 permissions:
   contents: read

@@ -55,7 +55,7 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <span class="text-sm text-gray-500">Tenant: <span id="tenant-name" class="font-semibold">Loading...</span></span>
-                    <button onclick="refreshData()" class="p-2 text-gray-500 hover:text-gray-700">
+                    <button onclick="refreshData()" class="p-2 text-gray-500 hover:text-gray-700" title="Refresh Data">
                         <i data-lucide="refresh-cw" class="w-5 h-5"></i>
                     </button>
                 </div>
@@ -95,7 +95,7 @@
                     <div class="bg-white rounded-lg shadow-sm p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-lg font-semibold text-gray-900">Active Queues</h2>
-                            <button onclick="showCreateQueueModal()" class="bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
+                            <button onclick="showCreateQueueModal()" class="bg-blue-600 text-white p-2 rounded hover:bg-blue-700" title="Create Queue">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
                             </button>
                         </div>
@@ -146,8 +146,8 @@
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
                     <div class="flex space-x-4">
-                        <input type="date" id="analytics-start-date" class="border border-gray-300 rounded-md px-3 py-2">
-                        <input type="date" id="analytics-end-date" class="border border-gray-300 rounded-md px-3 py-2">
+                        <input type="date" id="analytics-start-date" class="border border-gray-300 rounded-md px-3 py-2" title="Start Date" placeholder="Start Date">
+                        <input type="date" id="analytics-end-date" class="border border-gray-300 rounded-md px-3 py-2" title="End Date" placeholder="End Date">
                         <button onclick="loadAnalytics()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                             Load Analytics
                         </button>
@@ -283,22 +283,22 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Airport Code</label>
                         <input type="text" id="queue-airport-code" required maxlength="3" 
-                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" title="Airport Code (3 letters)" placeholder="e.g., ORD">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Airport Name</label>
                         <input type="text" id="queue-airport-name" required 
-                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" title="Airport Name" placeholder="e.g., O'Hare International">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Terminal</label>
                         <input type="text" id="queue-terminal" 
-                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" title="Terminal" placeholder="e.g., Terminal 1">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Service Type</label>
-                        <select id="queue-service-type" required 
-                                class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                        <select id="queue-zone" required 
+                                class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" title="Zone Type">
                             <option value="">Select service type</option>
                             <option value="black_car">Black Car</option>
                             <option value="suv">SUV</option>
@@ -309,12 +309,12 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Queue Name</label>
                         <input type="text" id="queue-name" required 
-                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" title="Queue Name" placeholder="e.g., Black Car Queue">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Max Queue Size</label>
-                        <input type="number" id="queue-max-size" value="50" min="1" max="200"
-                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                        <input type="number" id="queue-max-size" required min="1" max="100"
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" title="Maximum Queue Size" placeholder="e.g., 20">
                     </div>
                     <div class="flex justify-end space-x-3 pt-4">
                         <button type="button" onclick="hideCreateQueueModal()" 

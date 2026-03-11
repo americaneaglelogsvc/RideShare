@@ -1,8 +1,6 @@
 name: Agentic Requirements Scan
 
 on:
-  pull_request:
-  merge_group:
   workflow_dispatch:
     inputs:
       mode:

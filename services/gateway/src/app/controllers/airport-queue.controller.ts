@@ -1,7 +1,7 @@
 import { Injectable, Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
 import { AirportGeofenceService } from '../services/airport-geofence.service';
 import { DispatchEnhancementsService } from '../services/dispatch-enhancements.service';
-import { EnhancedDriverService } from '../services/enhanced-driver.service';
+import { EnhancedDriverService, EnrouteDto } from '../services/enhanced-driver.service';
 
 // DTOs for API endpoints
 export class CreateGeofenceDto {
@@ -60,12 +60,11 @@ export class AirportQueueController {
   // ════════════════════════════════════════════════════════════════════
 
   @Post('enroute')
-  async markEnroute(@Body() enrouteDto: MarkEnrouteDto) {
+  async markEnroute(@Body() enrouteDto: EnrouteDto) {
     return await this.enhancedDriverService.markEnrouteToAirport(
       enrouteDto.tenantId,
       enrouteDto.driverId,
-      enrouteDto.airportCode,
-      enrouteDto.etaMinutes
+      enrouteDto
     );
   }
 

@@ -1,0 +1,10 @@
+﻿services:
+  urway-db:
+    image: postgres:15
+    container_name: urway_local_db
+    environment:
+      POSTGRES_DB: urway_dev_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5433:5432"

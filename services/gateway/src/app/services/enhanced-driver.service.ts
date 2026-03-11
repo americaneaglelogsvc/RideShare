@@ -13,6 +13,8 @@ import { AirportGeofenceService } from './airport-geofence.service';
 
 // DTOs for enhanced functionality
 export class EnrouteDto {
+  tenantId!: string;
+  driverId!: string;
   airportCode!: string;
   etaMinutes!: number;
 }
@@ -98,12 +100,7 @@ export class EnhancedDriverService {
   }
 
   async markEnrouteToAirport(tenantId: string, driverId: string, enrouteDto: EnrouteDto) {
-    return await this.dispatchEnhancementsService.markEnrouteToAirport(
-      tenantId, 
-      driverId, 
-      enrouteDto.airportCode, 
-      enrouteDto.etaMinutes
-    );
+    return await this.dispatchEnhancementsService.markEnrouteToAirport(tenantId, driverId, enrouteDto.airportCode, enrouteDto.etaMinutes);
   }
 
   async getMultiTenantQueuePositions(driverId: string): Promise<MultiTenantQueuePositionDto[]> {
