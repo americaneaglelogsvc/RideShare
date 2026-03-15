@@ -43,10 +43,15 @@ export class DispatchSseController {
     const tenantId = req.headers['x-tenant-id'] || req.tenantId;
 
     res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('X-Accel-Buffering', 'no');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.flushHeaders();
+
+    // Retry directive: client reconnects in 1s on disconnect
+    res.write('retry: 1000\n\n');
 
     res.write(`data: ${JSON.stringify({ type: 'connected', driverId, tenantId })}\n\n`);
 
@@ -66,9 +71,13 @@ export class DispatchSseController {
             type: 'trip_update',
             tripId: payload.new?.id,
             status: payload.new?.status,
+            driverId: payload.new?.driver_id,
+            riderId: payload.new?.rider_id,
+            pickupAddress: payload.new?.pickup_address,
+            dropoffAddress: payload.new?.dropoff_address,
             updatedAt: payload.new?.updated_at,
           };
-          res.write(`data: ${JSON.stringify(event)}\n\n`);
+          res.write(`event: trip-update\ndata: ${JSON.stringify(event)}\n\n`);
         },
       )
       .on(
@@ -84,9 +93,28 @@ export class DispatchSseController {
             type: 'new_offer',
             offerId: payload.new?.id,
             tripId: payload.new?.trip_id,
+            riderId: payload.new?.rider_id,
+            riderName: payload.new?.rider_name || 'Rider',
+            pickup: {
+              address: payload.new?.pickup_address,
+              lat: payload.new?.pickup_lat,
+              lng: payload.new?.pickup_lng,
+            },
+            dropoff: {
+              address: payload.new?.dropoff_address,
+              lat: payload.new?.dropoff_lat,
+              lng: payload.new?.dropoff_lng,
+            },
+            estimatedFare: payload.new?.estimated_fare_cents || 0,
+            netPayout: payload.new?.net_payout_cents || 0,
+            estimatedDistance: payload.new?.estimated_distance_miles || 0,
+            estimatedDuration: payload.new?.estimated_duration_minutes || 0,
+            pickupEta: payload.new?.pickup_eta_minutes || 5,
+            category: payload.new?.category || 'sedan',
+            specialInstructions: payload.new?.special_instructions,
             expiresAt: payload.new?.expires_at,
           };
-          res.write(`data: ${JSON.stringify(event)}\n\n`);
+          res.write(`event: ride-offer\ndata: ${JSON.stringify(event)}\n\n`);
         },
       )
       .subscribe();
@@ -117,10 +145,14 @@ export class DispatchSseController {
     const tenantId = req.headers['x-tenant-id'] || req.tenantId;
 
     res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('X-Accel-Buffering', 'no');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.flushHeaders();
+
+    res.write('retry: 1000\n\n');
 
     res.write(`data: ${JSON.stringify({ type: 'connected', riderId, tenantId })}\n\n`);
 
@@ -141,9 +173,12 @@ export class DispatchSseController {
             tripId: payload.new?.id,
             status: payload.new?.status,
             driverId: payload.new?.driver_id,
+            pickupAddress: payload.new?.pickup_address,
+            dropoffAddress: payload.new?.dropoff_address,
+            fareCents: payload.new?.fare_cents,
             updatedAt: payload.new?.updated_at,
           };
-          res.write(`data: ${JSON.stringify(event)}\n\n`);
+          res.write(`event: trip-update\ndata: ${JSON.stringify(event)}\n\n`);
         },
       )
       .subscribe();

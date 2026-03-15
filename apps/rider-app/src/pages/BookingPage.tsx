@@ -1,7 +1,8 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Car, MapPin, Clock, DollarSign, Users, Luggage, Wheelchair, Baby } from 'lucide-react';
 import { riderApiService } from '../services/api.service';
+import { geocodeAddress, searchAddresses } from '../services/geocoding.service';
 import { MobileCard, MobileCardHeader, MobileCardBody } from '../components/MobileCard';
 import { MobileButton } from '../components/MobileButton';
 import { MobileInput, MobileSelect } from '../components/MobileForm';
@@ -52,6 +53,10 @@ export function BookingPage() {
   const [step, setStep] = useState(1);
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
+  const [pickupCoords, setPickupCoords] = useState<{lat: number; lng: number} | null>(null);
+  const [dropoffCoords, setDropoffCoords] = useState<{lat: number; lng: number} | null>(null);
+  const [pickupSuggestions, setPickupSuggestions] = useState<Array<{lat: number; lng: number; display_name: string}>>([]);
+  const [dropoffSuggestions, setDropoffSuggestions] = useState<Array<{lat: number; lng: number; display_name: string}>>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleRecommendation | null>(null);
   const [quote, setQuote] = useState<QuoteData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -64,6 +69,44 @@ export function BookingPage() {
     ride_preference: 'standard',
   });
   const [bookingFlowData, setBookingFlowData] = useState<BookingFlowResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [bookingConfirmed, setBookingConfirmed] = useState(false);
+  const [bookingId, setBookingId] = useState<string | null>(null);
+
+  // Debounced address search
+  const searchPickup = useCallback(async (query: string) => {
+    setPickup(query);
+    setPickupCoords(null);
+    if (query.length >= 3) {
+      const results = await searchAddresses(query);
+      setPickupSuggestions(results);
+    } else {
+      setPickupSuggestions([]);
+    }
+  }, []);
+
+  const searchDropoff = useCallback(async (query: string) => {
+    setDropoff(query);
+    setDropoffCoords(null);
+    if (query.length >= 3) {
+      const results = await searchAddresses(query);
+      setDropoffSuggestions(results);
+    } else {
+      setDropoffSuggestions([]);
+    }
+  }, []);
+
+  const selectPickup = (suggestion: {lat: number; lng: number; display_name: string}) => {
+    setPickup(suggestion.display_name);
+    setPickupCoords({ lat: suggestion.lat, lng: suggestion.lng });
+    setPickupSuggestions([]);
+  };
+
+  const selectDropoff = (suggestion: {lat: number; lng: number; display_name: string}) => {
+    setDropoff(suggestion.display_name);
+    setDropoffCoords({ lat: suggestion.lat, lng: suggestion.lng });
+    setDropoffSuggestions([]);
+  };
 
   // Handle passenger requirements step
   const handleRequirementsSubmit = async () => {
@@ -73,26 +116,49 @@ export function BookingPage() {
     }
 
     setLoading(true);
+    setError(null);
     try {
+      // Geocode addresses if not already resolved
+      let pCoords = pickupCoords;
+      let dCoords = dropoffCoords;
+      if (!pCoords) {
+        const result = await geocodeAddress(pickup);
+        if (result) {
+          pCoords = { lat: result.lat, lng: result.lng };
+          setPickupCoords(pCoords);
+        } else {
+          // Fallback to Chicago downtown if geocoding fails
+          pCoords = { lat: 41.8781, lng: -87.6298 };
+        }
+      }
+      if (!dCoords) {
+        const result = await geocodeAddress(dropoff);
+        if (result) {
+          dCoords = { lat: result.lat, lng: result.lng };
+          setDropoffCoords(dCoords);
+        } else {
+          dCoords = { lat: 41.9786, lng: -87.9048 };
+        }
+      }
+
       const response = await riderApiService.processPassengerRequirements({
         requirements,
         pickup: {
-          lat: 41.8781,
-          lng: -87.6298,
+          lat: pCoords.lat,
+          lng: pCoords.lng,
           address: pickup,
         },
         dropoff: {
-          lat: 41.9786,
-          lng: -87.9048,
+          lat: dCoords.lat,
+          lng: dCoords.lng,
           address: dropoff,
         },
       });
 
       setBookingFlowData(response);
       setStep(2);
-    } catch (error) {
-      console.error('Error processing requirements:', error);
-      alert('Failed to process requirements. Please try again.');
+    } catch (error: any) {
+      setError(error.message || 'Failed to process requirements. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -111,17 +177,19 @@ export function BookingPage() {
     setLoading(true);
     try {
       // Call the actual pricing service with selected vehicle
+      const pCoords = pickupCoords || { lat: 41.8781, lng: -87.6298 };
+      const dCoords = dropoffCoords || { lat: 41.9786, lng: -87.9048 };
       const quoteData = await riderApiService.getQuote({
         category: selectedVehicle.vehicle_type,
         service: requirements.immediacy === 'immediate' ? 'on_demand' : 'scheduled',
         pickup: {
-          lat: 41.8781,
-          lng: -87.6298,
+          lat: pCoords.lat,
+          lng: pCoords.lng,
           address: pickup,
         },
         dropoff: {
-          lat: 41.9786,
-          lng: -87.9048,
+          lat: dCoords.lat,
+          lng: dCoords.lng,
           address: dropoff,
         },
       });
@@ -136,8 +204,7 @@ export function BookingPage() {
       };
       
       setQuote(formattedQuote);
-    } catch (error) {
-      console.error('Error getting quote from API:', error);
+    } catch (err: any) {
       // Use the estimated fare from vehicle recommendation as fallback
       if (selectedVehicle) {
         const fallbackQuote: QuoteData = {
@@ -162,21 +229,32 @@ export function BookingPage() {
   const handleBookRide = async () => {
     if (!quote) return;
 
+    setError(null);
+    setLoading(true);
     try {
+      // Get rider info from Supabase auth session
+      const supabase = riderApiService.getSupabaseClient();
+      const { data: session } = await supabase.auth.getSession();
+      const userMeta = session.session?.user?.user_metadata || {};
+      const riderName = `${userMeta.first_name || ''} ${userMeta.last_name || ''}`.trim() || 'Guest';
+      const riderPhone = userMeta.phone || '+1-000-000-0000';
+
       const booking = await riderApiService.bookRide({
         quote_id: quote.quote_id,
-        rider_name: 'John Doe',
-        rider_phone: '+1-312-555-0123',
+        rider_name: riderName,
+        rider_phone: riderPhone,
         special_instructions: JSON.stringify(requirements),
         vehicle_type: selectedVehicle?.vehicle_type,
       });
 
       if (booking.success) {
-        alert(`Booking successful! Booking ID: ${booking.booking_id}`);
+        setBookingConfirmed(true);
+        setBookingId(booking.booking_id);
       }
-    } catch (error) {
-      console.error('Booking error:', error);
-      alert('Booking failed. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'Booking failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 

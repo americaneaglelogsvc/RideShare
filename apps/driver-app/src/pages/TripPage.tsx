@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MapPin, Navigation, Phone, MessageCircle, Clock, DollarSign, User, ExternalLink, Timer, Star } from 'lucide-react';
+import { apiService, RideOffer } from '../services/api.service';
 
 function openGoogleMapsNav(lat: number, lng: number, address?: string) {
   const dest = address ? encodeURIComponent(address) : `${lat},${lng}`;
@@ -41,12 +42,81 @@ interface TripData {
 }
 
 export function TripPage() {
-  const [tripStatus, setTripStatus] = useState('no_trip'); // no_trip, offer_received, en_route_pickup, arrived_pickup, en_route_dropoff, completed
+  const [tripStatus, setTripStatus] = useState('no_trip');
   const [currentTrip, setCurrentTrip] = useState<TripData | null>(null);
   const [offerTimer, setOfferTimer] = useState(0);
   const [waitSeconds, setWaitSeconds] = useState(0);
   const [ratingScore, setRatingScore] = useState(0);
+  const [driverProfileId, setDriverProfileId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
   const waitRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sseRef = useRef<EventSource | null>(null);
+
+  // Load driver profile on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const profile = await apiService.getProfile();
+        setDriverProfileId(profile.id);
+      } catch (e: any) {
+        console.warn('Could not load driver profile:', e.message);
+      }
+    })();
+  }, []);
+
+  // SSE: Listen for real-time ride offers
+  useEffect(() => {
+    const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:9000';
+    const tenantId = apiService.getTenantId();
+    if (!driverProfileId || !tenantId) return;
+
+    const url = `${API_BASE}/dispatch-sse/offers?driverId=${driverProfileId}&tenantId=${tenantId}`;
+
+    try {
+      const sse = new EventSource(url);
+      sseRef.current = sse;
+
+      sse.addEventListener('ride-offer', (event) => {
+        try {
+          const offer: RideOffer = JSON.parse(event.data);
+          const trip: TripData = {
+            tripId: offer.tripId,
+            riderId: offer.riderId,
+            riderName: offer.riderName,
+            riderPhone: offer.riderPhone || '',
+            pickup: offer.pickup,
+            dropoff: offer.dropoff,
+            estimatedFare: offer.estimatedFare,
+            netPayout: offer.netPayout,
+            estimatedDistance: offer.estimatedDistance,
+            estimatedDuration: offer.estimatedDuration,
+            pickupEta: offer.pickupEta,
+            category: offer.category,
+            specialInstructions: offer.specialInstructions,
+          };
+          setCurrentTrip(trip);
+          setTripStatus('offer_received');
+          // Calculate time until expiry
+          const expiresMs = new Date(offer.expiresAt).getTime() - Date.now();
+          setOfferTimer(Math.max(0, Math.ceil(expiresMs / 1000)));
+        } catch (err) {
+          console.error('Failed to parse ride offer:', err);
+        }
+      });
+
+      sse.onerror = () => {
+        console.warn('SSE connection lost, will reconnect...');
+      };
+
+      return () => {
+        sse.close();
+        sseRef.current = null;
+      };
+    } catch {
+      console.warn('SSE not available, polling mode');
+    }
+  }, [driverProfileId]);
 
   // Wait timer for arrived_pickup
   useEffect(() => {
@@ -60,108 +130,102 @@ export function TripPage() {
     return () => { if (waitRef.current) clearInterval(waitRef.current); };
   }, [tripStatus]);
 
+  // Offer countdown
+  useEffect(() => {
+    if (tripStatus !== 'offer_received' || offerTimer <= 0) return;
+    const timer = setInterval(() => {
+      setOfferTimer((prev) => {
+        if (prev <= 1) {
+          setTripStatus('no_trip');
+          setCurrentTrip(null);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [tripStatus, offerTimer]);
+
   const formatWait = (sec: number) => {
     const m = Math.floor(sec / 60);
     const s = sec % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  // Mock trip data
-  useEffect(() => {
-    // Simulate receiving a ride offer
-    const mockOffer = {
-      tripId: 'trip_123456',
-      riderId: 'rider_789',
-      riderName: 'Sarah Johnson',
-      riderPhone: '+1-312-555-0123',
-      pickup: {
-        address: '123 N Michigan Ave, Chicago, IL',
-        lat: 41.8781,
-        lng: -87.6298,
-      },
-      dropoff: {
-        address: "O'Hare International Airport, Terminal 1",
-        lat: 41.9786,
-        lng: -87.9048,
-      },
-      estimatedFare: 4500, // $45.00
-      netPayout: 3600, // $36.00 (80% after commission)
-      estimatedDistance: 18.5,
-      estimatedDuration: 35,
-      pickupEta: 8,
-      category: 'black_sedan',
-      specialInstructions: 'Flight departure at 3:30 PM - AA123',
-    };
+  // ── Real API Actions ──
 
-    // Simulate offer timer
-    if (tripStatus === 'offer_received') {
-      const timer = setInterval(() => {
-        setOfferTimer((prev) => {
-          if (prev <= 1) {
-            setTripStatus('no_trip');
-            setCurrentTrip(null);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
+  const handleAcceptOffer = useCallback(async () => {
+    if (!currentTrip || !driverProfileId) return;
+    setActionLoading(true);
+    setError(null);
+    try {
+      const result = await apiService.acceptTrip(currentTrip.tripId, driverProfileId);
+      if (result.success) {
+        setTripStatus('en_route_pickup');
+        setOfferTimer(0);
+      } else {
+        setError(result.message || 'Failed to accept trip');
+      }
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setActionLoading(false);
     }
-  }, [tripStatus]);
+  }, [currentTrip, driverProfileId]);
 
-  const handleAcceptOffer = () => {
-    setTripStatus('en_route_pickup');
-    setOfferTimer(0);
-  };
-
-  const handleDeclineOffer = () => {
+  const handleDeclineOffer = useCallback(() => {
     setTripStatus('no_trip');
     setCurrentTrip(null);
     setOfferTimer(0);
-  };
+    setError(null);
+  }, []);
 
-  const handleArrivedPickup = () => {
+  const handleArrivedPickup = useCallback(() => {
     setTripStatus('arrived_pickup');
-  };
+  }, []);
 
-  const handleStartTrip = () => {
-    setTripStatus('en_route_dropoff');
-  };
+  const handleStartTrip = useCallback(async () => {
+    if (!currentTrip) return;
+    setActionLoading(true);
+    setError(null);
+    try {
+      const result = await apiService.startTrip(currentTrip.tripId);
+      if (result.success) {
+        setTripStatus('en_route_dropoff');
+      } else {
+        setError(result.message || 'Failed to start trip');
+      }
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  }, [currentTrip]);
 
-  const handleCompleteTrip = () => {
-    setTripStatus('completed');
-  };
+  const handleCompleteTrip = useCallback(async () => {
+    if (!currentTrip) return;
+    setActionLoading(true);
+    setError(null);
+    try {
+      const result = await apiService.completeTrip(currentTrip.tripId);
+      if (result.success) {
+        setTripStatus('completed');
+      } else {
+        setError(result.message || 'Failed to complete trip');
+      }
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  }, [currentTrip]);
 
-  const simulateOffer = () => {
-    const mockOffer = {
-      tripId: 'trip_123456',
-      riderId: 'rider_789',
-      riderName: 'Sarah Johnson',
-      riderPhone: '+1-312-555-0123',
-      pickup: {
-        address: '123 N Michigan Ave, Chicago, IL',
-        lat: 41.8781,
-        lng: -87.6298,
-      },
-      dropoff: {
-        address: "O'Hare International Airport, Terminal 1",
-        lat: 41.9786,
-        lng: -87.9048,
-      },
-      estimatedFare: 4500,
-      netPayout: 3600,
-      estimatedDistance: 18.5,
-      estimatedDuration: 35,
-      pickupEta: 8,
-      category: 'black_sedan',
-      specialInstructions: 'Flight departure at 3:30 PM - AA123',
-    };
-
-    setCurrentTrip(mockOffer);
-    setTripStatus('offer_received');
-    setOfferTimer(5); // 5 second timer
-  };
+  const renderError = () => error && (
+    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+      <p className="text-sm text-red-700">{error}</p>
+      <button onClick={() => setError(null)} className="text-xs text-red-500 underline mt-1">Dismiss</button>
+    </div>
+  );
 
   const renderContent = () => {
     switch (tripStatus) {
@@ -170,19 +234,27 @@ export function TripPage() {
           <div className="text-center py-12">
             <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-6" />
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">No Active Trip</h2>
-            <p className="text-gray-600 mb-8">You're online and ready to receive ride requests</p>
-            <button
-              onClick={simulateOffer}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
-            >
-              Simulate Ride Offer (Demo)
-            </button>
+            <p className="text-gray-600 mb-2">You're online and ready to receive ride requests</p>
+            <p className="text-sm text-gray-400">
+              {driverProfileId
+                ? 'Listening for ride offers via live stream...'
+                : 'Loading driver profile...'
+              }
+            </p>
+            {!driverProfileId && (
+              <div className="mt-4">
+                <div className="animate-pulse flex justify-center">
+                  <div className="h-2 w-24 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            )}
           </div>
         );
 
       case 'offer_received':
         return (
           <div className="space-y-6">
+            {renderError()}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold text-blue-900">New Ride Request</h2>
@@ -218,7 +290,7 @@ export function TripPage() {
                     <div className="flex justify-between">
                       <span>Net Payout:</span>
                       <span className="font-semibold text-green-600">
-                        ${(currentTrip?.netPayout / 100).toFixed(2)}
+                        ${((currentTrip?.netPayout || 0) / 100).toFixed(2)}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -248,15 +320,17 @@ export function TripPage() {
               <div className="flex space-x-4 mt-6">
                 <button
                   onClick={handleDeclineOffer}
-                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold"
+                  disabled={actionLoading}
+                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold disabled:opacity-50"
                 >
                   Decline
                 </button>
                 <button
                   onClick={handleAcceptOffer}
-                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold"
+                  disabled={actionLoading}
+                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold disabled:opacity-50"
                 >
-                  Accept
+                  {actionLoading ? 'Accepting...' : 'Accept'}
                 </button>
               </div>
             </div>
@@ -266,6 +340,7 @@ export function TripPage() {
       case 'en_route_pickup':
         return (
           <div className="space-y-6">
+            {renderError()}
             <div className="bg-white border border-gray-200 rounded-lg p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">En Route to Pickup</h2>
               
@@ -295,7 +370,7 @@ export function TripPage() {
                 <p className="text-gray-700">{currentTrip?.pickup.address}</p>
                 <div className="flex items-center mt-2 text-sm text-gray-600">
                   <Clock className="w-4 h-4 mr-1" />
-                  <span>ETA: 6 minutes</span>
+                  <span>ETA: {currentTrip?.pickupEta || 6} minutes</span>
                 </div>
               </div>
 
@@ -321,6 +396,7 @@ export function TripPage() {
       case 'arrived_pickup':
         return (
           <div className="space-y-6">
+            {renderError()}
             <div className="bg-white border border-gray-200 rounded-lg p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Arrived at Pickup</h2>
               
@@ -362,9 +438,10 @@ export function TripPage() {
 
               <button
                 onClick={handleStartTrip}
-                className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold"
+                disabled={actionLoading}
+                className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold disabled:opacity-50"
               >
-                Start Trip
+                {actionLoading ? 'Starting Trip...' : 'Start Trip'}
               </button>
             </div>
           </div>
@@ -373,6 +450,7 @@ export function TripPage() {
       case 'en_route_dropoff':
         return (
           <div className="space-y-6">
+            {renderError()}
             <div className="bg-white border border-gray-200 rounded-lg p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">En Route to Destination</h2>
               
@@ -391,7 +469,7 @@ export function TripPage() {
                 </div>
                 <div className="text-right">
                   <p className="font-semibold text-green-600">
-                    ${(currentTrip?.netPayout / 100).toFixed(2)}
+                    ${((currentTrip?.netPayout || 0) / 100).toFixed(2)}
                   </p>
                   <p className="text-sm text-gray-600">Net payout</p>
                 </div>
@@ -405,7 +483,7 @@ export function TripPage() {
                 <p className="text-gray-700">{currentTrip?.dropoff.address}</p>
                 <div className="flex items-center mt-2 text-sm text-gray-600">
                   <Clock className="w-4 h-4 mr-1" />
-                  <span>ETA: 22 minutes</span>
+                  <span>ETA: {currentTrip?.estimatedDuration || 22} minutes</span>
                 </div>
               </div>
 
@@ -419,9 +497,10 @@ export function TripPage() {
                 </button>
                 <button
                   onClick={handleCompleteTrip}
-                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold"
+                  disabled={actionLoading}
+                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold disabled:opacity-50"
                 >
-                  Complete Trip
+                  {actionLoading ? 'Completing...' : 'Complete Trip'}
                 </button>
               </div>
             </div>
@@ -453,7 +532,7 @@ export function TripPage() {
                     </div>
                     <div className="flex justify-between">
                       <span>Duration:</span>
-                      <span>38 minutes</span>
+                      <span>{currentTrip?.estimatedDuration} minutes</span>
                     </div>
                   </div>
                 </div>
@@ -463,15 +542,15 @@ export function TripPage() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>Trip Fare:</span>
-                      <span>${(currentTrip?.estimatedFare / 100).toFixed(2)}</span>
+                      <span>${((currentTrip?.estimatedFare || 0) / 100).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Commission (20%):</span>
-                      <span>-${((currentTrip?.estimatedFare - currentTrip?.netPayout) / 100).toFixed(2)}</span>
+                      <span>-${(((currentTrip?.estimatedFare || 0) - (currentTrip?.netPayout || 0)) / 100).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between font-semibold text-green-600">
                       <span>Your Earnings:</span>
-                      <span>${(currentTrip?.netPayout / 100).toFixed(2)}</span>
+                      <span>${((currentTrip?.netPayout || 0) / 100).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -482,6 +561,7 @@ export function TripPage() {
                   onClick={() => {
                     setTripStatus('no_trip');
                     setCurrentTrip(null);
+                    setError(null);
                   }}
                   className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
                 >
@@ -512,7 +592,7 @@ export function TripPage() {
           <div className="flex items-center space-x-4">
             {tripStatus !== 'no_trip' && (
               <div className="text-sm text-gray-600">
-                Trip ID: {currentTrip?.tripId}
+                Trip ID: {currentTrip?.tripId?.slice(0, 8)}...
               </div>
             )}
           </div>

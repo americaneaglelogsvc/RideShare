@@ -1,4 +1,10 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://rideshare-gateway-73967865619.us-central1.run.app';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9000';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+
+// ── Types ──
 
 export interface QuoteRequest {
   category: string;
@@ -95,14 +101,39 @@ export interface BookingFlowResponse {
   nextSteps: string[];
 }
 
+export interface Trip {
+  id: string;
+  status: string;
+  pickup_address: string;
+  dropoff_address: string;
+  fare_cents: number;
+  created_at: string;
+  completed_at?: string;
+  driver_name?: string;
+  distance_miles?: number;
+}
+
+// ── Service ──
+
 class RiderApiService {
+  private supabase: SupabaseClient;
   private tenantId: string | null = null;
 
   constructor() {
+    this.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        storageKey: 'rider-app-auth',
+      },
+    });
+
     if (typeof window !== 'undefined') {
       this.tenantId = localStorage.getItem('tenant_id');
     }
   }
+
+  // ── Tenant Management ──
 
   setTenantId(tenantId: string): void {
     this.tenantId = tenantId;
@@ -115,10 +146,52 @@ class RiderApiService {
     return this.tenantId;
   }
 
-  private getHeaders(): HeadersInit {
+  getSupabaseClient(): SupabaseClient {
+    return this.supabase;
+  }
+
+  // ── Auth ──
+
+  async login(email: string, password: string) {
+    const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
+    return data;
+  }
+
+  async signup(email: string, password: string, metadata?: Record<string, any>) {
+    const { data, error } = await this.supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { ...metadata, role: 'rider' } },
+    });
+    if (error) throw new Error(error.message);
+    return data;
+  }
+
+  async logout() {
+    await this.supabase.auth.signOut();
+  }
+
+  async isAuthenticated(): Promise<boolean> {
+    const { data } = await this.supabase.auth.getSession();
+    return !!data.session;
+  }
+
+  // ── Internal HTTP ──
+
+  private async getToken(): Promise<string | null> {
+    const { data } = await this.supabase.auth.getSession();
+    return data.session?.access_token || null;
+  }
+
+  private async getHeaders(): Promise<HeadersInit> {
+    const token = await this.getToken();
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
     if (this.tenantId) {
       headers['x-tenant-id'] = this.tenantId;
     }
@@ -126,26 +199,24 @@ class RiderApiService {
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        ...options,
-        headers: {
-          ...this.getHeaders(),
-          ...options.headers,
-        },
-      });
+    const headers = await this.getHeaders();
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        ...headers,
+        ...options.headers,
+      },
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error(`API request failed for ${endpoint}:`, error);
-      throw error;
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({}));
+      throw new Error(errorBody?.message || `HTTP ${response.status}`);
     }
+
+    return response.json();
   }
+
+  // ── Booking Flow ──
 
   async getQuote(quoteRequest: QuoteRequest): Promise<QuoteResponse> {
     return this.request<QuoteResponse>('/pricing/quote', {
@@ -172,61 +243,66 @@ class RiderApiService {
   }
 
   async processPassengerRequirements(request: BookingFlowRequest): Promise<BookingFlowResponse> {
+    return this.request<BookingFlowResponse>('/booking-flow/process-requirements', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  // ── Trip History ──
+
+  async getTrips(limit: number = 20): Promise<Trip[]> {
     try {
-      return this.request<BookingFlowResponse>('/booking-flow/process-requirements', {
-        method: 'POST',
-        body: JSON.stringify(request),
-      });
-    } catch (error) {
-      console.warn('Booking flow API failed, using mock data:', error);
+      return await this.request<Trip[]>(`/rider/trips?limit=${limit}`);
+    } catch {
+      // Fallback: query trips directly from Supabase
+      const { data: session } = await this.supabase.auth.getSession();
+      if (!session.session) return [];
 
-      const mockVehicles: VehicleRecommendation[] = [
-        {
-          vehicle_type: 'economy_sedan',
-          display_name: 'Economy Sedan',
-          match_score: 85,
-          match_reasons: ['Accommodates 1 passengers', 'Adequate medium luggage space', 'Matches standard preference'],
-          estimated_fare_cents: 2500,
-          capacity: 4,
-          luggage_capacity: 'medium',
-          features: ['Air Conditioning', 'Music System'],
-        },
-        {
-          vehicle_type: 'standard_suv',
-          display_name: 'Standard SUV',
-          match_score: 75,
-          match_reasons: ['Accommodates 1 passengers', 'Adequate medium luggage space', 'More space available'],
-          estimated_fare_cents: 3500,
-          capacity: 6,
-          luggage_capacity: 'large',
-          features: ['Air Conditioning', 'Music System', 'Extra Storage'],
-        },
-        {
-          vehicle_type: 'premium_sedan',
-          display_name: 'Premium Sedan',
-          match_score: 70,
-          match_reasons: ['Accommodates 1 passengers', 'Adequate medium luggage space', 'Extra comfort features'],
-          estimated_fare_cents: 4500,
-          capacity: 4,
-          luggage_capacity: 'medium',
-          features: ['Leather Seats', 'Premium Sound', 'Climate Control'],
-        },
-      ];
+      const { data: rider } = await this.supabase
+        .from('riders')
+        .select('id')
+        .eq('email', session.session.user.email)
+        .single();
 
-      return {
-        passenger_requirements: request.requirements,
-        vehicle_recommendations: mockVehicles,
-        estimated_duration_minutes: 25,
-        estimated_distance_miles: 10.2,
-        nextSteps: [
-          'Select a vehicle from the recommended options',
-          'Confirm pickup and dropoff locations',
-          'Review fare estimate and trip details',
-          'Enter payment information',
-          'Confirm booking',
-        ],
-      };
+      if (!rider) return [];
+
+      const { data: trips } = await this.supabase
+        .from('trips')
+        .select('*')
+        .eq('rider_id', rider.id)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      return (trips || []).map((t: any) => ({
+        id: t.id,
+        status: t.status,
+        pickup_address: t.pickup_address,
+        dropoff_address: t.dropoff_address,
+        fare_cents: t.fare_cents,
+        created_at: t.created_at,
+        completed_at: t.completed_at,
+        distance_miles: t.distance_miles,
+      }));
     }
+  }
+
+  // ── Real-time Trip Status ──
+
+  subscribeToTrip(tripId: string, callback: (trip: any) => void) {
+    return this.supabase
+      .channel(`trip-${tripId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'trips',
+          filter: `id=eq.${tripId}`,
+        },
+        (payload) => callback(payload.new)
+      )
+      .subscribe();
   }
 }
 

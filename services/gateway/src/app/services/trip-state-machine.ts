@@ -1,3 +1,8 @@
+/**
+ * @file trip-state-machine.ts
+ * @req TRP-STM-0001 — Trip state machine with allowed transitions + actor permissions
+ * @test trip-state-machine.spec.ts (19 tests)
+ */
 import { BadRequestException } from '@nestjs/common';
 
 export enum TripStatus {

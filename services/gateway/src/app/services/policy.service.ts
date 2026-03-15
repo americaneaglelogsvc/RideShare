@@ -1,3 +1,10 @@
+/**
+ * @file policy.service.ts
+ * @req TEN-POL-0001 — Policy Center draft/validate/publish/rollback
+ * @req TEN-POL-0002 — Policy versioning and diff — see diffVersions()
+ * @req TEN-POL-0003 — Policy activation modes (enabled, manual_only, auto_apply)
+ * @req TEN-POL-0005 — Jurisdiction templates + disclaimers — see getJurisdictionTemplates()
+ */
 import { Injectable, Logger, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
 

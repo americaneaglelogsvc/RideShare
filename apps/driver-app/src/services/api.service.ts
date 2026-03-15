@@ -1,4 +1,10 @@
-const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'https://rideshare-gateway-73967865619.us-central1.run.app';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:9000';
+const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
+const SUPABASE_ANON_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+
+// ── Types ──
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -117,17 +123,27 @@ export interface TripHistory {
   riderName: string;
 }
 
+// ── Service ──
+
 class ApiService {
-  private token: string | null = null;
+  private supabase: SupabaseClient;
   private tenantId: string | null = null;
 
   constructor() {
-    // Load token from localStorage if available
+    this.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        storageKey: 'driver-app-auth',
+      },
+    });
+
     if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('driver_token');
       this.tenantId = localStorage.getItem('tenant_id');
     }
   }
+
+  // ── Supabase Auth ──
 
   setTenantId(tenantId: string): void {
     this.tenantId = tenantId;
@@ -140,13 +156,20 @@ class ApiService {
     return this.tenantId;
   }
 
-  private getHeaders(): HeadersInit {
+
+  private async getToken(): Promise<string | null> {
+    const { data } = await this.supabase.auth.getSession();
+    return data.session?.access_token || null;
+  }
+
+  private async getHeaders(): Promise<HeadersInit> {
+    const token = await this.getToken();
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
 
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
     if (this.tenantId) {
@@ -157,70 +180,57 @@ class ApiService {
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        ...options,
-        headers: {
-          ...this.getHeaders(),
-          ...options.headers,
-        },
-      });
+    const headers = await this.getHeaders();
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        ...headers,
+        ...options.headers,
+      },
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error(`API request failed for ${endpoint}:`, error);
-      throw error;
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({}));
+      const msg = errorBody?.message || `HTTP ${response.status}`;
+      throw new Error(msg);
     }
+
+    return response.json();
   }
 
-  // Authentication
+  // ── Authentication (Supabase-backed) ──
+
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    try {
-      const response = await this.request<LoginResponse>('/driver/auth/login', {
-        method: 'POST',
-        body: JSON.stringify(credentials),
-      });
+    const { data, error } = await this.supabase.auth.signInWithPassword({
+      email: credentials.email,
+      password: credentials.password,
+    });
 
-      if (response.success && response.token) {
-        this.token = response.token;
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('driver_token', response.token);
-        }
-      }
-
-      return response;
-    } catch (error) {
-      // Fallback to mock authentication for demo purposes
-      console.warn('API login failed, using mock authentication:', error);
-
-      // Mock authentication for demo
-      if (credentials.email === 'driver@demo.com' && credentials.password === 'demo123') {
-        const mockResponse: LoginResponse = {
-          success: true,
-          token: 'mock_driver_token_' + Date.now(),
-          driver: {
-            id: 'demo_driver_id',
-            firstName: 'John',
-            lastName: 'Driver',
-            email: 'driver@demo.com'
-          }
-        };
-
-        this.token = mockResponse.token;
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('driver_token', mockResponse.token);
-        }
-
-        return mockResponse;
-      }
-
-      throw new Error('Invalid credentials. Use driver@demo.com / demo123 for demo');
+    if (error) {
+      throw new Error(error.message);
     }
+
+    const session = data.session!;
+    const user = data.user!;
+
+    // Fetch driver profile from gateway to get driver-specific info
+    let driverProfile: any = {};
+    try {
+      driverProfile = await this.request('/driver/profile');
+    } catch {
+      // Profile endpoint may not exist yet — use user metadata
+    }
+
+    return {
+      success: true,
+      token: session.access_token,
+      driver: {
+        id: driverProfile?.id || user.id,
+        firstName: driverProfile?.firstName || user.user_metadata?.first_name || 'Driver',
+        lastName: driverProfile?.lastName || user.user_metadata?.last_name || '',
+        email: user.email || credentials.email,
+      },
+    };
   }
 
   async register(data: {
@@ -231,53 +241,86 @@ class ApiService {
     phone: string;
     address?: string;
   }): Promise<ApiResponse> {
-    return this.request('/driver/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
-  logout(): void {
-    this.token = null;
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('driver_token');
-    }
-  }
-
-  // Profile
-  async getProfile(): Promise<DriverProfile> {
-    try {
-      return this.request<DriverProfile>('/driver/profile');
-    } catch (error) {
-      // Fallback to mock profile for demo purposes
-      console.warn('API profile fetch failed, using mock data:', error);
-      return {
-        id: 'demo_driver_id',
-        firstName: 'John',
-        lastName: 'Driver',
-        email: 'driver@demo.com',
-        phone: '+1-312-555-0123',
-        rating: 4.8,
-        totalTrips: 247,
-        status: 'offline',
-        isActive: true,
-        currentLocation: {
-          lat: 41.8781,
-          lng: -87.6298,
-          heading: 90,
-          speed: 0
+    const { error } = await this.supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        data: {
+          first_name: data.firstName,
+          last_name: data.lastName,
+          phone: data.phone,
+          role: 'driver',
         },
-        vehicle: {
-          id: 'vehicle_001',
-          make: 'Toyota',
-          model: 'Camry',
-          year: 2022,
-          color: 'Black',
-          licensePlate: 'ABC 1234',
-          category: 'sedan'
-        }
-      };
+      },
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
     }
+
+    return { success: true, message: 'Registration successful. Check your email for verification.' };
+  }
+
+  async logout(): Promise<void> {
+    await this.supabase.auth.signOut();
+  }
+
+  async isAuthenticated(): Promise<boolean> {
+    const { data } = await this.supabase.auth.getSession();
+    return !!data.session;
+  }
+
+  getSupabaseClient(): SupabaseClient {
+    return this.supabase;
+  }
+
+  // ── Profile ──
+
+  async getProfile(): Promise<DriverProfile> {
+    // Try the gateway endpoint first
+    try {
+      return await this.request<DriverProfile>('/driver/profile');
+    } catch {
+      // Fallback: build profile from Supabase + driver_profiles table
+      const { data: session } = await this.supabase.auth.getSession();
+      if (!session.session) throw new Error('Not authenticated');
+
+      const userId = session.session.user.id;
+      const { data: profile } = await this.supabase
+        .from('driver_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (!profile) {
+        // Try matching by email
+        const { data: profileByEmail } = await this.supabase
+          .from('driver_profiles')
+          .select('*')
+          .eq('email', session.session.user.email)
+          .single();
+
+        if (!profileByEmail) throw new Error('Driver profile not found');
+        return this.mapProfile(profileByEmail);
+      }
+
+      return this.mapProfile(profile);
+    }
+  }
+
+  private mapProfile(p: any): DriverProfile {
+    return {
+      id: p.id,
+      firstName: p.first_name,
+      lastName: p.last_name,
+      email: p.email,
+      phone: p.phone || '',
+      address: p.address,
+      rating: p.rating || 5.0,
+      totalTrips: p.total_trips || 0,
+      status: p.status || 'offline',
+      isActive: p.is_active ?? false,
+    };
   }
 
   async updateProfile(profileData: Partial<DriverProfile>): Promise<ApiResponse<DriverProfile>> {
@@ -287,64 +330,123 @@ class ApiService {
     });
   }
 
-  // Status and Location
+  // ── Status and Location ──
+
   async updateStatus(status: string, location?: { lat: number; lng: number; heading?: number; speed?: number }): Promise<ApiResponse> {
     try {
-      return this.request('/driver/status', {
+      return await this.request('/driver/status', {
         method: 'PUT',
         body: JSON.stringify({ status, location }),
       });
-    } catch (error) {
-      // Fallback to mock status update for demo purposes
-      console.warn('API status update failed, using mock response:', error);
-      return {
-        success: true,
-        message: `Status updated to ${status}`
-      };
+    } catch {
+      // Fallback: update driver_profiles directly
+      const { data: session } = await this.supabase.auth.getSession();
+      if (!session.session) return { success: false, error: 'Not authenticated' };
+
+      const { error } = await this.supabase
+        .from('driver_profiles')
+        .update({ status, is_active: status === 'online' })
+        .eq('email', session.session.user.email);
+
+      return error
+        ? { success: false, error: error.message }
+        : { success: true, message: `Status updated to ${status}` };
     }
   }
 
   async updateLocation(location: { lat: number; lng: number; heading?: number; speed?: number }): Promise<ApiResponse> {
     try {
-      return this.request('/driver/location', {
+      return await this.request('/driver/location', {
         method: 'POST',
         body: JSON.stringify(location),
       });
-    } catch (error) {
-      // Fallback to mock location update for demo purposes
-      console.warn('API location update failed, using mock response:', error);
-      return {
-        success: true,
-        message: 'Location updated'
-      };
+    } catch {
+      // Fallback: update driver_locations directly
+      const { data: session } = await this.supabase.auth.getSession();
+      if (!session.session) return { success: false, error: 'Not authenticated' };
+
+      const { data: profile } = await this.supabase
+        .from('driver_profiles')
+        .select('id')
+        .eq('email', session.session.user.email)
+        .single();
+
+      if (!profile) return { success: false, error: 'Profile not found' };
+
+      const { error } = await this.supabase
+        .from('driver_locations')
+        .upsert({
+          driver_id: profile.id,
+          lat: location.lat,
+          lng: location.lng,
+          heading: location.heading || 0,
+          speed: location.speed || 0,
+          updated_at: new Date().toISOString(),
+        });
+
+      return error
+        ? { success: false, error: error.message }
+        : { success: true, message: 'Location updated' };
     }
   }
 
-  // Dashboard
+  // ── Dashboard ──
+
   async getDashboard(): Promise<DashboardData> {
     try {
-      return this.request<DashboardData>('/driver/dashboard');
-    } catch (error) {
-      // Fallback to mock dashboard data for demo purposes
-      console.warn('API dashboard fetch failed, using mock data:', error);
+      return await this.request<DashboardData>('/driver/dashboard');
+    } catch {
+      // Build dashboard from profile data
+      const profile = await this.getProfile();
       return {
         driver: {
-          name: 'John Driver',
-          status: 'offline',
-          rating: 4.8,
-          totalTrips: 247
+          name: `${profile.firstName} ${profile.lastName}`,
+          status: profile.status,
+          rating: profile.rating,
+          totalTrips: profile.totalTrips,
         },
         todayStats: {
-          earnings: 18750, // $187.50 in cents
-          trips: 12,
-          onlineHours: 6.75
+          earnings: 0,
+          trips: 0,
+          onlineHours: 0,
         },
-        hasActiveTrip: false
+        hasActiveTrip: false,
       };
     }
   }
 
-  // Ride Offers
+  // ── Trip Lifecycle (Wire to real dispatch endpoints) ──
+
+  async acceptTrip(tripId: string, driverId: string): Promise<ApiResponse> {
+    return this.request('/dispatch/accept-trip', {
+      method: 'PUT',
+      body: JSON.stringify({ trip_id: tripId, driver_id: driverId }),
+    });
+  }
+
+  async startTrip(tripId: string): Promise<ApiResponse> {
+    return this.request('/dispatch/start-trip', {
+      method: 'PUT',
+      body: JSON.stringify({ trip_id: tripId }),
+    });
+  }
+
+  async completeTrip(tripId: string): Promise<ApiResponse> {
+    return this.request('/dispatch/complete-trip', {
+      method: 'PUT',
+      body: JSON.stringify({ trip_id: tripId }),
+    });
+  }
+
+  async cancelTrip(tripId: string, reason?: string): Promise<ApiResponse> {
+    return this.request('/dispatch/cancel-trip', {
+      method: 'PUT',
+      body: JSON.stringify({ trip_id: tripId, cancelled_by: 'driver', reason }),
+    });
+  }
+
+  // ── Ride Offers ──
+
   async getCurrentOffer(): Promise<RideOffer | null> {
     return this.request<RideOffer | null>('/driver/offers/current');
   }
@@ -356,23 +458,16 @@ class ApiService {
     });
   }
 
-  // Earnings
+  // ── Earnings ──
+
   async getEarnings(period: string = 'week'): Promise<EarningsData> {
     return this.request<EarningsData>(`/driver/earnings?period=${period}`);
   }
 
-  // Trip History
+  // ── Trip History ──
+
   async getTripHistory(limit: number = 20, offset: number = 0): Promise<TripHistory[]> {
     return this.request<TripHistory[]>(`/driver/trips/history?limit=${limit}&offset=${offset}`);
-  }
-
-  // Utility methods
-  isAuthenticated(): boolean {
-    return !!this.token;
-  }
-
-  getToken(): string | null {
-    return this.token;
   }
 }
 

@@ -9,21 +9,21 @@ const RIDER_1   = "r0000000-0001-4000-8000-000000000001";
 const RIDER_2   = "r0000000-0001-4000-8000-000000000002";
 
 const DEFAULT_URLS = {
-  gateway: "http://localhost:3000",
-  rider:   "http://localhost:4200",
-  driver:  "http://localhost:4300",
+  gateway: "http://localhost:9000",
+  rider:   "http://localhost:5174",
+  driver:  "http://localhost:5173",
   public:  "http://localhost:5173",
-  admin:   "http://localhost:4400",
+  admin:   "http://localhost:5175",
 };
 
 type SvcStatus  = "checking" | "online" | "offline";
 type StepResult = { status: "idle" | "loading" | "ok" | "error"; data?: any; error?: string };
 
 const SERVICES: { id: keyof typeof DEFAULT_URLS; label: string; port: string; cmd: string; healthPath?: string }[] = [
-  { id: "gateway", label: "Gateway API",  port: "3000", cmd: "cd services/gateway && npm run start:dev", healthPath: "/health" },
-  { id: "rider",   label: "Rider App",    port: "4200", cmd: "cd apps/rider-app && npm run dev" },
-  { id: "driver",  label: "Driver App",   port: "4300", cmd: "cd apps/driver-app && npm run dev" },
-  { id: "public",  label: "Public Site",  port: "5173", cmd: "npm run dev  (root of repo)" },
+  { id: "gateway", label: "Gateway API",  port: "9000", cmd: "cd services/gateway && npx nest start", healthPath: "/health" },
+  { id: "rider",   label: "Rider App",    port: "5174", cmd: "cd apps/rider-app && npx vite --port 5174" },
+  { id: "driver",  label: "Driver App",   port: "5173", cmd: "cd apps/driver-app && npx vite --port 5173" },
+  { id: "admin",   label: "Admin Portal", port: "5175", cmd: "cd apps/admin-portal && npx next dev --port 5175" },
 ];
 
 export default function WalkthroughPage() {
@@ -231,10 +231,10 @@ export default function WalkthroughPage() {
       <div className="bg-slate-800 border-b border-slate-700 px-6 py-3">
         <div className="max-w-5xl mx-auto flex flex-wrap gap-3 items-center">
           {([
-            { key: "gateway" as const, label: "Gateway", ph: "http://localhost:3000" },
-            { key: "rider"   as const, label: "Rider",   ph: "http://localhost:4200" },
-            { key: "driver"  as const, label: "Driver",  ph: "http://localhost:4300" },
-            { key: "public"  as const, label: "Public",  ph: "http://localhost:5173" },
+            { key: "gateway" as const, label: "Gateway", ph: "http://localhost:9000" },
+            { key: "rider"   as const, label: "Rider",   ph: "http://localhost:5174" },
+            { key: "driver"  as const, label: "Driver",  ph: "http://localhost:5173" },
+            { key: "admin"   as const, label: "Admin",   ph: "http://localhost:5175" },
           ] as const).map(f => (
             <div key={f.key} className="flex items-center gap-1.5 flex-1 min-w-36">
               <span className="text-xs text-slate-500 whitespace-nowrap">{f.label}</span>

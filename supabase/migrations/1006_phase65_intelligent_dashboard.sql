@@ -110,8 +110,8 @@ ALTER TABLE tenant_onboarding ADD COLUMN IF NOT EXISTS per_driver_fee_cents INT 
 -- Refreshed every 5 minutes by cron
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_tenant_fleet_utilization AS
 SELECT
-  t.tenant_id,
-  t.tenant_id AS tid,
+  dp.tenant_id,
+  dp.tenant_id AS tid,
   COUNT(DISTINCT dp.id) AS total_drivers,
   COUNT(DISTINCT dp.id) FILTER (WHERE dp.status = 'on_trip') AS drivers_on_trip,
   COUNT(DISTINCT dp.id) FILTER (WHERE dp.status = 'online') AS drivers_available,
@@ -128,7 +128,7 @@ SELECT
 FROM driver_profiles dp
 JOIN tenants t ON t.id = dp.tenant_id
 WHERE dp.is_active = TRUE
-GROUP BY t.tenant_id
+GROUP BY dp.tenant_id
 WITH NO DATA;
 
 CREATE UNIQUE INDEX idx_mv_fleet_util_tenant ON mv_tenant_fleet_utilization(tenant_id);
@@ -250,8 +250,8 @@ BEGIN
   SELECT
     dp.id AS driver_id,
     COALESCE(dp.email, 'Driver') AS driver_name,
-    dl.latitude::DOUBLE PRECISION AS lat,
-    dl.longitude::DOUBLE PRECISION AS lng,
+    dl.lat::DOUBLE PRECISION AS lat,
+    dl.lng::DOUBLE PRECISION AS lng,
     dp.status,
     FALSE AS is_ghost,
     COALESCE(v.category, 'economy') AS category,
@@ -269,8 +269,8 @@ BEGIN
   SELECT
     sor.id AS driver_id,
     'Partner Driver' AS driver_name,
-    dl.latitude::DOUBLE PRECISION AS lat,
-    dl.longitude::DOUBLE PRECISION AS lng,
+    dl.lat::DOUBLE PRECISION AS lat,
+    dl.lng::DOUBLE PRECISION AS lng,
     'spill_over' AS status,
     TRUE AS is_ghost,
     'economy' AS category,

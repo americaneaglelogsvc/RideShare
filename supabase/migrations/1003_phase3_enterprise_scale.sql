@@ -166,8 +166,8 @@ END $$;
 
 -- Backfill geometry from existing lat/lng
 UPDATE driver_locations
-SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)
-WHERE geom IS NULL AND latitude IS NOT NULL AND longitude IS NOT NULL;
+SET geom = ST_SetSRID(ST_MakePoint(lng, lat), 4326)
+WHERE geom IS NULL AND lat IS NOT NULL AND lng IS NOT NULL;
 
 -- Create spatial index
 CREATE INDEX IF NOT EXISTS idx_driver_locations_geom ON driver_locations USING GIST(geom);
@@ -176,14 +176,14 @@ CREATE INDEX IF NOT EXISTS idx_driver_locations_geom ON driver_locations USING G
 CREATE OR REPLACE FUNCTION update_driver_location_geom()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.geom := ST_SetSRID(ST_MakePoint(NEW.longitude, NEW.latitude), 4326);
+  NEW.geom := ST_SetSRID(ST_MakePoint(NEW.lng, NEW.lat), 4326);
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_driver_location_geom ON driver_locations;
 CREATE TRIGGER trg_driver_location_geom
-  BEFORE INSERT OR UPDATE OF latitude, longitude ON driver_locations
+  BEFORE INSERT OR UPDATE OF lat, lng ON driver_locations
   FOR EACH ROW EXECUTE FUNCTION update_driver_location_geom();
 
 -- 9. Add tenant_id to driver_locations for fast tenant-scoped geo queries

@@ -118,7 +118,7 @@ export class AirportGeofenceService {
     return data && data.length > 0 ? data[0] : null;
   }
 
-  async isPointInZone(lat: number, lng: number, zoneCoordinates: any): boolean {
+  async isPointInZone(lat: number, lng: number, zoneCoordinates: any): Promise<boolean> {
     if (!zoneCoordinates) return false;
 
     try {
@@ -130,7 +130,7 @@ export class AirportGeofenceService {
       else if (zoneCoordinates.type === 'polygon') {
         return this.isPointInPolygon(lat, lng, zoneCoordinates.coordinates);
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error in zone detection: ${error.message}`);
       return false;
     }
@@ -457,7 +457,7 @@ export class AirportGeofenceService {
       try {
         const result = await this.createGeofenceZone(tenantId, airportCode, zone.zoneType, zone);
         results.push(result);
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error(`Failed to create default zone ${zone.zoneType}: ${error.message}`);
       }
     }

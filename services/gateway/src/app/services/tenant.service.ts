@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException , Logger } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
 import { NotificationService } from './notification.service';
 
@@ -54,6 +54,8 @@ export interface SubmitACHAuthorizationRequest {
 
 @Injectable()
 export class TenantService {
+  private readonly logger = new Logger(TenantService.name);
+
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly notificationService: NotificationService,
@@ -96,7 +98,7 @@ export class TenantService {
       .insert({ tenant_id: tenant.id });
 
     if (onbErr) {
-      console.error('Failed to create onboarding row:', onbErr);
+      this.logger.error('Failed to create onboarding row:', onbErr);
     }
 
     return { tenant_id: tenant.id, slug: tenant.slug, status: 'DRAFT' };
@@ -301,7 +303,7 @@ export class TenantService {
 
     // Fire welcome email (non-blocking)
     this.notificationService.sendTenantWelcomeEmail(tenantId).catch((err) => {
-      console.error('Failed to send welcome email:', err);
+      this.logger.error('Failed to send welcome email:', err);
     });
 
     // Auto-create domain mapping: {slug}.urwaydispatch.com

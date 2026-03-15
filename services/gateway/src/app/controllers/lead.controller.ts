@@ -1,9 +1,11 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { LeadService } from '../services/lead.service';
+import { Public } from '../guards/jwt-auth.guard';
 
 @ApiTags('leads')
 @Controller('leads')
+@Public()
 export class LeadController {
   constructor(private readonly leadService: LeadService) {}
 

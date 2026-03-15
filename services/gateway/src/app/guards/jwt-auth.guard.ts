@@ -1,3 +1,7 @@
+/**
+ * @file jwt-auth.guard.ts
+ * @req TEN-BASE-0002 — RBAC + JWT RolesGuard (§3.1 Authentication)
+ */
 import {
   CanActivate,
   ExecutionContext,

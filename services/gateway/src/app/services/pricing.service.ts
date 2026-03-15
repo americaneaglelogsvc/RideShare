@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable , Logger } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
 
 export interface QuoteRequest {
@@ -20,6 +20,8 @@ export interface QuoteResponse {
 
 @Injectable()
 export class PricingService {
+  private readonly logger = new Logger(PricingService.name);
+
   constructor(private readonly supabaseService: SupabaseService) {}
 
   async calculateQuote(request: QuoteRequest): Promise<QuoteResponse> {
@@ -97,7 +99,7 @@ export class PricingService {
       };
 
     } catch (error) {
-      console.error('Error calculating quote:', error);
+      this.logger.error('Error calculating quote:', error);
       throw new Error('Failed to calculate quote');
     }
   }
@@ -134,7 +136,7 @@ export class PricingService {
       return 1.0;
 
     } catch (error) {
-      console.error('Error calculating surge:', error);
+      this.logger.error('Error calculating surge:', error);
       return 1.0;
     }
   }

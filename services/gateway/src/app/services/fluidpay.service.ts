@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
@@ -59,6 +59,7 @@ export interface FluidpayPayoutRequest {
 
 @Injectable()
 export class FluidpayService {
+  private readonly logger = new Logger(FluidpayService.name);
   private readonly baseUrl: string;
   private readonly apiKey: string;
 
@@ -70,7 +71,7 @@ export class FluidpayService {
     this.apiKey = this.configService.get<string>('FLUIDPAY_API_KEY') || '';
     
     if (!this.apiKey) {
-      console.warn('Fluidpay API key not configured. Payment processing will be simulated.');
+      this.logger.warn('Fluidpay API key not configured. Payment processing will be simulated.');
     }
   }
 
@@ -99,7 +100,7 @@ export class FluidpayService {
 
       return response.data as FluidpayPaymentResponse;
     } catch (error: any) {
-      console.error('Fluidpay payment error:', error.response?.data || error.message);
+      this.logger.error(`Fluidpay payment error: ${error.response?.data || error.message}`);
       throw new BadRequestException('Payment processing failed');
     }
   }
@@ -119,7 +120,7 @@ export class FluidpayService {
 
       return response.data as FluidpayPaymentResponse;
     } catch (error: any) {
-      console.error('Fluidpay get payment error:', error.response?.data || error.message);
+      this.logger.error(`Fluidpay get payment error: ${error.response?.data || error.message}`);
       throw new BadRequestException('Failed to retrieve payment');
     }
   }
@@ -148,7 +149,7 @@ export class FluidpayService {
 
       return response.data;
     } catch (error: any) {
-      console.error('Fluidpay payout error:', error.response?.data || error.message);
+      this.logger.error(`Fluidpay payout error: ${error.response?.data || error.message}`);
       throw new BadRequestException('Payout processing failed');
     }
   }
@@ -175,7 +176,7 @@ export class FluidpayService {
 
       return response.data;
     } catch (error: any) {
-      console.error('Fluidpay refund error:', error.response?.data || error.message);
+      this.logger.error(`Fluidpay refund error: ${error.response?.data || error.message}`);
       throw new BadRequestException('Refund processing failed');
     }
   }

@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable , Logger } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
 
 @Injectable()
 export class LedgerService {
+  private readonly logger = new Logger(LedgerService.name);
+
   constructor(private readonly supabaseService: SupabaseService) {}
 
   async recordTripFare(event: {
@@ -64,7 +66,7 @@ export class LedgerService {
 
     if (error) {
       // Non-blocking: log but don't throw for lifecycle events
-      console.error(`Ledger event [${event.eventType}] insert failed: ${error.message || JSON.stringify(error)}`);
+      this.logger.error(`Ledger event [${event.eventType}] insert failed: ${error.message || JSON.stringify(error)}`);
     }
 
     return { success: !error };

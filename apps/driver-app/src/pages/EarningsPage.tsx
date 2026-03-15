@@ -1,97 +1,80 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Calendar, Download, Clock, Car, MapPin } from 'lucide-react';
+import apiService from '../services/api.service';
+
+interface EarningsPeriodData {
+  gross: number;
+  net: number;
+  trips: number;
+  hours: number;
+  commission: number;
+}
+
+interface TripRecord {
+  id: string;
+  date: string;
+  time: string;
+  pickup: string;
+  dropoff: string;
+  distance: number;
+  duration: number;
+  fare: number;
+  net: number;
+  rating: number;
+}
 
 export function EarningsPage() {
   const [selectedPeriod, setSelectedPeriod] = useState('week');
-  const [selectedYear, setSelectedYear] = useState('2024');
+  const [selectedYear, setSelectedYear] = useState('2026');
+  const [loading, setLoading] = useState(true);
+  const [currentData, setCurrentData] = useState<EarningsPeriodData>({
+    gross: 0, net: 0, trips: 0, hours: 0, commission: 0,
+  });
+  const [recentTrips, setRecentTrips] = useState<TripRecord[]>([]);
+  const [monthlyData, setMonthlyData] = useState<{ month: string; earnings: number }[]>([]);
 
-  // Mock earnings data
-  const earningsData = {
-    today: {
-      gross: 15420,
-      net: 12336,
-      trips: 12,
-      hours: 8.5,
-      commission: 3084,
-    },
-    week: {
-      gross: 89750,
-      net: 71800,
-      trips: 67,
-      hours: 42.5,
-      commission: 17950,
-    },
-    month: {
-      gross: 387500,
-      net: 310000,
-      trips: 289,
-      hours: 185,
-      commission: 77500,
-    },
-    year: {
-      gross: 4650000,
-      net: 3720000,
-      trips: 3467,
-      hours: 2220,
-      commission: 930000,
-    },
+  useEffect(() => {
+    loadEarnings();
+  }, [selectedPeriod]);
+
+  const loadEarnings = async () => {
+    setLoading(true);
+    try {
+      const data = await apiService.getEarnings(selectedPeriod);
+      setCurrentData({
+        gross: data.grossEarnings || 0,
+        net: data.netEarnings || 0,
+        trips: data.totalTrips || 0,
+        hours: data.onlineHours || 0,
+        commission: data.commission || 0,
+      });
+    } catch {
+      // Keep zero-state
+    }
+
+    try {
+      const trips = await apiService.getTripHistory(5, 0);
+      setRecentTrips(trips.map(t => ({
+        id: t.tripId,
+        date: t.date,
+        time: t.time,
+        pickup: t.pickup,
+        dropoff: t.dropoff,
+        distance: t.distance,
+        duration: t.duration,
+        fare: t.fare,
+        net: t.netEarnings,
+        rating: t.rating,
+      })));
+    } catch {
+      // Keep empty trips
+    }
+
+    setLoading(false);
   };
 
-  const recentTrips = [
-    {
-      id: 'trip_001',
-      date: '2024-01-15',
-      time: '14:30',
-      pickup: 'Downtown Chicago',
-      dropoff: 'O\'Hare Airport',
-      distance: 18.5,
-      duration: 35,
-      fare: 4500,
-      net: 3600,
-      rating: 5,
-    },
-    {
-      id: 'trip_002',
-      date: '2024-01-15',
-      time: '12:15',
-      pickup: 'Lincoln Park',
-      dropoff: 'Navy Pier',
-      distance: 4.2,
-      duration: 15,
-      fare: 1800,
-      net: 1440,
-      rating: 5,
-    },
-    {
-      id: 'trip_003',
-      date: '2024-01-15',
-      time: '10:45',
-      pickup: 'River North',
-      dropoff: 'Millennium Park',
-      distance: 2.8,
-      duration: 12,
-      fare: 1500,
-      net: 1200,
-      rating: 4,
-    },
-  ];
 
-  const monthlyData = [
-    { month: 'Jan', earnings: 31000 },
-    { month: 'Feb', earnings: 28500 },
-    { month: 'Mar', earnings: 33200 },
-    { month: 'Apr', earnings: 29800 },
-    { month: 'May', earnings: 35600 },
-    { month: 'Jun', earnings: 32400 },
-    { month: 'Jul', earnings: 38900 },
-    { month: 'Aug', earnings: 36200 },
-    { month: 'Sep', earnings: 34800 },
-    { month: 'Oct', earnings: 37500 },
-    { month: 'Nov', earnings: 33900 },
-    { month: 'Dec', earnings: 31000 },
-  ];
 
-  const currentData = earningsData[selectedPeriod];
 
   const formatCurrency = (cents) => {
     return `$${(cents / 100).toFixed(2)}`;

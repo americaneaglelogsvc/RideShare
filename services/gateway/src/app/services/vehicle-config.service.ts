@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException , Logger } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
 
 export interface VehicleConfigRequest {
@@ -49,6 +49,8 @@ export interface VehicleCategory {
 
 @Injectable()
 export class VehicleConfigService {
+  private readonly logger = new Logger(VehicleConfigService.name);
+
   constructor(private readonly supabaseService: SupabaseService) {}
 
   // Create vehicle configuration for a tenant
@@ -271,7 +273,7 @@ export class VehicleConfigService {
         const result = await this.createVehicleConfig(tenantId, config);
         results.push(result);
       } catch (error) {
-        console.warn(`Failed to create default config ${config.vehicle_type}:`, error);
+        this.logger.warn(`Failed to create default config ${config.vehicle_type}:`, error);
       }
     }
 

@@ -113,6 +113,7 @@ $$;
 
 -- ── 5. Update find_nearest_drivers to use MILES (USA Localization) ────────
 -- p_radius_miles replaces p_radius_meters; conversion: miles * 1609.34 = meters
+DROP FUNCTION IF EXISTS find_nearest_drivers(UUID, DOUBLE PRECISION, DOUBLE PRECISION, DOUBLE PRECISION, TEXT, INT);
 CREATE OR REPLACE FUNCTION find_nearest_drivers(
   p_tenant_id UUID,
   p_lat DOUBLE PRECISION,

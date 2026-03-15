@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, BadRequestException , Logger } from '@nestjs/common';
 import {
   DriverAuthDto,
   DriverRegistrationDto,
@@ -22,6 +22,8 @@ function maskPhone(phone: string | null | undefined): string {
 
 @Injectable()
 export class DriverService {
+  private readonly logger = new Logger(DriverService.name);
+
   constructor(private readonly supabaseService: SupabaseService) {}
 
   private async resolveProfileId(tenantId: string, authUserId: string): Promise<string> {
@@ -633,7 +635,7 @@ export class DriverService {
           .single();
 
         if (tripError || !trip) {
-          console.error('Failed to create mock trip:', tripError);
+          // Failed to create simulated trip — non-critical
           return;
         }
 
@@ -664,7 +666,7 @@ export class DriverService {
           });
 
         if (offerError) {
-          console.error('Failed to create ride offer:', offerError);
+          // Failed to create ride offer — non-critical
         }
 
         // Auto-expire the offer after 15 seconds
@@ -677,7 +679,7 @@ export class DriverService {
             .eq('status', 'pending');
         }, 15000);
       } catch (error) {
-        console.error('Error simulating ride offer:', error);
+        this.logger.error('Error simulating ride offer:', error);
       }
     }, 3000); // Send offer 3 seconds after going online
   }

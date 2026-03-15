@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../services/supabase.service';
+import { apiService } from '../services/api.service';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:9000';
 
 export interface RideOffer {
   id: string;
@@ -34,6 +34,8 @@ export const useRealtime = (driverId: string | null) => {
   useEffect(() => {
     if (!driverId) return;
 
+    const supabase = apiService.getSupabaseClient();
+
     // Subscribe to ride offers for this driver
     const rideOffersChannel = supabase
       .channel(`driver-offers-${driverId}`)
@@ -46,7 +48,7 @@ export const useRealtime = (driverId: string | null) => {
           filter: `driver_id=eq.${driverId}`
         },
         (payload) => {
-          console.log('Ride offer update:', payload);
+          // Structured update — no console.log in production
           
           if (payload.eventType === 'INSERT') {
             const newOffer = payload.new as RideOffer;

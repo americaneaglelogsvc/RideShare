@@ -163,7 +163,7 @@ CREATE TRIGGER update_bookings_updated_at BEFORE UPDATE ON bookings
 -- Add some sample data for testing
 INSERT INTO quotes (id, category, pickup_location, dropoff_location, total_cents, line_items, eta_minutes, expires_at)
 VALUES (
-  'quote_sample_123',
+  'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
   'black_sedan',
   '{"address": "123 N Michigan Ave, Chicago, IL", "lat": 41.8781, "lng": -87.6298}',
   '{"address": "O''Hare International Airport, Terminal 1", "lat": 41.9786, "lng": -87.9048}',

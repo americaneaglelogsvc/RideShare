@@ -1,17 +1,25 @@
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   process.env.VITE_API_BASE_URL ||
-  'https://api.urwaydispatch.com';
+  'http://localhost:9000';
 
 export async function apiFetch<T = any>(
   endpoint: string,
   opts: RequestInit = {},
 ): Promise<{ data: T | null; error: string | null }> {
   try {
+    // Get auth token if available (client-side only)
+    const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null;
+    const authHeaders: Record<string, string> = {};
+    if (token) {
+      authHeaders['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${API_BASE.replace(/\/$/, '')}${endpoint}`, {
       ...opts,
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders,
         ...(opts.headers || {}),
       },
       cache: 'no-store',

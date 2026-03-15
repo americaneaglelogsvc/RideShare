@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { opsApi } from '../lib/api';
+import { AuthGuard } from '../lib/auth-guard';
 
 // §9.1 Tenant Ops Console — live map, assign, alerts, CRUD
 
@@ -28,24 +29,79 @@ const MOCK_ALERTS = [
   { id: 3, severity: 'info', message: 'New driver onboarding completed: Sarah L.', time: '15 min ago' },
 ];
 
-export default function OpsConsolePage() {
-  // Live API fetch with mock fallback
+function OpsConsoleContent() {
   const [apiSource, setApiSource] = useState<'live' | 'mock'>('mock');
+  const [activeTab, setActiveTab] = useState<'trips' | 'alerts' | 'drivers'>('trips');
+  const [trips, setTrips] = useState<TripRow[]>(MOCK_TRIPS);
+  const [alerts, setAlerts] = useState(MOCK_ALERTS);
+  const [stats, setStats] = useState({ activeTrips: 12, onlineDrivers: 28, unassigned: 3, todayRevenue: 4280, criticalAlerts: 1 });
+  const [drivers, setDrivers] = useState<any[]>([]);
+
   useEffect(() => {
     (async () => {
+      let isLive = false;
+
+      // Fetch live trips
       const { data } = await opsApi.getLiveTrips();
-      if (data) setApiSource('live');
+      if (data && Array.isArray(data)) {
+        setTrips(data.map((t: any) => ({
+          id: t.id?.slice(0, 8) || t.id,
+          rider: t.rider_name || t.riders?.name || 'Unknown',
+          driver: t.driver_name || (t.drivers ? `${t.drivers.first_name} ${t.drivers.last_name}` : 'Unassigned'),
+          status: t.status || 'pending',
+          pickup: t.pickup_address || '',
+          dropoff: t.dropoff_address || '',
+          eta: t.eta_minutes ? `${t.eta_minutes} min` : '-',
+        })));
+        isLive = true;
+      }
+
+      // Fetch alerts
+      const { data: alertsData } = await opsApi.getAlerts();
+      if (alertsData && Array.isArray(alertsData)) {
+        setAlerts(alertsData.length > 0 ? alertsData : MOCK_ALERTS.map(a => ({...a, message: 'No active alerts'})).slice(0, 0));
+        if (alertsData.length === 0) {
+          setAlerts([]);
+        } else {
+          setAlerts(alertsData);
+        }
+        isLive = true;
+      }
+
+      // Fetch metrics
+      const { data: metricsData } = await opsApi.getMetrics();
+      if (metricsData) {
+        const m = metricsData as any;
+        setStats({
+          activeTrips: m.activeTrips || 0,
+          onlineDrivers: m.onlineDrivers || 0,
+          unassigned: 0,  // Will be computed from trips
+          todayRevenue: 0, // Would need a dedicated endpoint
+          criticalAlerts: alertsData ? (alertsData as any[]).filter((a: any) => a.severity === 'critical' || a.severity === 'warning').length : 0,
+        });
+        isLive = true;
+      }
+
+      // Fetch driver statuses
+      const { data: driverData } = await opsApi.getDriverStatuses();
+      if (driverData && Array.isArray(driverData)) {
+        setDrivers(driverData);
+        isLive = true;
+      }
+
+      if (isLive) setApiSource('live');
     })();
   }, []);
-  const [activeTab, setActiveTab] = useState<'trips' | 'alerts' | 'drivers'>('trips');
-  const [trips] = useState<TripRow[]>(MOCK_TRIPS);
+
+  // Compute unassigned from trips
+  const computedUnassigned = trips.filter(t => t.driver === 'Unassigned' || !t.driver).length;
 
   const statusColor = (status: string) => {
     switch (status) {
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
-      case 'en_route_pickup': return 'bg-yellow-100 text-yellow-800';
-      case 'pending': return 'bg-red-100 text-red-800';
-      case 'completed': return 'bg-green-100 text-green-800';
+      case 'in_progress': case 'active': return 'bg-blue-100 text-blue-800';
+      case 'en_route_pickup': case 'assigned': return 'bg-yellow-100 text-yellow-800';
+      case 'pending': case 'requested': return 'bg-red-100 text-red-800';
+      case 'completed': case 'closed': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -67,12 +123,12 @@ export default function OpsConsolePage() {
             <a href="/" className="text-slate-500 hover:text-amber-400 text-sm transition-colors">← Home</a>
             <div>
               <h1 className="text-xl font-bold text-amber-400">Operations Console</h1>
-              <p className="text-xs text-slate-500">Real-time dispatch monitoring · {apiSource === 'live' ? <span className="text-green-400">Live Data</span> : <span className="text-yellow-400">Mock Data</span>}</p>
+              <p className="text-xs text-slate-500">Real-time dispatch monitoring · {apiSource === 'live' ? <span className="text-green-400">● Live Data</span> : <span className="text-yellow-400">○ Mock Data</span>}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-            <span className="text-xs text-slate-400">GoldRavenia</span>
+            <span className="text-xs text-slate-400">UrWay Dispatch</span>
           </div>
         </div>
       </header>
@@ -81,24 +137,24 @@ export default function OpsConsolePage() {
       <div className="bg-[#1e293b] border-b border-slate-700 px-6 py-3">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-amber-400">12</div>
+            <div className="text-2xl font-bold text-amber-400">{stats.activeTrips}</div>
             <div className="text-xs text-slate-500">Active Trips</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-400">28</div>
+            <div className="text-2xl font-bold text-green-400">{stats.onlineDrivers}</div>
             <div className="text-xs text-slate-500">Online Drivers</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-400">3</div>
+            <div className="text-2xl font-bold text-yellow-400">{computedUnassigned}</div>
             <div className="text-xs text-slate-500">Unassigned</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-amber-400">$4,280</div>
+            <div className="text-2xl font-bold text-amber-400">{stats.todayRevenue > 0 ? `$${(stats.todayRevenue / 100).toLocaleString()}` : '$0'}</div>
             <div className="text-xs text-slate-500">Today Revenue</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-red-400">1</div>
-            <div className="text-xs text-slate-500">Critical Alerts</div>
+            <div className="text-2xl font-bold text-red-400">{stats.criticalAlerts}</div>
+            <div className="text-xs text-slate-500">Alerts</div>
           </div>
         </div>
       </div>
@@ -209,5 +265,13 @@ export default function OpsConsolePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OpsConsolePage() {
+  return (
+    <AuthGuard>
+      <OpsConsoleContent />
+    </AuthGuard>
   );
 }

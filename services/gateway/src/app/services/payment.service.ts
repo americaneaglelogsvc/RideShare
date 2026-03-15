@@ -1,10 +1,19 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+/**
+ * @file payment.service.ts
+ * @req RIDE-PAY-010  — Tenant direct settlement (default)
+ * @req RIDE-PAY-020  — PaySurity settlement (optional)
+ * @req PAY-SETL-0001 — Settlement gating (bank_settled) — see processDriverPayout()
+ * @req RIDE-PAYOUT-101 — Completely Settled truth — see BANK_SETTLED check
+ * @req PAY-ADJ-0001  — Refunds/adjustments — see refundPayment()
+ */
+import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
 import { FluidpayService, FluidpayPaymentRequest } from './fluidpay.service';
 
 export interface PaymentRequest {
   trip_id: string;
   rider_id: string;
+  tenant_id?: string;
   amount_cents: number;
   payment_method: {
     type: 'card' | 'bank_account';
@@ -25,6 +34,7 @@ export interface PaymentRequest {
 
 export interface PayoutRequest {
   driver_id: string;
+  tenant_id?: string;
   amount_cents: number;
   bank_account: {
     account_number: string;
@@ -36,6 +46,8 @@ export interface PayoutRequest {
 
 @Injectable()
 export class PaymentService {
+  private readonly logger = new Logger(PaymentService.name);
+
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly fluidpayService: FluidpayService
@@ -67,6 +79,7 @@ export class PaymentService {
           trip_id: request.trip_id,
           rider_id: request.rider_id,
           driver_id: trip.driver_id,
+          tenant_id: request.tenant_id,
           amount_cents: request.amount_cents,
           payment_method: request.payment_method.type,
           status: 'pending'
@@ -87,6 +100,7 @@ export class PaymentService {
           email: trip.riders.email,
           phone: trip.riders.phone
         },
+        tenant_id: request.tenant_id,
         payment_method: request.payment_method,
         description: `urwaydispatch.com trip payment - ${trip.pickup_address} to ${trip.dropoff_address}`,
         metadata: {
@@ -110,7 +124,7 @@ export class PaymentService {
         .eq('id', payment.id);
 
       if (updateError) {
-        console.error('Failed to update payment record:', updateError);
+        this.logger.error('Failed to update payment record', updateError);
       }
 
       // If payment succeeded, update trip status
@@ -133,7 +147,7 @@ export class PaymentService {
       };
 
     } catch (error: any) {
-      console.error('Payment processing error:', error);
+      this.logger.error(`Payment processing error: ${error.message}`, error.stack);
       throw new BadRequestException(error.message || 'Payment processing failed');
     }
   }
@@ -178,6 +192,7 @@ export class PaymentService {
         .insert({
           driver_id: request.driver_id,
           amount_cents: request.amount_cents,
+          tenant_id: request.tenant_id,
           status: 'pending',
           settlement_status: 'PENDING_BANK_SETTLEMENT',
           bank_account: request.bank_account
@@ -225,7 +240,7 @@ export class PaymentService {
       };
 
     } catch (error: any) {
-      console.error('Payout processing error:', error);
+      this.logger.error(`Payout processing error: ${error.message}`, error.stack);
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
         throw error;
       }
@@ -270,7 +285,7 @@ export class PaymentService {
             payment.status = fluidpayPayment.status;
           }
         } catch (error: any) {
-          console.error('Error fetching Fluidpay payment status:', error);
+          this.logger.warn(`Error fetching Fluidpay payment status: ${(error as any).message}`);
         }
       }
 
@@ -293,7 +308,7 @@ export class PaymentService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      console.error('Error getting payment status:', error);
+      this.logger.error(`Error getting payment status: ${error.message}`, error.stack);
       throw new BadRequestException('Failed to get payment status');
     }
   }
@@ -342,7 +357,7 @@ export class PaymentService {
       };
 
     } catch (error: any) {
-      console.error('Refund processing error:', error);
+      this.logger.error(`Refund processing error: ${error.message}`, error.stack);
       throw new BadRequestException(error.message || 'Refund processing failed');
     }
   }
@@ -378,11 +393,11 @@ export class PaymentService {
           break;
         
         default:
-          console.log(`Unhandled webhook type: ${type}`);
+          this.logger.warn(`Unhandled webhook type: ${type}`);
       }
 
     } catch (error: any) {
-      console.error('Webhook processing error:', error);
+      this.logger.error(`Webhook processing error: ${(error as any).message}`, (error as any).stack);
       throw error;
     }
   }

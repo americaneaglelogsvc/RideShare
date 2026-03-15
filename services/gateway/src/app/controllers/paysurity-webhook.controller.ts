@@ -1,17 +1,20 @@
-import { Controller, Post, Headers, Body, RawBodyRequest, Req, HttpCode } from '@nestjs/common';
+import { Controller, Post, Headers, Body, RawBodyRequest, Req, HttpCode, Logger, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PaymentService } from '../services/payment.service';
 import { DisputeService } from '../services/dispute.service';
 import { DistributionService } from '../services/distribution.service';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
-import { UseGuards } from '@nestjs/common';
 import { WebhookRateLimitGuard } from '../guards/rate-limit.guard';
+import { Public } from '../guards/jwt-auth.guard';
 
 @ApiTags('webhooks')
 @Controller('webhooks')
+@Public()
 @UseGuards(WebhookRateLimitGuard)
 export class PaysurityWebhookController {
+  private readonly logger = new Logger(PaysurityWebhookController.name);
+
   constructor(
     private readonly paymentService: PaymentService,
     private readonly disputeService: DisputeService,
@@ -81,7 +84,7 @@ export class PaysurityWebhookController {
         break;
 
       default:
-        console.log(`Unhandled PaySurity webhook event: ${eventType}`);
+        this.logger.log(`Unhandled PaySurity webhook event: ${eventType}`);
     }
 
     return { success: true, event: eventType };

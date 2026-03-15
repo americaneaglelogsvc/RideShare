@@ -13,6 +13,7 @@ export class HealthController {
   constructor(private readonly monitor: GlobalMonitorService) {}
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'Health check' })
   @ApiResponse({ status: 200, description: 'Service is healthy' })
   @Retry({ maxAttempts: 3, delay: 50 })

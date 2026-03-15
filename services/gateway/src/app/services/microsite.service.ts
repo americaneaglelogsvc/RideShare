@@ -1,3 +1,9 @@
+/**
+ * @file microsite.service.ts
+ * @req MIC-PUB-0001 — Tenant microsite static publish + CDN
+ * @req MIC-WGT-0001 — Tenant microsite booking/quote widget — see createWidget()
+ * @req GCP-ARCH-0002 — Tenant microsite domains + TLS — see getMicrositeBySubdomain()
+ */
 import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
 

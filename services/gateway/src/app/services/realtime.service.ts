@@ -1,9 +1,11 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit , Logger } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
 @Injectable()
 export class RealtimeService implements OnModuleInit {
+  private readonly logger = new Logger(RealtimeService.name);
+
   private channels: Map<string, RealtimeChannel> = new Map();
 
   constructor(private readonly supabaseService: SupabaseService) {}
@@ -12,7 +14,7 @@ export class RealtimeService implements OnModuleInit {
     try {
       this.setupRealtimeChannels();
     } catch (e: any) {
-      console.warn('RealtimeService disabled (Supabase not configured):', e?.message || e);
+      this.logger.warn('RealtimeService disabled (Supabase not configured):', e?.message || e);
     }
   }
 
@@ -20,7 +22,7 @@ export class RealtimeService implements OnModuleInit {
     const supabase = this.supabaseService.getClient();
 
     if (!supabase) {
-      console.warn('Supabase client is not available, skipping realtime channel setup');
+      this.logger.warn('Supabase client is not available, skipping realtime channel setup');
       return;
     }
 
@@ -30,7 +32,7 @@ export class RealtimeService implements OnModuleInit {
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'driver_locations' },
         (payload) => {
-          console.log('Driver location updated:', payload);
+          this.logger.log('Driver location updated:', payload);
           // Broadcast to relevant clients
           this.broadcastLocationUpdate(payload);
         }
@@ -45,7 +47,7 @@ export class RealtimeService implements OnModuleInit {
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'ride_offers' },
         (payload) => {
-          console.log('Ride offer updated:', payload);
+          this.logger.log('Ride offer updated:', payload);
           this.broadcastRideOfferUpdate(payload);
         }
       )
@@ -59,7 +61,7 @@ export class RealtimeService implements OnModuleInit {
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'trips' },
         (payload) => {
-          console.log('Trip updated:', payload);
+          this.logger.log('Trip updated:', payload);
           this.broadcastTripUpdate(payload);
         }
       )
@@ -71,15 +73,15 @@ export class RealtimeService implements OnModuleInit {
   private broadcastLocationUpdate(payload: any) {
     // In a production app, you'd broadcast to WebSocket clients
     // For now, we'll log the update
-    console.log('Broadcasting location update to clients:', payload);
+    this.logger.log('Broadcasting location update to clients:', payload);
   }
 
   private broadcastRideOfferUpdate(payload: any) {
-    console.log('Broadcasting ride offer update to clients:', payload);
+    this.logger.log('Broadcasting ride offer update to clients:', payload);
   }
 
   private broadcastTripUpdate(payload: any) {
-    console.log('Broadcasting trip update to clients:', payload);
+    this.logger.log('Broadcasting trip update to clients:', payload);
   }
 
   async emitTripStateChanged(event: {
@@ -91,7 +93,7 @@ export class RealtimeService implements OnModuleInit {
     const supabase = this.supabaseService.getClient();
 
     if (!supabase) {
-      console.log('Trip state changed (no realtime client):', event);
+      this.logger.log('Trip state changed (no realtime client):', event);
       return;
     }
 
@@ -112,7 +114,7 @@ export class RealtimeService implements OnModuleInit {
         payload: event,
       });
     } catch (e: any) {
-      console.warn('Failed to emit trip_state_changed event:', e?.message || e);
+      this.logger.warn('Failed to emit trip_state_changed event:', e?.message || e);
     }
   }
 

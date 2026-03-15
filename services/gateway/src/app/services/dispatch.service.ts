@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
 import { RealtimeService } from './realtime.service';
 import { LedgerService } from './ledger.service';
@@ -46,6 +46,8 @@ interface DriverMatch {
 
 @Injectable()
 export class DispatchService {
+  private readonly logger = new Logger(DispatchService.name);
+
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly realtimeService: RealtimeService,
@@ -95,7 +97,7 @@ export class DispatchService {
         .order('rating', { ascending: false });
 
       if (error || !drivers) {
-        console.error('Error finding drivers:', error);
+        this.logger.error('Error finding drivers:', error);
         return [];
       }
 
@@ -130,7 +132,7 @@ export class DispatchService {
       });
 
     } catch (error) {
-      console.error('Error in findAvailableDrivers:', error);
+      this.logger.error('Error in findAvailableDrivers:', error);
       return [];
     }
   }
@@ -162,7 +164,7 @@ export class DispatchService {
       });
 
       if (error) {
-        console.warn('PostGIS RPC unavailable, falling back to in-memory search:', error.message);
+        this.logger.warn('PostGIS RPC unavailable, falling back to in-memory search:', error.message);
         const fallback = await this.findAvailableDrivers(tenantId, pickupLat, pickupLng, category, radiusMiles);
         return fallback.slice(0, limit);
       }
@@ -175,7 +177,7 @@ export class DispatchService {
         vehicleCategory: row.category || category,
       }));
     } catch (err) {
-      console.error('Geospatial search error, falling back:', err);
+      this.logger.error('Geospatial search error, falling back:', err);
       const fallback = await this.findAvailableDrivers(tenantId, pickupLat, pickupLng, category, radiusMiles);
       return fallback.slice(0, limit);
     }
@@ -193,7 +195,7 @@ export class DispatchService {
       );
 
       if (availableDrivers.length === 0) {
-        console.log('No available drivers found');
+        this.logger.log('No available drivers found');
         return null;
       }
 
@@ -228,7 +230,7 @@ export class DispatchService {
         .single();
 
       if (tripError || !trip) {
-        console.error('Error creating trip:', tripError);
+        this.logger.error('Error creating trip:', tripError);
         return null;
       }
 
@@ -245,7 +247,7 @@ export class DispatchService {
       return trip.id;
 
     } catch (error) {
-      console.error('Error dispatching ride:', error);
+      this.logger.error('Error dispatching ride:', error);
       return null;
     }
   }
@@ -281,7 +283,7 @@ export class DispatchService {
         });
 
       if (error) {
-        console.error('Error sending ride offer:', error);
+        this.logger.error('Error sending ride offer:', error);
       }
 
       setTimeout(async () => {
@@ -295,7 +297,7 @@ export class DispatchService {
       }, 15000);
 
     } catch (error) {
-      console.error('Error in sendRideOffer:', error);
+      this.logger.error('Error in sendRideOffer:', error);
     }
   }
 
@@ -345,7 +347,7 @@ export class DispatchService {
       return { success: true, trip: updatedTrip };
 
     } catch (e: any) {
-      console.error('acceptOffer failed:', e?.message || e);
+      this.logger.error('acceptOffer failed:', e?.message || e);
       return { success: false, message: 'acceptOffer failed' };
     }
   }
@@ -385,7 +387,7 @@ export class DispatchService {
       return { success: true, trip: updatedTrip };
 
     } catch (e: any) {
-      console.error('startTrip failed:', e?.message || e);
+      this.logger.error('startTrip failed:', e?.message || e);
       return { success: false, message: 'startTrip failed' };
     }
   }
@@ -436,7 +438,7 @@ export class DispatchService {
       return { success: true, trip: updatedTrip };
 
     } catch (e: any) {
-      console.error('completeTrip failed:', e?.message || e);
+      this.logger.error('completeTrip failed:', e?.message || e);
       return { success: false, message: 'completeTrip failed' };
     }
   }
@@ -509,7 +511,7 @@ export class DispatchService {
       return true;
 
     } catch (error) {
-      console.error('Error accepting ride offer:', error);
+      this.logger.error('Error accepting ride offer:', error);
       return false;
     }
   }
@@ -612,7 +614,7 @@ export class DispatchService {
       };
 
     } catch (e: any) {
-      console.error('cancelTrip failed:', e?.message || e);
+      this.logger.error('cancelTrip failed:', e?.message || e);
       return { success: false, message: 'cancelTrip failed' };
     }
   }
@@ -725,7 +727,7 @@ export class DispatchService {
       return { success: true, adjustments: inserted, new_fare_cents: newFareCents };
 
     } catch (e: any) {
-      console.error('adjustTrip failed:', e?.message || e);
+      this.logger.error('adjustTrip failed:', e?.message || e);
       return { success: false, message: 'adjustTrip failed' };
     }
   }
@@ -817,7 +819,7 @@ export class DispatchService {
       return { success: true, trip: closed, reconciliation };
 
     } catch (e: any) {
-      console.error('closeTrip failed:', e?.message || e);
+      this.logger.error('closeTrip failed:', e?.message || e);
       return { success: false, message: 'closeTrip failed' };
     }
   }

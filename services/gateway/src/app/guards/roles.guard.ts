@@ -1,3 +1,8 @@
+/**
+ * @file roles.guard.ts
+ * @req TEN-BASE-0002 — RBAC + JWT RolesGuard (§2.4 Role taxonomy)
+ * @test roles.guard.spec.ts
+ */
 import {
   CanActivate,
   ExecutionContext,

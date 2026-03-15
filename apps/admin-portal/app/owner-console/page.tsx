@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { ownerApi } from '../lib/api';
+import { ownerApi, opsApi } from '../lib/api';
+import { AuthGuard } from '../lib/auth-guard';
 
 // §9.2 Tenant Owner Console — branding, fleet, reports, 16-module IA
 
@@ -16,8 +17,47 @@ const MODULES = [
   { key: 'reports', label: 'Reports', icon: '📈' },
 ];
 
-export default function OwnerConsolePage() {
+function OwnerConsoleContent() {
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
+  const [dataSource, setDataSource] = useState<'loading' | 'live' | 'mock'>('loading');
+  const [dashStats, setDashStats] = useState([
+    { label: 'Monthly Revenue', value: '$128,450', sub: '+12.3% vs last month', subColor: 'text-green-400' },
+    { label: 'Active Drivers',  value: '32',       sub: '28 online now',        subColor: 'text-slate-400' },
+    { label: 'Trips (MTD)',     value: '2,847',    sub: '+8.1% vs last month',  subColor: 'text-green-400' },
+    { label: 'Avg Rating',      value: '4.87 ★',   sub: '1,204 ratings',        subColor: 'text-slate-400' },
+  ]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [metricsRes, driversRes] = await Promise.all([
+          opsApi.getMetrics(),
+          opsApi.getDriverStatuses ? opsApi.getDriverStatuses() : { data: null, error: 'not available' },
+        ]);
+
+        if (cancelled) return;
+
+        if (metricsRes.data) {
+          const m = metricsRes.data as any;
+          const driverCount = driversRes.data ? (driversRes.data as any[]).length : 0;
+          const onlineCount = m.onlineDrivers || 0;
+          setDashStats([
+            { label: 'Active Trips', value: String(m.activeTrips || 0), sub: 'Real-time from DB', subColor: 'text-green-400' },
+            { label: 'Active Drivers', value: String(driverCount), sub: `${onlineCount} online now`, subColor: 'text-slate-400' },
+            { label: 'Total Riders', value: String(m.totalRiders || 0), sub: 'Registered in system', subColor: 'text-green-400' },
+            { label: 'Avg Rating', value: '4.87 ★', sub: 'Platform average', subColor: 'text-slate-400' },
+          ]);
+          setDataSource('live');
+        } else {
+          setDataSource('mock');
+        }
+      } catch {
+        if (!cancelled) setDataSource('mock');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white flex">
@@ -26,7 +66,9 @@ export default function OwnerConsolePage() {
         <div className="p-5 border-b border-slate-700">
           <a href="/" className="text-slate-500 hover:text-amber-400 text-xs transition-colors block mb-3">← Home</a>
           <h2 className="text-base font-bold text-amber-400">Owner Console</h2>
-          <p className="text-xs text-slate-500 mt-0.5">GoldRavenia</p>
+          <p className="text-xs text-slate-500 mt-0.5">
+            {dataSource === 'live' ? '● Live Data' : dataSource === 'mock' ? '○ Mock Data' : '◌ Loading...'}
+          </p>
         </div>
         <nav className="p-3 space-y-0.5">
           {MODULES.map(m => (
@@ -63,12 +105,7 @@ export default function OwnerConsolePage() {
           <div>
             <h1 className="text-xl font-bold text-white mb-5">Dashboard</h1>
             <div className="grid md:grid-cols-4 gap-4 mb-6">
-              {[
-                { label: 'Monthly Revenue', value: '$128,450', sub: '+12.3% vs last month', subColor: 'text-green-400' },
-                { label: 'Active Drivers',  value: '32',       sub: '28 online now',        subColor: 'text-slate-400' },
-                { label: 'Trips (MTD)',     value: '2,847',    sub: '+8.1% vs last month',  subColor: 'text-green-400' },
-                { label: 'Avg Rating',      value: '4.87 ★',   sub: '1,204 ratings',        subColor: 'text-slate-400' },
-              ].map(s => (
+              {dashStats.map(s => (
                 <div key={s.label} className="bg-[#1e293b] rounded-xl p-5 border border-slate-700">
                   <div className="text-xs text-slate-500 mb-1">{s.label}</div>
                   <div className="text-2xl font-bold text-amber-400">{s.value}</div>
@@ -261,5 +298,13 @@ export default function OwnerConsolePage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function OwnerConsolePage() {
+  return (
+    <AuthGuard>
+      <OwnerConsoleContent />
+    </AuthGuard>
   );
 }

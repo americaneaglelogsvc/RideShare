@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
+import { AuthGuard } from './lib/auth-guard';
+import { useAuth } from './lib/auth-context';
 
 type ApiPingState =
   | { status: 'idle' }
@@ -8,12 +10,13 @@ type ApiPingState =
   | { status: 'ok'; httpStatus: number; latencyMs: number }
   | { status: 'fail'; error: string };
 
-export default function HomePage() {
+function HomeContent() {
+  const { user, signOut } = useAuth();
   const apiBaseUrl = useMemo(() => {
     const v =
       (process.env.NEXT_PUBLIC_API_BASE_URL as string | undefined) ||
       (process.env.VITE_API_BASE_URL as string | undefined) ||
-      'https://api.urwaydispatch.com';
+      'http://localhost:9000';
     return v.replace(/\/$/, '');
   }, []);
 
@@ -68,11 +71,24 @@ export default function HomePage() {
               <p className="text-xs text-slate-500">Admin Portal · Multi-tenant Ride Dispatch Platform</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className={`inline-block w-2 h-2 rounded-full ${apiOk ? 'bg-green-400' : apiFail ? 'bg-red-500' : 'bg-yellow-400 animate-pulse'}`} />
-            <span className="text-xs text-slate-400">
-              {apiOk ? `API OK · ${(ping as any).latencyMs}ms` : apiFail ? 'API Offline' : 'Checking…'}
-            </span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className={`inline-block w-2 h-2 rounded-full ${apiOk ? 'bg-green-400' : apiFail ? 'bg-red-500' : 'bg-yellow-400 animate-pulse'}`} />
+              <span className="text-xs text-slate-400">
+                {apiOk ? `API OK · ${(ping as any).latencyMs}ms` : apiFail ? 'API Offline' : 'Checking…'}
+              </span>
+            </div>
+            {user && (
+              <div className="flex items-center gap-3 pl-3 border-l border-slate-700">
+                <span className="text-xs text-slate-400">{user.email}</span>
+                <button
+                  onClick={signOut}
+                  className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -146,5 +162,13 @@ export default function HomePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <AuthGuard>
+      <HomeContent />
+    </AuthGuard>
   );
 }

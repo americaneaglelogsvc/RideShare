@@ -110,7 +110,8 @@ CREATE POLICY "Drivers can update own data within tenant"
   ));
 
 -- driver_profiles table
-CREATE POLICY IF NOT EXISTS "Profiles scoped to identity"
+DROP POLICY IF EXISTS "Profiles scoped to identity" ON driver_profiles;
+CREATE POLICY "Profiles scoped to identity"
   ON driver_profiles
   FOR SELECT
   TO authenticated
@@ -120,7 +121,8 @@ CREATE POLICY IF NOT EXISTS "Profiles scoped to identity"
     )
   );
 
-CREATE POLICY IF NOT EXISTS "Profiles update scoped to identity"
+DROP POLICY IF EXISTS "Profiles update scoped to identity" ON driver_profiles;
+CREATE POLICY "Profiles update scoped to identity"
   ON driver_profiles
   FOR UPDATE
   TO authenticated

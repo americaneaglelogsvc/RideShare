@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable , Logger } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
 import { DispatchService } from './dispatch.service';
 import { PricingService } from './pricing.service';
@@ -27,6 +27,8 @@ export interface BookingResponse {
 
 @Injectable()
 export class ReservationsService {
+  private readonly logger = new Logger(ReservationsService.name);
+
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly dispatchService: DispatchService,
@@ -96,7 +98,7 @@ export class ReservationsService {
       };
 
     } catch (error: any) {
-      console.error('Booking error:', error);
+      this.logger.error('Booking error:', error);
       throw new Error(error.message || 'Booking failed');
     }
   }
@@ -149,7 +151,7 @@ export class ReservationsService {
       };
 
     } catch (error: any) {
-      console.error('Error getting booking status:', error);
+      this.logger.error('Error getting booking status:', error);
       throw new Error(error.message || 'Failed to get booking status');
     }
   }
@@ -208,7 +210,7 @@ export class ReservationsService {
       };
 
     } catch (error: any) {
-      console.error('Error cancelling booking:', error);
+      this.logger.error('Error cancelling booking:', error);
       throw new Error(error.message || 'Failed to cancel booking');
     }
   }
@@ -246,7 +248,7 @@ export class ReservationsService {
       return newRider.id;
 
     } catch (error: any) {
-      console.error('Error getting/creating rider:', error);
+      this.logger.error('Error getting/creating rider:', error);
       throw error;
     }
   }

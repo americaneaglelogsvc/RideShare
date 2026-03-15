@@ -1,3 +1,7 @@
+/**
+ * @file audit.service.ts
+ * @req AUD-EVT-0001 — Audit event taxonomy (money + state changes)
+ */
 import { Injectable, Logger } from '@nestjs/common';
 import { SupabaseService } from './supabase.service';
 

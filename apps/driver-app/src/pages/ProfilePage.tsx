@@ -1,40 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Car, FileText, Settings, Edit, Camera, Phone, Mail, MapPin } from 'lucide-react';
+import apiService from '../services/api.service';
 
 export function ProfilePage() {
   const [activeTab, setActiveTab] = useState('personal');
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [profileData, setProfileData] = useState({
-    // Personal Information
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@email.com',
-    phone: '+1-312-555-0123',
-    address: '123 Main St, Chicago, IL 60601',
-    dateOfBirth: '1985-06-15',
-    rating: 4.92,
-    totalTrips: 1247,
-    
-    // Vehicle Information
-    vehicleMake: 'BMW',
-    vehicleModel: '5 Series',
-    vehicleYear: 2023,
-    vehicleColor: 'Black',
-    licensePlate: 'LUX-123',
-    vehicleCategory: 'black_sedan',
-    
-    // Documents
-    driversLicenseExpiry: '2026-08-15',
-    insuranceExpiry: '2024-12-31',
-    registrationExpiry: '2025-06-30',
-    backgroundCheckDate: '2024-01-15',
-    
-    // Preferences
-    airportPermits: ['ORD', 'MDW'],
-    preferredAreas: ['Downtown', 'River North', 'Lincoln Park'],
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',
+    dateOfBirth: '',
+    rating: 0,
+    totalTrips: 0,
+    vehicleMake: '',
+    vehicleModel: '',
+    vehicleYear: 0,
+    vehicleColor: '',
+    licensePlate: '',
+    vehicleCategory: 'sedan',
+    driversLicenseExpiry: '',
+    insuranceExpiry: '',
+    registrationExpiry: '',
+    backgroundCheckDate: '',
+    airportPermits: [] as string[],
+    preferredAreas: [] as string[],
     maxDistance: 25,
     autoAccept: false,
   });
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      const profile = await apiService.getProfile();
+      setProfileData(prev => ({
+        ...prev,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        email: profile.email,
+        phone: profile.phone,
+        address: profile.address || '',
+        rating: profile.rating,
+        totalTrips: profile.totalTrips,
+        vehicleMake: profile.vehicle?.make || '',
+        vehicleModel: profile.vehicle?.model || '',
+        vehicleYear: profile.vehicle?.year || 0,
+        vehicleColor: profile.vehicle?.color || '',
+        licensePlate: profile.vehicle?.licensePlate || '',
+        vehicleCategory: profile.vehicle?.category || 'sedan',
+      }));
+    } catch (err) {
+      // Profile load failed — show empty form
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setProfileData({
@@ -43,10 +69,21 @@ export function ProfilePage() {
     });
   };
 
-  const handleSave = () => {
-    // TODO: Save profile data to backend
-    console.log('Saving profile data:', profileData);
-    setIsEditing(false);
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await apiService.updateProfile({
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        email: profileData.email,
+        phone: profileData.phone,
+      });
+      setIsEditing(false);
+    } catch (err) {
+      // Save failed — keep editing mode
+    } finally {
+      setSaving(false);
+    }
   };
 
   const renderPersonalInfo = () => (

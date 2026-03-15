@@ -56,7 +56,7 @@ import { SeoController } from './controllers/seo.controller';
 import { DriverSocketGateway } from './gateways/driver-socket.gateway';
 import { TenantContextMiddleware } from './tenant-context.middleware';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.guard';
+import { RateLimitGuard, AdminRateLimitGuard, WebhookRateLimitGuard } from './guards/rate-limit.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { PolicyService } from './services/policy.service';
 import { PolicyController, JurisdictionTemplateController } from './controllers/policy.controller';
@@ -121,6 +121,9 @@ import { CorrelationMiddleware } from './middleware/correlation.middleware';
 import { CookieConsentMiddleware } from './middleware/cookie-consent.middleware';
 import { StandardErrorFilter } from './filters/standard-error.filter';
 import { ETagInterceptor } from './interceptors/etag.interceptor';
+import { AirportGeofenceService } from './services/airport-geofence.service';
+import { EnhancedDriverService } from './services/enhanced-driver.service';
+import { AirportQueueController } from './controllers/airport-queue.controller';
 
 @Module({
   imports: [
@@ -160,6 +163,7 @@ import { ETagInterceptor } from './interceptors/etag.interceptor';
     FraudDetectionController,
     VehicleConfigController,
     PassengerNeedsController,
+    AirportQueueController,
   ],
   providers: [
     SupabaseService,
@@ -251,6 +255,16 @@ import { ETagInterceptor } from './interceptors/etag.interceptor';
     RetryService,
     VehicleConfigService,
     PassengerNeedsService,
+    AirportGeofenceService,
+    EnhancedDriverService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
     {
       provide: APP_FILTER,
       useClass: StandardErrorFilter,

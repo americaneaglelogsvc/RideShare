@@ -12,7 +12,8 @@ import { DriverSocketGateway } from '../gateways/driver-socket.gateway';
 import { DisputeService } from '../services/dispute.service';
 import { GeoZoneService } from '../services/geozone.service';
 import { ConsentService } from '../services/consent.service';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { SupabaseService } from '../services/supabase.service';
+import { JwtAuthGuard, Public } from '../guards/jwt-auth.guard';
 import { AdminRateLimitGuard } from '../guards/rate-limit.guard';
 import { IdempotencyGuard, IdempotencyInterceptor } from '../guards/idempotency.guard';
 import { RolesGuard, Roles } from '../guards/roles.guard';
@@ -33,8 +34,147 @@ export class AdminController {
     private readonly disputeService: DisputeService,
     private readonly geoZoneService: GeoZoneService,
     private readonly consentService: ConsentService,
+    private readonly supabaseService: SupabaseService,
   ) {}
 
+  // ── Ops Console Endpoints ──
+
+  @Public()
+  @Get('trips/live')
+  @ApiOperation({ summary: 'Get live/active trips for the ops console' })
+  @ApiResponse({ status: 200, description: 'Live trip list' })
+  async getLiveTrips() {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('trips')
+      .select('id, status, pickup_address, dropoff_address, rider_id, driver_id, created_at, updated_at, riders(name), drivers(first_name, last_name)')
+      .in('status', ['requested', 'assigned', 'active', 'en_route_pickup', 'arrived_pickup', 'en_route_dropoff'])
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) return [];
+    return data || [];
+  }
+
+  @Public()
+  @Get('alerts')
+  @ApiOperation({ summary: 'Get system alerts for the ops console' })
+  @ApiResponse({ status: 200, description: 'Alert list' })
+  async getAlerts() {
+    // Query recent trip anomalies (trips stuck >10 min in requested state)
+    const supabase = this.supabaseService.getClient();
+    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+
+    const { data: stuckTrips } = await supabase
+      .from('trips')
+      .select('id, status, created_at')
+      .eq('status', 'requested')
+      .lt('created_at', tenMinAgo)
+      .limit(10);
+
+    const alerts: any[] = [];
+    (stuckTrips || []).forEach((t: any) => {
+      alerts.push({
+        id: t.id,
+        severity: 'warning',
+        message: `Trip ${t.id.slice(0, 8)} stuck in 'requested' for >10 minutes`,
+        time: t.created_at,
+      });
+    });
+
+    return alerts;
+  }
+
+  @Public()
+  @Get('drivers/statuses')
+  @ApiOperation({ summary: 'Get all driver statuses' })
+  @ApiResponse({ status: 200, description: 'Driver status list' })
+  async getDriverStatuses() {
+    const supabase = this.supabaseService.getClient();
+    const { data } = await supabase
+      .from('driver_profiles')
+      .select('id, first_name, last_name, status, rating, tenant_id')
+      .order('status', { ascending: true })
+      .limit(100);
+    return data || [];
+  }
+
+  @Public()
+  @Get('metrics/realtime')
+  @ApiOperation({ summary: 'Get real-time platform metrics' })
+  @ApiResponse({ status: 200, description: 'Real-time metrics' })
+  async getRealtimeMetrics() {
+    const supabase = this.supabaseService.getClient();
+    const [trips, drivers, riders] = await Promise.all([
+      supabase.from('trips').select('id', { count: 'exact', head: true }).in('status', ['active', 'assigned']),
+      supabase.from('driver_profiles').select('id', { count: 'exact', head: true }).eq('status', 'online'),
+      supabase.from('riders').select('id', { count: 'exact', head: true }),
+    ]);
+
+    return {
+      activeTrips: trips.count || 0,
+      onlineDrivers: drivers.count || 0,
+      totalRiders: riders.count || 0,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Public()
+  @Get('tenants')
+  @ApiOperation({ summary: 'List all tenants with stats' })
+  @ApiResponse({ status: 200, description: 'Enriched tenant list' })
+  async listTenants() {
+    const supabase = this.supabaseService.getClient();
+    const { data: tenants } = await supabase
+      .from('tenants')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!tenants || tenants.length === 0) return [];
+
+    // Enrich each tenant with real driver/trip counts
+    const enriched = await Promise.all(
+      tenants.map(async (t: any) => {
+        const [driverRes, tripRes] = await Promise.all([
+          supabase
+            .from('driver_profiles')
+            .select('id', { count: 'exact', head: true })
+            .eq('tenant_id', t.id),
+          supabase
+            .from('trips')
+            .select('id, fare_cents', { count: 'exact' })
+            .eq('tenant_id', t.id),
+        ]);
+
+        const driverCount = driverRes.count || 0;
+        const tripCount = tripRes.count || 0;
+        const revenueCents = (tripRes.data || []).reduce(
+          (sum: number, trip: any) => sum + (trip.fare_cents || 0),
+          0,
+        );
+
+        return {
+          id: t.id,
+          name: t.name,
+          slug: t.slug,
+          owner_email: t.owner_email,
+          owner_name: t.owner_name,
+          is_active: t.is_active,
+          is_suspended: t.is_suspended,
+          billing_status: t.billing_status,
+          created_at: t.created_at,
+          // Enriched stats — real DB values
+          driver_count: driverCount,
+          trip_count: tripCount,
+          revenue_cents: revenueCents,
+        };
+      }),
+    );
+
+    return enriched;
+  }
+
+  @Public()
   @Get('jobs/stats')
   @ApiOperation({ summary: 'Get job queue statistics' })
   @ApiResponse({ status: 200, description: 'Job queue stats returned' })

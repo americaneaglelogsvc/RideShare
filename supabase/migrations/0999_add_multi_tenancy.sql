@@ -80,65 +80,66 @@ ALTER TABLE payment_refunds ALTER COLUMN tenant_id SET NOT NULL;
 ALTER TABLE saved_payment_methods ALTER COLUMN tenant_id SET NOT NULL;
 ALTER TABLE driver_bank_accounts ALTER COLUMN tenant_id SET NOT NULL;
 
-ALTER TABLE drivers
-  ADD CONSTRAINT IF NOT EXISTS drivers_tenant_id_fkey
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+DO $$ BEGIN
+  ALTER TABLE drivers ADD CONSTRAINT drivers_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE vehicles
-  ADD CONSTRAINT IF NOT EXISTS vehicles_tenant_id_fkey
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+DO $$ BEGIN
+  ALTER TABLE vehicles ADD CONSTRAINT vehicles_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE driver_locations
-  ADD CONSTRAINT IF NOT EXISTS driver_locations_tenant_id_fkey
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+DO $$ BEGIN
+  ALTER TABLE driver_locations ADD CONSTRAINT driver_locations_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE trips
-  ADD CONSTRAINT IF NOT EXISTS trips_tenant_id_fkey
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+DO $$ BEGIN
+  ALTER TABLE trips ADD CONSTRAINT trips_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE ride_offers
-  ADD CONSTRAINT IF NOT EXISTS ride_offers_tenant_id_fkey
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+DO $$ BEGIN
+  ALTER TABLE ride_offers ADD CONSTRAINT ride_offers_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE riders
-  ADD CONSTRAINT IF NOT EXISTS riders_tenant_id_fkey
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+DO $$ BEGIN
+  ALTER TABLE riders ADD CONSTRAINT riders_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE bookings
-  ADD CONSTRAINT IF NOT EXISTS bookings_tenant_id_fkey
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+DO $$ BEGIN
+  ALTER TABLE bookings ADD CONSTRAINT bookings_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE quotes
-  ADD CONSTRAINT IF NOT EXISTS quotes_tenant_id_fkey
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+DO $$ BEGIN
+  ALTER TABLE quotes ADD CONSTRAINT quotes_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE payments
-  ADD CONSTRAINT IF NOT EXISTS payments_tenant_id_fkey
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+DO $$ BEGIN
+  ALTER TABLE payments ADD CONSTRAINT payments_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE ratings
-  ADD CONSTRAINT IF NOT EXISTS ratings_tenant_id_fkey
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+DO $$ BEGIN
+  ALTER TABLE ratings ADD CONSTRAINT ratings_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE airport_queues
-  ADD CONSTRAINT IF NOT EXISTS airport_queues_tenant_id_fkey
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+DO $$ BEGIN
+  ALTER TABLE airport_queues ADD CONSTRAINT airport_queues_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE driver_payouts
-  ADD CONSTRAINT IF NOT EXISTS driver_payouts_tenant_id_fkey
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+DO $$ BEGIN
+  ALTER TABLE driver_payouts ADD CONSTRAINT driver_payouts_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE payment_refunds
-  ADD CONSTRAINT IF NOT EXISTS payment_refunds_tenant_id_fkey
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+DO $$ BEGIN
+  ALTER TABLE payment_refunds ADD CONSTRAINT payment_refunds_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE saved_payment_methods
-  ADD CONSTRAINT IF NOT EXISTS saved_payment_methods_tenant_id_fkey
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+DO $$ BEGIN
+  ALTER TABLE saved_payment_methods ADD CONSTRAINT saved_payment_methods_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE driver_bank_accounts
-  ADD CONSTRAINT IF NOT EXISTS driver_bank_accounts_tenant_id_fkey
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+DO $$ BEGIN
+  ALTER TABLE driver_bank_accounts ADD CONSTRAINT driver_bank_accounts_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
 
 CREATE INDEX IF NOT EXISTS idx_drivers_tenant_id ON drivers(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_vehicles_tenant_id ON vehicles(tenant_id);

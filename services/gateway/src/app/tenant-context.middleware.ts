@@ -1,3 +1,8 @@
+/**
+ * @file tenant-context.middleware.ts
+ * @req TEN-BASE-0001 — Multi-tenant isolation (tenant_id on all entities)
+ * @req GCP-ARCH-0002 — Tenant microsite domains + TLS (domain→tenantId lookup)
+ */
 import { Injectable, NestMiddleware, BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { SupabaseService } from './services/supabase.service';
@@ -13,7 +18,7 @@ export class TenantContextMiddleware implements NestMiddleware {
   constructor(private readonly supabaseService: SupabaseService) {}
 
   async use(req: TenantRequest, _res: Response, next: NextFunction) {
-    if (req.path === '/health' || req.path.startsWith('/api') || req.path.startsWith('/webhooks')) {
+    if (req.path === '/health') {
       return next();
     }
 

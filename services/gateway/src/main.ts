@@ -4,8 +4,10 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app/app.module';
 import * as dotenv from 'dotenv';
 
-// Load environment variables
+// Load environment variables (base → development → local overrides)
 dotenv.config({ path: '../../.env' });
+dotenv.config({ path: '../../.env.development', override: true });
+dotenv.config({ path: '../../.env.local', override: true });
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,10 +15,12 @@ async function bootstrap() {
   // Enable CORS
   app.enableCors({
     origin: [
-      'http://localhost:5173',
-      'http://localhost:4200',
-      'http://localhost:4300',
-      'http://localhost:4400',
+      'http://localhost:4200',  // rider-app (legacy)
+      'http://localhost:4300',  // driver-app (legacy)
+      'http://localhost:4400',  // admin-portal (legacy)
+      'http://localhost:5173',  // driver-app (vite dev)
+      'http://localhost:5174',  // rider-app (vite dev)
+      'http://localhost:5175',  // admin-portal (next dev)
       'https://urwaydispatch.com',
       'https://www.urwaydispatch.com',
       'https://admin.urwaydispatch.com',
@@ -56,7 +60,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  const port = process.env.PORT || 8080;
+  const port = process.env.PORT || 9000;
   await app.listen(port);
   
   console.log(`🚀 Gateway service running on http://localhost:${port}`);

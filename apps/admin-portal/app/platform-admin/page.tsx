@@ -1,32 +1,79 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { platformApi } from '../lib/api';
+import { platformApi, opsApi } from '../lib/api';
+import { AuthGuard } from '../lib/auth-guard';
 
 // §9.3 Platform Admin Console — tenant CRUD, cross-tenant tracking, kill-switch, test runner
 
 type AdminTab = 'tenants' | 'health' | 'killswitch' | 'tests';
 
-const MOCK_TENANTS = [
+interface TenantRow {
+  id: string;
+  name: string;
+  plan: string;
+  drivers: number;
+  trips_mtd: number;
+  revenue_mtd: number;
+  status: string;
+  theme: string;
+  whiteLabel: boolean;
+}
+
+const FALLBACK_TENANTS: TenantRow[] = [
   { id: 'ten-001', name: 'Chicago Premium Cars', plan: 'Professional', drivers: 32, trips_mtd: 2847, revenue_mtd: 128450, status: 'active', theme: 'default', whiteLabel: false },
   { id: 'ten-002', name: 'Lake Shore Limo', plan: 'Enterprise', drivers: 58, trips_mtd: 4210, revenue_mtd: 215800, status: 'active', theme: 'default', whiteLabel: false },
-  { id: 'ten-003', name: 'Windy City Black Car', plan: 'Starter', drivers: 8, trips_mtd: 412, revenue_mtd: 18900, status: 'active', theme: 'default', whiteLabel: false },
-  { id: 'ten-004', name: 'O\'Hare Express', plan: 'Professional', drivers: 22, trips_mtd: 1890, revenue_mtd: 89200, status: 'active', theme: 'default', whiteLabel: false },
-  { id: 'ten-005', name: 'Midwest Executive', plan: 'Enterprise', drivers: 45, trips_mtd: 3100, revenue_mtd: 167300, status: 'suspended', theme: 'default', whiteLabel: false },
-  { id: 'a1b2c3d4-0001-4000-8000-000000000001', name: 'GoldRavenia Luxury Transportation', plan: 'Enterprise', drivers: 25, trips_mtd: 1250, revenue_mtd: 89500, status: 'active', theme: 'goldravenia', whiteLabel: true },
-  { id: 'a1b2c3d4-0001-4000-8000-000000000002', name: 'BlackRavenia Premium SUV', plan: 'Enterprise', drivers: 30, trips_mtd: 980, revenue_mtd: 72400, status: 'active', theme: 'blackravenia', whiteLabel: true },
-  { id: 'a1b2c3d4-0001-4000-8000-000000000003', name: 'SilverPeak Executive Chauffeur', plan: 'Professional', drivers: 18, trips_mtd: 650, revenue_mtd: 48200, status: 'active', theme: 'silverpeak', whiteLabel: false },
-  { id: 'a1b2c3d4-0001-4000-8000-000000000004', name: 'MetroFleet Transportation', plan: 'Starter', drivers: 40, trips_mtd: 2100, revenue_mtd: 94500, status: 'active', theme: 'metrofleet', whiteLabel: false },
-  { id: 'a1b2c3d4-0001-4000-8000-000000000005', name: 'NightOwl Late-Night Service', plan: 'Professional', drivers: 15, trips_mtd: 890, revenue_mtd: 41200, status: 'active', theme: 'nightowl', whiteLabel: false },
 ];
 
-export default function PlatformAdminPage() {
+function PlatformAdminContent() {
   const [activeTab, setActiveTab] = useState<AdminTab>('tenants');
   const [killSwitchEnabled, setKillSwitchEnabled] = useState(false);
+  const [tenants, setTenants] = useState<TenantRow[]>(FALLBACK_TENANTS);
+  const [dataSource, setDataSource] = useState<'loading' | 'live' | 'mock'>('loading');
+  const [metrics, setMetrics] = useState({ activeTrips: 0, onlineDrivers: 0, totalRiders: 0 });
 
-  const totalDrivers = MOCK_TENANTS.reduce((s, t) => s + t.drivers, 0);
-  const totalTrips = MOCK_TENANTS.reduce((s, t) => s + t.trips_mtd, 0);
-  const totalRevenue = MOCK_TENANTS.reduce((s, t) => s + t.revenue_mtd, 0);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [tenantRes, metricsRes] = await Promise.all([
+          platformApi.getTenants(),
+          opsApi.getMetrics(),
+        ]);
+
+        if (cancelled) return;
+
+        if (tenantRes.data && Array.isArray(tenantRes.data) && tenantRes.data.length > 0) {
+          const mapped: TenantRow[] = tenantRes.data.map((t: any) => ({
+            id: t.id,
+            name: t.name || t.slug || 'Unknown',
+            plan: t.billing_status === 'CURRENT' ? 'Active' : t.billing_status || 'N/A',
+            drivers: t.driver_count || 0,
+            trips_mtd: t.trip_count || 0,
+            revenue_mtd: t.revenue_cents || 0,
+            status: t.is_suspended ? 'suspended' : t.is_active ? 'active' : 'inactive',
+            theme: 'default',
+            whiteLabel: false,
+          }));
+          setTenants(mapped);
+          setDataSource('live');
+        } else {
+          setDataSource('mock');
+        }
+
+        if (metricsRes.data) {
+          setMetrics(metricsRes.data as any);
+        }
+      } catch {
+        if (!cancelled) setDataSource('mock');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const totalDrivers = tenants.reduce((s, t) => s + t.drivers, 0);
+  const totalTrips = tenants.reduce((s, t) => s + t.trips_mtd, 0);
+  const totalRevenue = tenants.reduce((s, t) => s + t.revenue_mtd, 0);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -42,6 +89,9 @@ export default function PlatformAdminPage() {
           </div>
           <div className="flex items-center space-x-3">
             <span className="text-xs bg-red-900/60 border border-red-700/50 text-red-300 px-2 py-1 rounded font-mono">SUPER ADMIN</span>
+            <span className={`text-xs px-2 py-1 rounded font-mono ${
+              dataSource === 'live' ? 'bg-green-900/60 border border-green-700/50 text-green-300' : 'bg-yellow-900/60 border border-yellow-700/50 text-yellow-300'
+            }`}>{dataSource === 'live' ? '● Live Data' : dataSource === 'mock' ? '○ Mock Data' : '◌ Loading...'}</span>
             <span className="text-sm text-slate-500">admin@urwaydispatch.com</span>
           </div>
         </div>
@@ -51,11 +101,11 @@ export default function PlatformAdminPage() {
       <div className="bg-[#1e293b] border-b border-slate-700 px-6 py-4">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-amber-400">{MOCK_TENANTS.length}</div>
+            <div className="text-2xl font-bold text-amber-400">{tenants.length}</div>
             <div className="text-xs text-gray-500">Total Tenants</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-400">{MOCK_TENANTS.filter(t => t.status === 'active').length}</div>
+            <div className="text-2xl font-bold text-green-400">{tenants.filter(t => t.status === 'active').length}</div>
             <div className="text-xs text-gray-500">Active Tenants</div>
           </div>
           <div className="text-center">
@@ -116,7 +166,7 @@ export default function PlatformAdminPage() {
                   <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase">Actions</th>
                 </tr></thead>
                 <tbody className="divide-y divide-gray-700">
-                  {MOCK_TENANTS.map(t => (
+                  {tenants.map(t => (
                     <tr key={t.id} className="hover:bg-gray-750">
                       <td className="px-4 py-3">
                         <div className="flex items-center space-x-3">
@@ -255,5 +305,13 @@ export default function PlatformAdminPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function PlatformAdminPage() {
+  return (
+    <AuthGuard>
+      <PlatformAdminContent />
+    </AuthGuard>
   );
 }

@@ -64,8 +64,7 @@ export class AirportQueueController {
     return await this.enhancedDriverService.markEnrouteToAirport(
       enrouteDto.tenantId,
       enrouteDto.driverId,
-      enrouteDto.airportCode,
-      enrouteDto.etaMinutes
+      { airportCode: enrouteDto.airportCode, etaMinutes: enrouteDto.etaMinutes }
     );
   }
 

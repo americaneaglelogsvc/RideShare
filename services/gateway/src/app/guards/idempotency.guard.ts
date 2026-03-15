@@ -1,3 +1,7 @@
+/**
+ * @file idempotency.guard.ts
+ * @req API-IDEM-0001 — Idempotency keys on all writes (§14 API contracts)
+ */
 import { Injectable, CanActivate, ExecutionContext, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { SupabaseService } from '../services/supabase.service';
 import * as crypto from 'crypto';
